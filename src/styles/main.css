@@ -4474,6 +4474,10 @@ body.high-contrast .panel {
   opacity: 0.5;
 }
 
+body.post-on .screen-fx {
+  display: none;
+}
+
 body.high-contrast .screen-fx {
   display: none;
 }

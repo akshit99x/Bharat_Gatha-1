@@ -136,6 +136,8 @@ export interface Settings {
   sfxVolume: number;
   renderScale: number;
   shadows: boolean;
+  /** Bloom, sun shafts, colour grade. Steps itself down automatically on slow machines. */
+  cinematic: boolean;
   motionBlurFree: boolean;
   dyslexiaFont: boolean;
   highContrast: boolean;
@@ -155,6 +157,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sfxVolume: 0.75,
   renderScale: 1,
   shadows: true,
+  cinematic: true,
   motionBlurFree: true,
   dyslexiaFont: false,
   highContrast: false,

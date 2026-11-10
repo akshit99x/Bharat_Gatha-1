@@ -79,6 +79,35 @@ actually requires.
 
 ---
 
+## Sound, light and people
+
+**Music.** Every region has its own score, generated live in the browser — there are no audio files. Each
+theme is a raga with its own pakad phrases, a taal with real bols, instruments (bansuri, sitar, veena,
+sarangi, santoor, shehnai, pakhawaj, tabla, manjira, tanpura) and a room. The Composer opens a piece with
+an unmetered alap that settles on Sa, then moves into a metered gat in call-and-response. Crossing a
+region border crossfades to the next theme; the title screen and the vimana flight have their own.
+Pads and drones are checked against the raga's scale in code, and each theme's level is calibrated by
+rendering it offline and measuring it, so nothing is louder than anything else.
+
+**Ambience.** Beneath the music sits a bed of place: surf and gulls on the Setu, the river and koel in
+Kosala, wind over Kurukshetra, a forge in Chola country, a fountain and a bazaar crowd in Agra, crickets
+at dusk. Music has its own volume slider; `Esc` → Settings.
+
+**People.** NPCs are not statues. Each has a role-based routine (smiths hammer, scribes write, dancers
+rehearse, children and water-carriers wander), turns to face you when you speak, offers a short remark as
+you pass, and wears a nameplate that shows a mark when they have something to tell you. Spoken lines use
+the browser's Indian-English voices where the device has them.
+
+**The Journey screen (`M`).** One screen, three tabs: **Map** (the island, regions, fast travel, what is
+discovered and what is not), **Roadmap** (all eleven chapters, what each still needs, and the next step
+for the one you are in) and **Guide** (controls, and a checklist that tracks your first steps).
+
+**Graphics.** Stone and terrain carry world-space weathering that varies hue and wear so no two walls read
+as the same texture; foliage sways in a gust field. The sea knows its own depth — turquoise shallows,
+deep blue, lines of surf at the shore, and the sand showing through thin water. A post-processing chain
+adds bloom, sun shafts, a gentle warm/cool grade, vignette and grain over a multisampled HDR target.
+"Cinematic lighting" in Settings turns it off, and it steps itself down on slow machines.
+
 ## The story — *The Unfinished Scroll* (अधूरा पट)
 
 The island holds **the Gatha**, a scroll of eleven painted panels in the style of the *pat* and *phad*
@@ -169,6 +198,8 @@ src/
                  the Sabha and the endings — pure data, validated at startup
   story/         StoryEngine: every story rule (what counts as a corrected plaque, when a
                  panel can be restored, which ending is heard) with no DOM and no three.js
+  core/music/    Procedural score: ragas, taals, instruments, composer, ambience, conductor
+  render/        Post-processing chain (bloom, sun shafts, grade) with adaptive quality
   world/         Terrain, sky, sea, vegetation, collision
   world/architecture/   The procedural building kit and 33 monument builders
   player/        Character controller, third-person camera rig, avatar animation

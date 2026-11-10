@@ -7,7 +7,7 @@ import { Vegetation, defaultVegetationOptions, type ExclusionCircle } from './Ve
 import { CollisionWorld } from './Collision';
 import { buildLandmark } from './architecture';
 import { Kit } from './architecture/kit';
-import { stoneMaterial, glowMaterial, shade } from './Materials';
+import { stoneMaterial, glowMaterial, shade, shaderTime } from './Materials';
 import { Rng } from '../core/Rng';
 import { Chariot } from '../vehicles/Chariot';
 import { Atmosphere } from './Atmosphere';
@@ -131,7 +131,7 @@ export class World {
     this.sky = new Sky(opts.shadows);
     this.sky.addTo(scene);
 
-    this.water = new Water();
+    this.water = new Water(this.terrain);
     this.group.add(this.water.mesh);
     this.group.add(this.atmosphere.points);
 
@@ -700,6 +700,7 @@ export class World {
   // ------------------------------------------------------------------- update
 
   update(dt: number, camera: THREE.Camera, elapsed: number, focus?: THREE.Vector3, talking: string | null = null): void {
+    shaderTime.value = elapsed;
     this.sky.update(dt, camera.position, elapsed);
     this.water.update(elapsed, this.sky.sun.position.clone().sub(camera.position).normalize(), this.sky.sun.color, this.sky.fog.color);
     for (const b of this.bobbers) {

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Post } from './render/Post';
 import './styles/main.css';
 
 import { Input } from './core/Input';
@@ -58,11 +59,13 @@ const SCAN_RANGE = 150;
 
 /** Reused each frame so the scan probe allocates nothing. */
 const _fwd = new THREE.Vector3();
+const _sunDir = new THREE.Vector3();
 
 class Game {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera: THREE.PerspectiveCamera;
+  private readonly post: Post;
   private readonly clock = new THREE.Clock();
 
   private readonly input: Input;
@@ -119,10 +122,13 @@ class Game {
     this.renderer.shadowMap.enabled = save.settings.shadows;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     viewport.appendChild(this.renderer.domElement);
+    document.body.classList.toggle('post-on', save.settings.cinematic);
 
     // A little wider than first person: the point of the over-the-shoulder view
     // is seeing more of where you are heading.
     this.camera = new THREE.PerspectiveCamera(78, 1, 0.1, WORLD_HALF * 3.4);
+    this.post = new Post(this.renderer, this.scene, this.camera);
+    this.post.setEnabled(save.settings.cinematic);
     this.scene.add(this.camera);
 
     this.input = new Input(this.renderer.domElement);
@@ -432,7 +438,8 @@ class Game {
     this.updateHud(blocked);
     this.trackStats(dt);
 
-    this.renderer.render(this.scene, this.camera);
+    const sunDir = _sunDir.copy(this.world.sky.sun.position).sub(this.camera.position).normalize();
+    this.post.render(dt, this.elapsed, sunDir, this.world.sky.sun.color);
     this.input.endFrame();
   };
 
@@ -1098,6 +1105,10 @@ class Game {
         this.renderer.shadowMap.enabled = v;
         this.world.sky.setShadows(v);
       }),
+      toggleRow('Cinematic lighting', 'Bloom, sun shafts and colour grading. Steps down by itself if the game runs slowly.', save.settings.cinematic, (v) => {
+        save.patchSettings({ cinematic: v });
+        this.post.setEnabled(v);
+      }),
       toggleRow('Gentle descent', 'The glider opens automatically and falls never hurt.', save.settings.gentleMode, (v) =>
         save.patchSettings({ gentleMode: v }),
       ),
@@ -1298,6 +1309,7 @@ class Game {
     const scale = Math.min(2, window.devicePixelRatio) * save.settings.renderScale;
     this.renderer.setPixelRatio(scale);
     this.renderer.setSize(width, height, false);
+    this.post.resize(width, height, scale);
     this.camera.aspect = width / Math.max(1, height);
     this.camera.updateProjectionMatrix();
   }

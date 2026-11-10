@@ -6,6 +6,7 @@ import { runSequence } from './Sequence';
 import { runScriptMatch } from './ScriptMatch';
 import { runAssembly } from './Assembly';
 import { runTrade } from './Trade';
+import { runPattern } from './Pattern';
 
 /**
  * The mini-game manager.
@@ -33,6 +34,7 @@ const RUNNERS: Partial<Record<ChallengeSpec['kind'], Runner>> = {
   scriptMatch: runScriptMatch as Runner,
   assembly: runAssembly as Runner,
   trade: runTrade as Runner,
+  pattern: runPattern as Runner,
 };
 
 export class MiniGames {

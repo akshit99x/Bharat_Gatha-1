@@ -29,6 +29,7 @@ import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
 import type { MiniGameResult } from './minigames/types';
+import { validateMiniGames } from './minigames/validate';
 import { StoryEngine, EKARUPA, MAITRI, SABHA_MIN_PANELS, type Speaker } from './story/StoryEngine';
 import { CHAPTERS, PROLOGUE, getChapter, validateStory, type StoryLine } from './content/story';
 import { buildPanel, button, closeOverlay, el, mountOverlay, overlayOpen } from './ui/overlay';
@@ -178,7 +179,7 @@ class Game {
     onProgress(0.06, 'Checking the chronicles…');
     await nextFrame();
 
-    const contentProblems = [...validateContent(), ...validateQuestions(), ...validateStory()];
+    const contentProblems = [...validateContent(), ...validateQuestions(), ...validateStory(), ...validateMiniGames()];
     if (contentProblems.length > 0) {
       console.warn(`[content] ${contentProblems.length} problem(s) found:`);
       for (const p of contentProblems) console.warn(`  · ${p}`);

@@ -34,12 +34,12 @@ export function shuffledNotSolved<T>(items: readonly T[], seed: string, same: (a
 }
 
 /** Run a per-frame callback until it returns false or the element leaves the page. */
-export function animate(el: Element, step: (dt: number, t: number) => boolean): void {
+export function animate(el: Element, step: (dt: number, t: number) => boolean, maxDt = 0.05): void {
   let last = performance.now();
   const start = last;
   const frame = (now: number): void => {
     if (!el.isConnected) return;
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const dt = Math.min(maxDt, (now - last) / 1000);
     last = now;
     if (step(dt, (now - start) / 1000)) requestAnimationFrame(frame);
   };

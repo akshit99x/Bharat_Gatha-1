@@ -3,6 +3,9 @@ import type { ChallengeSpec } from '../content/types';
 import { buildPanel, button, closeOverlay, el, mountOverlay } from '../ui/overlay';
 import type { GameHost, MiniGameResult } from './types';
 import { runSequence } from './Sequence';
+import { runScriptMatch } from './ScriptMatch';
+import { runAssembly } from './Assembly';
+import { runTrade } from './Trade';
 
 /**
  * The mini-game manager.
@@ -27,6 +30,9 @@ type Runner = (challenge: ChallengeSpec, host: GameHost) => Promise<MiniGameResu
 
 const RUNNERS: Partial<Record<ChallengeSpec['kind'], Runner>> = {
   sequence: runSequence as Runner,
+  scriptMatch: runScriptMatch as Runner,
+  assembly: runAssembly as Runner,
+  trade: runTrade as Runner,
 };
 
 export class MiniGames {

@@ -2006,3 +2006,841 @@ body.high-contrast {
 body.high-contrast .panel {
   background: #0a0910;
 }
+
+/* ======================================================================
+   The Gatha — story layer
+   Maitri speaks warm and gold; Ekarupa speaks grey, smooth and a little
+   too even. The Dhundh veil is the only thing here that touches the 3D view.
+   ====================================================================== */
+
+:root {
+  --dhundh: #8a8e9a;
+  --thread-water: #3b8fd1;
+  --thread-writing: #e8b44b;
+  --thread-measure: #d4503c;
+}
+
+/* ---- captions ----------------------------------------------------------- */
+
+.narration {
+  position: fixed;
+  left: 50%;
+  bottom: 17vh;
+  z-index: 35;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.9rem;
+  align-items: start;
+  width: min(720px, 88vw);
+  translate: -50% 0;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid rgb(232 180 75 / 0.28);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgb(25 22 34 / 0.92), rgb(17 15 24 / 0.9));
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+
+.narration.nr-in {
+  animation: riseIn 0.3s ease both;
+}
+
+.narration[data-voice='ekarupa'] {
+  border-color: rgb(138 142 154 / 0.5);
+  background: linear-gradient(180deg, rgb(48 50 58 / 0.93), rgb(32 33 40 / 0.9));
+}
+
+.narration[data-voice='ekarupa'] .nr-text {
+  font-style: italic;
+  color: #d4d6de;
+}
+
+.nr-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgb(232 180 75 / 0.4);
+  background: rgb(232 180 75 / 0.12);
+  font-size: 1.05rem;
+}
+
+.narration[data-voice='ekarupa'] .nr-icon {
+  border-color: rgb(138 142 154 / 0.6);
+  background: rgb(138 142 154 / 0.18);
+}
+
+.nr-who {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.2rem;
+}
+
+.nr-name {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+}
+
+.nr-role {
+  color: var(--parchment-dim);
+  font-size: 0.72rem;
+}
+
+.nr-text {
+  margin: 0;
+  font-size: 0.94rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.nr-hint {
+  color: var(--parchment-dim);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+/* ---- the Dhundh veil over the 3D view ---------------------------------- */
+
+#dhundh-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(ellipse at 50% 55%, rgb(138 142 154 / 0) 38%, rgb(138 142 154 / 0.9) 100%);
+  transition: opacity 2.4s ease;
+}
+
+/* ---- plaque reader & shared answer buttons ------------------------------ */
+
+.pq-claim {
+  margin: 0 0 1.4rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgb(138 142 154 / 0.4);
+  border-left: 3px solid var(--dhundh);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgb(138 142 154 / 0.14), rgb(138 142 154 / 0.05));
+}
+
+.pq-claim[data-mask='gilder'] {
+  border-left-color: var(--gold);
+}
+
+.pq-claim p {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.pq-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.7rem;
+  align-items: center;
+  color: var(--parchment-dim);
+  font-size: 0.78rem;
+}
+
+.pq-mask {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.pq-h {
+  margin: 1.3rem 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  letter-spacing: 0.1em;
+  color: var(--gold-soft);
+  text-transform: uppercase;
+}
+
+.pq-evidence {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pq-evidence li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+}
+
+.pq-evidence li.known {
+  border-color: rgb(118 187 90 / 0.45);
+  background: rgb(118 187 90 / 0.08);
+}
+
+.pq-evidence li.missing {
+  opacity: 0.92;
+}
+
+.pq-evidence .pq-tick {
+  color: var(--leaf);
+  font-weight: 700;
+}
+
+.pq-evidence li.missing .pq-tick {
+  color: var(--parchment-dim);
+}
+
+.pq-evidence small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--parchment-dim);
+  font-size: 0.78rem;
+  font-weight: 300;
+}
+
+.pq-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.5rem;
+}
+
+.pq-opt {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.03);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s, translate 0.14s;
+}
+
+.pq-opt:hover:not([disabled]) {
+  background: rgb(255 255 255 / 0.07);
+  border-color: rgb(232 180 75 / 0.5);
+  translate: 2px 0;
+}
+
+.pq-opt[disabled] {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.pq-opt[data-state='correct'] {
+  opacity: 1;
+  border-color: var(--leaf);
+  background: rgb(118 187 90 / 0.14);
+}
+
+.pq-opt[data-state='wrong'] {
+  opacity: 1;
+  border-color: var(--crimson);
+  background: rgb(224 82 82 / 0.13);
+}
+
+.pq-key {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.pq-otext b {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.pq-otext small {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--parchment-dim);
+  font-size: 0.74rem;
+  font-weight: 300;
+  line-height: 1.4;
+}
+
+.pq-feedback,
+.sb-result {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1.05rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-left: 3px solid var(--teal);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.03);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.pq-feedback[data-state='good'],
+.sb-result[data-state='good'] {
+  border-left-color: var(--leaf);
+  background: rgb(118 187 90 / 0.08);
+}
+
+.pq-feedback[data-state='try'],
+.sb-result[data-state='try'] {
+  border-left-color: var(--gold);
+  background: rgb(232 180 75 / 0.07);
+}
+
+.pq-feedback p,
+.sb-result p {
+  margin: 0;
+  font-weight: 300;
+}
+
+.pq-feedback small,
+.sb-result small {
+  color: var(--parchment-dim);
+}
+
+.pq-gate {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  background: rgb(232 180 75 / 0.08);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+/* ---- the scroll ---------------------------------------------------------- */
+
+.sc-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.sc-tab {
+  padding: 0.45rem 0.95rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.sc-tab.active {
+  border-color: var(--gold);
+  background: rgb(232 180 75 / 0.14);
+  color: var(--gold-bright);
+}
+
+.sc-intro {
+  margin: 0 0 1.1rem;
+  color: var(--parchment-dim);
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.sc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 0.9rem;
+}
+
+.sc-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.03);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.14s, translate 0.14s;
+}
+
+.sc-card:hover {
+  border-color: rgb(232 180 75 / 0.55);
+  translate: 0 -2px;
+}
+
+.sc-card.restored {
+  border-color: rgb(232 180 75 / 0.4);
+}
+
+.sc-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+}
+
+.sc-label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  font-size: 0.86rem;
+}
+
+.sc-no {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgb(232 180 75 / 0.5);
+  border-radius: 50%;
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.sc-card small {
+  color: var(--parchment-dim);
+  font-size: 0.74rem;
+  font-weight: 300;
+}
+
+.sc-back {
+  margin-bottom: 0.9rem;
+}
+
+.sc-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .sc-detail {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sc-big {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.sc-text h3 {
+  margin: 0 0 0.15rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.sc-zone {
+  margin-bottom: 0.8rem;
+  color: var(--parchment-dim);
+  font-size: 0.78rem;
+}
+
+.sc-text p {
+  margin: 0 0 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.sc-detail-note {
+  color: var(--gold-soft);
+  font-style: italic;
+}
+
+.sc-threads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+}
+
+.sc-thread {
+  padding: 0.2rem 0.7rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+}
+
+.sc-thread[data-motif='water'] {
+  color: var(--thread-water);
+}
+.sc-thread[data-motif='writing'] {
+  color: var(--thread-writing);
+}
+.sc-thread[data-motif='measure'] {
+  color: var(--thread-measure);
+}
+
+.sc-maker {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  background: rgb(232 180 75 / 0.07);
+}
+
+.sc-maker h4 {
+  margin: 0 0 0.3rem;
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sc-maker p {
+  margin: 0.45rem 0 0;
+  font-size: 0.84rem;
+}
+
+.sc-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.sc-list li {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 0.4rem;
+  color: var(--parchment-dim);
+}
+
+.sc-list li.done {
+  color: var(--parchment);
+}
+
+.sc-tick {
+  color: var(--leaf);
+  font-weight: 700;
+}
+
+.sc-log {
+  margin: 0;
+  padding-left: 1.6rem;
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.9;
+  columns: 2 280px;
+  column-gap: 2rem;
+}
+
+.sc-log li::marker {
+  color: var(--gold);
+  font-size: 0.75rem;
+}
+
+.sc-log li.you {
+  color: var(--gold-bright);
+  font-weight: 600;
+  break-inside: avoid;
+}
+
+/* ---- the Sabha and the Twelfth Panel ------------------------------------ */
+
+.sb-stage {
+  margin: 0 0 1.2rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgb(232 180 75 / 0.28);
+  border-radius: var(--radius-sm);
+  background: rgb(232 180 75 / 0.06);
+}
+
+.sb-stage[data-who='ekarupa'] {
+  border-color: rgb(138 142 154 / 0.5);
+  background: linear-gradient(180deg, rgb(138 142 154 / 0.2), rgb(138 142 154 / 0.07));
+}
+
+.sb-name {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  letter-spacing: 0.08em;
+}
+
+.sb-line {
+  margin: 0 0 0.5rem;
+  font-size: 0.94rem;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.sb-stage[data-who='ekarupa'] .sb-line {
+  font-style: italic;
+}
+
+.sb-claim {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.5;
+}
+
+.sb-from,
+.sb-note,
+.sb-progress {
+  color: var(--parchment-dim);
+  font-size: 0.8rem;
+  font-weight: 300;
+}
+
+.sb-note {
+  margin: 0.8rem 0;
+  line-height: 1.6;
+}
+
+.sb-progress {
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sb-witness {
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  border-left: 2px solid var(--gold);
+  background: rgb(232 180 75 / 0.07);
+  border-radius: 0 8px 8px 0;
+}
+
+.sb-witness p {
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+
+.sb-braid {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin: 0.8rem auto;
+}
+
+.tw-section {
+  margin-bottom: 1.3rem;
+}
+
+.tw-section h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--gold-soft);
+}
+
+.tw-hint {
+  margin: 0.2rem 0 0.6rem;
+  color: var(--parchment-dim);
+  font-size: 0.8rem;
+  font-weight: 300;
+}
+
+.tw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.03);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+}
+
+.tw-chip small {
+  color: var(--parchment-dim);
+  font-size: 0.68rem;
+}
+
+.tw-chip:hover {
+  border-color: rgb(232 180 75 / 0.5);
+}
+
+.tw-chip.active {
+  border-color: var(--gold);
+  background: rgb(232 180 75 / 0.16);
+}
+
+.tw-empty {
+  margin: 0;
+  color: var(--parchment-dim);
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+.tw-card {
+  margin-bottom: 1.2rem;
+  padding: 1.2rem 1.4rem;
+  border: 3px double rgb(232 180 75 / 0.6);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgb(243 231 207 / 0.1), rgb(243 231 207 / 0.04));
+}
+
+.tw-card h3 {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.tw-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.8rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid rgb(255 255 255 / 0.07);
+  font-size: 0.9rem;
+}
+
+.tw-label {
+  color: var(--gold);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tw-items {
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.tw-ending {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--gold-bright);
+}
+
+/* ---- story motion --------------------------------------------------------- */
+
+/* The haze on an uncorrected claim: two slow banks of grey drifting over the text. */
+.pq-claim {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 1.2s, background 1.2s;
+}
+
+.pq-claim::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgb(150 154 166 / 0.32), transparent 55%),
+    radial-gradient(ellipse at 80% 40%, rgb(150 154 166 / 0.26), transparent 50%);
+  animation: hazeDrift 9s ease-in-out infinite alternate;
+  transition: opacity 1.6s ease;
+}
+
+.pq-claim[data-cleared]::after {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.pq-claim[data-cleared] {
+  border-left-color: var(--gold-bright);
+  background: linear-gradient(180deg, rgb(232 180 75 / 0.14), rgb(232 180 75 / 0.04));
+}
+
+.pq-claim p {
+  transition: filter 1.4s ease;
+}
+
+.pq-claim:not([data-cleared]) p {
+  filter: blur(0.35px);
+}
+
+@keyframes hazeDrift {
+  from {
+    transform: translateX(-6%) scale(1);
+  }
+  to {
+    transform: translateX(6%) scale(1.08);
+  }
+}
+
+.pq-feedback,
+.sb-result {
+  animation: riseIn 0.35s ease both;
+}
+
+.pq-opt[data-state='correct'] {
+  animation: settle 0.5s ease both;
+}
+
+@keyframes settle {
+  0% {
+    box-shadow: 0 0 0 0 rgb(118 187 90 / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgb(118 187 90 / 0);
+  }
+}
+
+.sc-card.restored .sc-canvas {
+  box-shadow: 0 0 0 1px rgb(232 180 75 / 0.35), 0 6px 18px -6px rgb(232 180 75 / 0.35);
+}
+
+.sb-stage {
+  animation: riseIn 0.4s ease both;
+}
+
+/* Typed captions: the cursor only shows while a line is still arriving. */
+.nr-text.typing::after {
+  content: '▍';
+  margin-left: 1px;
+  opacity: 0.55;
+  animation: blink 0.8s steps(2) infinite;
+}
+
+.narration[data-voice='ekarupa'] .nr-text {
+  animation: smoulder 6s ease-in-out infinite alternate;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes smoulder {
+  from {
+    opacity: 0.88;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pq-claim::after,
+  .narration[data-voice='ekarupa'] .nr-text {
+    animation: none;
+  }
+}

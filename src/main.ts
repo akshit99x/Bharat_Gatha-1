@@ -21,6 +21,13 @@ import { Hud, type CompassPoi } from './ui/Hud';
 import { Minimap, type MinimapMarker } from './ui/Minimap';
 import { QuizModal } from './ui/QuizModal';
 import { DialogueBox } from './ui/DialogueBox';
+import { Narration, type NarrationLine } from './ui/Narration';
+import { PlaqueModal } from './ui/PlaqueModal';
+import { ScrollModal } from './ui/ScrollModal';
+import { SabhaModal } from './ui/SabhaModal';
+import { TwelfthModal } from './ui/TwelfthModal';
+import { StoryEngine, EKARUPA, MAITRI, SABHA_MIN_PANELS, type Speaker } from './story/StoryEngine';
+import { CHAPTERS, PROLOGUE, getChapter, validateStory, type StoryLine } from './content/story';
 import { buildPanel, button, closeOverlay, el, mountOverlay, overlayOpen } from './ui/overlay';
 
 import { ZONES, TOTAL_NPCS, getZone } from './content/zones';
@@ -29,6 +36,7 @@ import { validateQuestions, QUESTION_COUNT } from './content/questions';
 import type { Interactable } from './world/World';
 import { CHARIOT_DECK_HEIGHT, type Chariot } from './vehicles/Chariot';
 import type { ChallengeSpec, Zone } from './content/types';
+import type { ObjectiveRow } from './story/StoryEngine';
 
 /**
  * Bootstrap and game loop.
@@ -58,6 +66,15 @@ class Game {
   private readonly quiz: QuizEngine;
   private readonly quizModal: QuizModal;
   private readonly dialogue = new DialogueBox();
+  private readonly story = new StoryEngine(save);
+  private readonly narration = new Narration();
+  private readonly plaqueModal = new PlaqueModal(this.story);
+  private readonly sabhaModal = new SabhaModal(this.story);
+  private readonly twelfthModal = new TwelfthModal(this.story, () => save.profile.playerName);
+  private readonly scrollModal: ScrollModal;
+  private readonly veil: HTMLElement;
+  /** Regions whose story hook has been checked this session — one cheap lookup per frame. */
+  private readonly hooked = new Set<string>();
 
   private world!: World;
   private player!: PlayerController;
@@ -105,6 +122,16 @@ class Game {
     this.quiz = new QuizEngine(this.bank, save);
     this.quizModal = new QuizModal(this.quiz);
 
+    this.scrollModal = new ScrollModal(this.story, {
+      restore: (zoneId) => void this.runRestoration(zoneId),
+      sabha: () => void this.runSabha(),
+      twelfth: () => void this.runTwelfth(),
+      playerName: () => save.profile.playerName,
+    });
+    this.veil = document.createElement('div');
+    this.veil.id = 'dhundh-veil';
+    document.body.appendChild(this.veil);
+
     audio.setVolumes(save.settings.musicVolume, save.settings.sfxVolume);
     this.applyAccessibility();
 
@@ -128,6 +155,10 @@ class Game {
     bus.on('challenge:finish', () => this.refreshMapMarkers());
     bus.on('zone:enter', () => this.refreshMapMarkers());
 
+    // A passed chapter assessment queues its panel; the restoration conversation
+    // runs once the assessment screen has been closed (see runQuiz).
+    bus.on('chapter:sealed', ({ zoneId }) => this.story.queueRestoration(zoneId));
+
     this.renderer.domElement.addEventListener('click', () => {
       if (this.running && !this.paused && !overlayOpen() && !this.dialogue.isOpen) this.input.requestLock();
     });
@@ -139,7 +170,7 @@ class Game {
     onProgress(0.06, 'Checking the chronicles…');
     await nextFrame();
 
-    const contentProblems = [...validateContent(), ...validateQuestions()];
+    const contentProblems = [...validateContent(), ...validateQuestions(), ...validateStory()];
     if (contentProblems.length > 0) {
       console.warn(`[content] ${contentProblems.length} problem(s) found:`);
       for (const p of contentProblems) console.warn(`  · ${p}`);
@@ -155,6 +186,9 @@ class Game {
       shadows: save.settings.shadows,
       floraScale: save.settings.renderScale < 1 ? 0.6 : 1,
     });
+
+    // Lift the haze from plaques already corrected in a previous session.
+    for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
 
     onProgress(0.72, 'Placing the monuments…');
     await nextFrame();
@@ -285,6 +319,11 @@ class Game {
     this.beginPlay();
     this.player.startRide({ from, to, duration: 52 });
     this.hud.toast('info', 'Press Space to drop', 'Steer with WASD. The canopy opens automatically.', '🪂', 9000);
+    // Narrated as captions, never as a dialogue, so the crossing keeps moving.
+    if (!this.story.prologueSeen()) {
+      this.story.markPrologueSeen();
+      void this.narration.say(PROLOGUE.map((l) => this.narrationLine(l)));
+    }
   }
 
   /** Resume from the saved position, or start a new journey if there is none. */
@@ -360,6 +399,10 @@ class Game {
     }
     if (this.input.justPressed('codex')) {
       this.openCodex();
+      return;
+    }
+    if (this.input.justPressed('scroll')) {
+      this.scrollModal.present();
       return;
     }
     if (this.input.justPressed('map')) {
@@ -477,6 +520,21 @@ class Game {
     // --- zone transitions.
     const zone = this.world.zoneAt(this.player.position.x, this.player.position.z);
     if (zone && zone.id !== this.currentZone?.id) this.enterZone(zone, false);
+
+    this.maybeRunZoneHook();
+  }
+
+  /**
+   * Say a region's story hook the first time the player is standing in it.
+   * Deferred until they are on the ground, so the opening flight over eleven
+   * regions does not fire eleven hooks into the prologue.
+   */
+  private maybeRunZoneHook(): void {
+    const zone = this.currentZone;
+    if (!zone || this.hooked.has(zone.id) || this.player.state !== 'ground') return;
+    this.hooked.add(zone.id);
+    const lines = this.story.onZoneEnter(zone.id);
+    if (lines) void this.narration.say(lines.map((l) => this.narrationLine(l)));
   }
 
   private completeScan(codexId: string, landmarkName: string): void {
@@ -506,6 +564,9 @@ class Game {
         break;
       case 'challenge':
         if (target.challenge) await this.runChallenge(target.challenge, target.zoneId);
+        break;
+      case 'plaque':
+        if (target.plaque) await this.readPlaque(target.plaque);
         break;
     }
   }
@@ -542,8 +603,93 @@ class Game {
       const entry = getCodex(npc.unlocks);
       save.addVidya(25);
       this.hud.toast('codex', `Codex: ${entry?.title ?? npc.unlocks}`, `Learned from ${npc.name}.`, '📖', 6000);
-      this.refreshObjectives();
     }
+
+    // A trail advances when its next person is spoken to, in order.
+    const step = this.story.onNpcSpoken(npc.id);
+    if (step) {
+      void this.narration.say([this.narrationLine({ who: 'maitri', text: step.text })]);
+      if (step.complete) this.hud.toast('good', step.trail.title, `Trail complete. +${step.trail.vidya} Vidya.`, '🧭', 6000);
+    }
+    this.refreshObjectives();
+  }
+
+  // ------------------------------------------------------------------ story
+
+  private narrationLine(line: StoryLine): NarrationLine {
+    const speaker = line.who === 'ekarupa' ? EKARUPA : MAITRI;
+    return { name: speaker.name, role: speaker.role, icon: speaker.icon, text: line.text, voice: line.who, mask: line.mask };
+  }
+
+  private speakerLine(speaker: Speaker, text: string): NarrationLine {
+    return { name: speaker.name, role: speaker.role, icon: speaker.icon, text, voice: 'npc' };
+  }
+
+  /** An anchor’s reflection after a challenge, said once, after any quiz has closed. */
+  private sayAnchorBeat(challengeId: string): void {
+    const beat = this.story.onChallengeDone(challengeId);
+    if (beat) void this.narration.say([this.speakerLine(beat.speaker, beat.text)]);
+  }
+
+  private async readPlaque(plaque: NonNullable<Interactable['plaque']>): Promise<void> {
+    const wasDone = this.story.plaqueDone(plaque.id);
+    await this.plaqueModal.present(plaque);
+    if (!wasDone && this.story.plaqueDone(plaque.id)) {
+      this.world.setPlaqueCleared(plaque.id);
+      this.hud.toast('good', 'The haze lifts', 'A claim corrected, and written onto the Gatha.', '🌫️', 5000);
+    }
+    this.refreshObjectives();
+  }
+
+  /** Maitri restores the panel for a sealed chapter, asks the one question, and hangs it on the scroll. */
+  private async runRestoration(zoneId: string): Promise<void> {
+    const chapter = getChapter(zoneId);
+    if (!chapter || !this.story.restorable(zoneId) || this.dialogue.isOpen) return;
+
+    const outcome = await this.dialogue.run(MAITRI, chapter.restoration);
+    // Closed early: the panel stays sealed-but-unrestored, and the scroll offers it again.
+    if (!outcome.completed) {
+      this.hud.toast('info', 'The panel waits', 'Open the Gatha (K) to restore it whenever you are ready.', '📜', 6000);
+      return;
+    }
+    save.addVidya(outcome.vidya);
+    this.story.restorePanel(zoneId, { wise: outcome.wiseChoices, made: outcome.choicesMade });
+    audio.bell();
+    this.hud.toast('vidya', `Panel restored: ${chapter.panel.title}`, 'The Gatha is a little less clouded.', '📜', 7000);
+    this.updateVeil();
+    this.refreshObjectives();
+
+    const restored = this.story.panelsRestored();
+    if (restored === SABHA_MIN_PANELS) {
+      this.hud.toast('info', 'The Sabha can be convened', 'Open the Gatha (K) and call Ekarupa to account.', '🏛️', 8000);
+    }
+    if (restored === CHAPTERS.length) {
+      void this.narration.say([
+        this.narrationLine({ who: 'maitri', text: 'All eleven panels are back, and they do not quite touch yet. Open the scroll, and call the Sabha.' }),
+      ]);
+    }
+    // Show the panel the player has just earned.
+    this.scrollModal.present(zoneId, true);
+  }
+
+  private async runSabha(): Promise<void> {
+    const result = await this.sabhaModal.present();
+    this.refreshObjectives();
+    if (result === 'settled') {
+      this.hud.toast('vidya', 'The Sabha is settled', 'The threads are braided. The Twelfth Panel is yours to write.', '🏛️', 8000);
+      await this.runTwelfth();
+    }
+  }
+
+  private async runTwelfth(): Promise<void> {
+    await this.twelfthModal.present();
+    this.refreshObjectives();
+  }
+
+  /** Grey the edges of the screen in proportion to how much of this region is still under the Dhundh. */
+  private updateVeil(): void {
+    const level = this.currentZone ? this.story.hazeLevel(this.currentZone.id) : 0;
+    this.veil.style.opacity = String(Math.round(level * 0.3 * 100) / 100);
   }
 
   private async runChallenge(challenge: ChallengeSpec, zoneId: string): Promise<void> {
@@ -569,6 +715,7 @@ class Game {
       this.refreshObjectives();
 
       if (challenge.quizAfter && challenge.quizAfter > 0) await this.runQuiz(zoneId, 'challenge', challenge.quizAfter, challenge.name);
+      this.sayAnchorBeat(challenge.id);
       return;
     }
 
@@ -591,6 +738,7 @@ class Game {
         bus.emit('vidya:gain', { amount: challenge.vidya, reason: challenge.name });
         this.hud.toast('good', challenge.name, challenge.teaches, '✓', 8000);
         this.refreshObjectives();
+        this.sayAnchorBeat(challenge.id);
       }
     }
   }
@@ -657,11 +805,15 @@ class Game {
       return null;
     }
     const zone = zoneId ? getZone(zoneId) : null;
-    return this.quizModal.present({
+    const result = await this.quizModal.present({
       title,
       subtitle: zone ? `${zone.name} · ${zone.era}` : 'Mixed questions',
       allowClose: reason !== 'seal',
     });
+    // A passed chapter assessment restores its panel, now that the screen is closed.
+    const pending = this.story.takePendingRestoration();
+    if (pending) await this.runRestoration(pending);
+    return result;
   }
 
   // ----------------------------------------------------------------- zones
@@ -691,6 +843,7 @@ class Game {
       }
     }
     bus.emit('zone:enter', { zoneId: zone.id });
+    this.updateVeil();
     this.refreshObjectives();
   }
 
@@ -717,7 +870,13 @@ class Game {
         done: progress.sealed,
         active: !progress.sealed && done >= zone.sealRequires,
       },
+      ...this.storyObjectives(zone),
     ]);
+  }
+
+  /** The story's two rows beside the chapter's own: plaques and the trail. The anchor and panel live in the scroll. */
+  private storyObjectives(zone: Zone): ObjectiveRow[] {
+    return this.story.objectives(zone).filter((r) => r.id === 'plaques' || r.id === 'trail');
   }
 
   // ------------------------------------------------------------------- hud
@@ -1187,6 +1346,7 @@ const CONTROLS: Array<[string, string[]]> = [
   ['Scan a monument', ['Right mouse']],
   ['Map and fast travel', ['M']],
   ['Codex', ['J']],
+  ['The Gatha — panels, plaques, the story', ['K']],
   ['Pause and settings', ['Esc']],
   ['This help', ['F1']],
   ['Answer a question', ['1', '2', '3', '4']],

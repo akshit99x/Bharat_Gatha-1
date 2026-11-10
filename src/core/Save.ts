@@ -8,7 +8,7 @@
  */
 
 export const SAVE_KEY = 'bharat-gatha/profile/v1';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface QuestionRecord {
   /** Times the learner has seen this question. */
@@ -33,6 +33,69 @@ export interface ZoneProgress {
   timeSpent: number;
 }
 
+/** What the player wrote on the Twelfth Panel. Ids only; the text comes from the codex. */
+export interface TwelfthPanel {
+  /** Three things they are sure of: archaeology or written-source codex ids. */
+  sure: string[];
+  /** One thing they hold on tradition: an epic codex id. */
+  tradition: string;
+  /** One thing they still do not know: a debated codex id. */
+  open: string;
+  /** A name they want remembered: a zone id whose forgotten maker they chose. */
+  remembered: string;
+  writtenAt: number;
+}
+
+/**
+ * Story progress.
+ *
+ * Kept deliberately small and id-based — the story's text lives in
+ * `content/story`, so a save never goes stale when a line is reworded.
+ */
+export interface StoryState {
+  /** The vimana prologue has played. */
+  prologueSeen: boolean;
+  /** Region of the very first landing, so the landing line is only ever said once. */
+  firstZone: string | null;
+  /** Narration ids already delivered (hooks, anchor beats, trail payoffs). */
+  seen: string[];
+  /** NPC ids the player has spoken to — persisted so trails survive a reload. */
+  met: string[];
+  /** Plaque id → progress. */
+  plaques: Record<string, { done: boolean; tries: number }>;
+  /** Zone ids whose panel has been restored. */
+  panels: string[];
+  /** Trail id → stops completed. */
+  trails: Record<string, number>;
+  /** Zone id → whether the restoration choice was the open-minded one. */
+  choices: Record<string, 'open' | 'comfort'>;
+  /** Totals behind the ending's wording. Never shown as a score, never deducted. */
+  comfortPicks: number;
+  openPicks: number;
+  /** Plaque ids settled in the Sabha. */
+  sabhaSettled: string[];
+  sabhaDone: boolean;
+  twelfth: TwelfthPanel | null;
+}
+
+function emptyStory(): StoryState {
+  return {
+    prologueSeen: false,
+    firstZone: null,
+    seen: [],
+    met: [],
+    plaques: {},
+    panels: [],
+    trails: {},
+    choices: {},
+    comfortPicks: 0,
+    openPicks: 0,
+    sabhaSettled: [],
+    sabhaDone: false,
+    twelfth: null,
+  };
+}
+
 export interface Profile {
   version: number;
   createdAt: number;
@@ -46,6 +109,8 @@ export interface Profile {
   zones: Record<string, ZoneProgress>;
   /** Quest id → completed objective ids. */
   quests: Record<string, string[]>;
+  /** The Gatha: panels restored, plaques corrected, choices made. */
+  story: StoryState;
   /** Question id → performance record. */
   questions: Record<string, QuestionRecord>;
   /** Totals for the report card. */
@@ -106,6 +171,7 @@ function emptyProfile(): Profile {
     codex: [],
     zones: {},
     quests: {},
+    story: emptyStory(),
     questions: {},
     stats: {
       quizAsked: 0,
@@ -200,6 +266,19 @@ export class SaveStore {
     this.markDirty();
   }
 
+  get story(): StoryState {
+    return this.data.story;
+  }
+
+  /** Mark a quest objective done. Returns true the first time. */
+  completeObjective(questId: string, objectiveId: string): boolean {
+    const list = (this.data.quests[questId] ??= []);
+    if (list.includes(objectiveId)) return false;
+    list.push(objectiveId);
+    this.markDirty();
+    return true;
+  }
+
   patchSettings(patch: Partial<Settings>): void {
     this.data.settings = { ...this.data.settings, ...patch };
     this.markDirty();
@@ -261,6 +340,7 @@ function migrate(input: Partial<Profile>): Profile {
     settings: { ...base.settings, ...(input.settings ?? {}) },
     zones: input.zones ?? {},
     quests: input.quests ?? {},
+    story: { ...base.story, ...(input.story ?? {}) },
     questions: input.questions ?? {},
     codex: Array.isArray(input.codex) ? input.codex : [],
     version: SAVE_VERSION,

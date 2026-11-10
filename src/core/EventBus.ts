@@ -59,6 +59,10 @@ export interface GameEvents {
   'codex:unlock': { entryId: string };
   'quiz:request': { zoneId: string; count: number; reason: 'challenge' | 'seal' | 'practice' };
   'quiz:finish': { zoneId: string; correct: number; total: number };
+  /** A chapter assessment was passed for the first time. */
+  'chapter:sealed': { zoneId: string; percent: number };
+  'story:plaque': { plaqueId: string; correct: boolean };
+  'story:panel': { zoneId: string };
   'vidya:gain': { amount: number; reason: string };
   'toast': { kind: ToastKind; title: string; body?: string; icon?: string; ttl?: number };
   'ui:open': { screen: string };

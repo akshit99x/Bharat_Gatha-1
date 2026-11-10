@@ -12,6 +12,8 @@ import { Rng } from '../core/Rng';
 import { Chariot } from '../vehicles/Chariot';
 import { ZONES, zoneAt, worldPos } from '../content/zones';
 import type { Landmark, Zone, ChallengeSpec, NpcSpec } from '../content/types';
+import type { Plaque } from '../content/story';
+import { getChapter } from '../content/story';
 
 /**
  * The world.
@@ -36,7 +38,7 @@ export interface PlacedLandmark {
   height: number;
 }
 
-export type InteractableKind = 'challenge' | 'npc' | 'pad';
+export type InteractableKind = 'challenge' | 'npc' | 'pad' | 'plaque';
 
 export interface Interactable {
   id: string;
@@ -48,6 +50,7 @@ export interface Interactable {
   reach: number;
   challenge?: ChallengeSpec;
   npc?: NpcSpec;
+  plaque?: Plaque;
   /** For pads: the zone this pad belongs to. */
   padZone?: string;
 }
@@ -80,6 +83,10 @@ export class World {
   readonly chariots: Chariot[] = [];
 
   private readonly bobbers: Bobber[] = [];
+  /** One-shot effects, advanced each frame; return true when finished. */
+  private readonly effects: Array<(dt: number) => boolean> = [];
+  /** The Dhundh clinging to each uncorrected plaque, so it can be lifted. */
+  private readonly plaqueHaze = new Map<string, { group: THREE.Group; bobber: Bobber }>();
   private readonly monumentMeshes: THREE.Mesh[] = [];
   private readonly personGeometries = new Map<number, THREE.BufferGeometry>();
 
@@ -107,6 +114,7 @@ export class World {
       }
       for (const challenge of zone.challenges) this.placeChallengeMarker(zone, challenge);
       for (const npc of zone.npcs) this.placeNpc(zone, npc, opts.seed);
+      for (const plaque of getChapter(zone.id)?.plaques ?? []) this.placePlaque(zone, plaque, opts.seed);
     }
 
     this.spawnChariots(opts.seed);
@@ -278,6 +286,149 @@ export class World {
   }
 
   /**
+   * A weathered stele beside a monument, wrapped in grey haze until the claim
+   * on it has been corrected. It stands off the monument by that monument's own
+   * radius, on a bearing fixed by the plaque id, so two plaques never pile up.
+   */
+  private placePlaque(zone: Zone, plaque: Plaque, seed: string): void {
+    const near = this.landmarks.find((l) => l.id === plaque.near);
+    if (!near) return;
+    const rng = new Rng(`${seed}:plaque:${plaque.id}`);
+    const angle = rng.range(0, Math.PI * 2);
+    const dist = near.radius + rng.range(9, 15);
+    const ground = this.terrain.findGround(near.position.x + Math.cos(angle) * dist, near.position.z + Math.sin(angle) * dist, 60);
+    const stone = zone.palette.stone;
+
+    const kit = new Kit();
+    kit.box([2.6, 0.5, 1.4], [0, 0.25, 0], shade(stone, 0.82));
+    kit.box([1.7, 2.7, 0.42], [0, 1.85, 0], shade(stone, 0.96));
+    kit.prism(
+      [
+        [-0.85, 0],
+        [0.85, 0],
+        [0, 0.7],
+      ],
+      0.42,
+      [0, 3.2, 0],
+      shade(stone, 1.08),
+      { collide: false },
+    );
+    // A pale panel on the face, where the claim would be painted.
+    kit.box([1.25, 1.4, 0.06], [0, 1.95, 0.24], shade(stone, 1.3), { collide: false });
+    const built = kit.build();
+
+    const mesh = new THREE.Mesh(built.geometry, stoneMaterial());
+    mesh.name = `plaque:${plaque.id}`;
+    mesh.position.set(ground.x, ground.y, ground.z);
+    // Face the monument it stands beside.
+    mesh.rotation.y = Math.atan2(near.position.x - ground.x, near.position.z - ground.z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    this.group.add(mesh);
+    this.collision.addPlaced(built.colliders, ground.x, ground.y, ground.z, mesh.rotation.y);
+
+    // The haze: three soft grey spheres that drift. Not additive — the Dhundh
+    // dulls things, it does not glow.
+    const haze = new THREE.Group();
+    const hazeMat = new THREE.MeshBasicMaterial({ color: 0x8a8e9a, transparent: true, opacity: 0.38, depthWrite: false, toneMapped: false });
+    for (const [x, y, z, r] of [
+      [0, 0, 0, 2.3],
+      [-0.9, 0.7, 0.5, 1.7],
+      [1.0, -0.5, 0.3, 1.5],
+    ] as const) {
+      const blob = new THREE.Mesh(new THREE.SphereGeometry(r, 12, 9), hazeMat);
+      blob.position.set(x, y, z);
+      haze.add(blob);
+    }
+    haze.position.set(ground.x, ground.y + 2.1, ground.z);
+    haze.name = `plaque-haze:${plaque.id}`;
+    this.group.add(haze);
+    const bobber: Bobber = { mesh: haze, baseY: haze.position.y, speed: 0.7, phase: rng.range(0, 6.28), spin: 0.25 };
+    this.bobbers.push(bobber);
+    this.plaqueHaze.set(plaque.id, { group: haze, bobber });
+
+    this.interactables.push({
+      id: `plaque:${plaque.id}`,
+      kind: 'plaque',
+      zoneId: zone.id,
+      label: 'Read the plaque',
+      position: new THREE.Vector3(ground.x, ground.y + 1.8, ground.z),
+      reach: 5,
+      plaque,
+    });
+  }
+
+  /** Lift the haze from a plaque once its claim has been corrected. Safe to call twice. */
+  setPlaqueCleared(plaqueId: string, instant = false): void {
+    const entry = this.plaqueHaze.get(plaqueId);
+    if (!entry) return;
+    this.plaqueHaze.delete(plaqueId);
+    this.dissolveHaze(entry.group, entry.bobber, instant);
+
+    const it = this.interactables.find((i) => i.id === `plaque:${plaqueId}`);
+    if (it) {
+      it.label = 'Reread the plaque';
+      // A small gold diamond, the same language as a completed challenge post.
+      const glow = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), glowMaterial(0xffd97a, 0.7));
+      glow.position.set(it.position.x, it.position.y + 2.4, it.position.z);
+      this.group.add(glow);
+      this.bobbers.push({ mesh: glow, baseY: glow.position.y, speed: 1.2, phase: 0, spin: 0.8 });
+    }
+  }
+
+  /**
+   * The haze does not vanish: it swells, thins and drifts upward over about two
+   * seconds while a ring of gold light spreads outward from the stele, so the
+   * correction reads as something that happened.
+   */
+  private dissolveHaze(group: THREE.Group, bobber: Bobber, instant: boolean): void {
+    const DURATION = 2.2;
+    const blobs = group.children.filter((c): c is THREE.Mesh => c instanceof THREE.Mesh);
+    const material = blobs[0]?.material as THREE.MeshBasicMaterial | undefined;
+    const startOpacity = material?.opacity ?? 0.38;
+    const origin = group.position.clone();
+
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xffd97a,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+      toneMapped: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.05, 6, 40), ringMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(origin.x, origin.y - 1.6, origin.z);
+    this.group.add(ring);
+
+    let t = 0;
+    this.effects.push((dt) => {
+      t += dt;
+      const k = Math.min(1, t / DURATION);
+      const ease = k * k * (3 - 2 * k);
+      if (material) material.opacity = startOpacity * (1 - ease);
+      group.scale.setScalar(1 + ease * 0.9);
+      bobber.baseY = origin.y + ease * 2.4;
+      ring.scale.setScalar(0.5 + ease * 7);
+      ringMat.opacity = 0.9 * (1 - ease);
+      if (k < 1) return false;
+
+      this.group.remove(group);
+      this.group.remove(ring);
+      for (const b of blobs) b.geometry.dispose();
+      material?.dispose();
+      ring.geometry.dispose();
+      ringMat.dispose();
+      const at = this.bobbers.indexOf(bobber);
+      if (at >= 0) this.bobbers.splice(at, 1);
+      return true;
+    });
+    // Plaques already corrected in an earlier session just start clear.
+    if (instant) this.effects.pop()?.(DURATION);
+  }
+
+  /**
    * Park chariots where a player would look for one: by the landing terrace, and
    * by a gate, bazaar or village on the other side of each region.
    */
@@ -414,6 +565,9 @@ export class World {
     for (const b of this.bobbers) {
       b.mesh.position.y = b.baseY + Math.sin(elapsed * b.speed + b.phase) * 0.3;
       b.mesh.rotation.y += dt * b.spin;
+    }
+    for (let i = this.effects.length - 1; i >= 0; i--) {
+      if (this.effects[i]?.(dt)) this.effects.splice(i, 1);
     }
     // The ridden chariot is driven by the player; the rest just settle.
     for (const c of this.chariots) {

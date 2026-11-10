@@ -147,8 +147,8 @@ export interface Settings {
   /** Spoken lines, using the device's Indian-English voices where it has them. */
   voices: boolean;
   voiceVolume: number;
-  /** Where lines without a human recording come from. Auto: the game's clear voice, unless the device has a natural Indian-English one. */
-  voiceSource: 'auto' | 'clear' | 'accent' | 'device';
+  /** Where lines without a human recording come from. Auto: the game's Indian-English voice, unless the device has a natural Indian-English one. */
+  voiceSource: 'auto' | 'indian' | 'neutral' | 'device';
 }
 
 export const DEFAULT_SETTINGS: Settings = {

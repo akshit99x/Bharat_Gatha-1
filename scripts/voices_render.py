@@ -5,12 +5,12 @@ natural-sounding Indian-accented English whatever their device offers.
 
     node scripts/voices.mjs export /tmp/lines.json
     python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models \
-        --cast clear --out public/voices/clear
+        --cast indian --out public/voices/indian
 
-Two casts are defined (see CASTS): "clear" (British voices, the default in the game) and "accent"
-(Piper's l2arctic model, whose four Hindi-first-language speakers give an Indian-English accent but are
-harder to understand; its data is CC BY-NC 4.0, see public/CREDITS.md). Each character is given a voice,
-a pace and a small pitch shift chosen from their name, so the same character always sounds the same.
+Two casts are defined (see CASTS): "indian" (the Indian speakers of the CMU ARCTIC corpus, the game's
+default) and "neutral" (British voices). Each character is given a voice, a pace and a small pitch shift
+chosen from their name, so the same character always sounds the same. Lines are read slowly, with a rest
+between sentences.
 
 Needs: pip install piper-tts, ffmpeg on the PATH.
 """
@@ -23,25 +23,29 @@ import wave
 from pathlib import Path
 
 # Two casts. Each names the model(s) it needs, who plays Maitri and Ekarupa, and the pool everyone else
-# is drawn from by name. A voice is (model key, speaker id or None).
+# is drawn from by name. A voice is (model key, speaker id or None). `pace` multiplies the model's own
+# speaking rate (bigger = slower); the game is for learners, so lines are read slowly and clearly.
 CASTS = {
-    # Hindi-first-language speakers from L2-ARCTIC: a true Indian-English accent, but measurably harder
-    # to understand (about 25-30% word error against 6-13% for the clear voices).
-    "accent": {
-        "models": {"l2": "en_US-l2arctic-medium.onnx"},
-        "maitri": ("l2", 2, 1.06, 1.0),
-        "ekarupa": ("l2", 10, 1.16, 0.93),
-        "pool": [("l2", 2), ("l2", 10), ("l2", 9), ("l2", 19)],
-        "label": "piper en_US-l2arctic-medium (Hindi-L1 speakers)",
+    # Real Indian-English speakers: the Indian voices of the CMU ARCTIC corpus (studio recordings of fluent
+    # Indian speakers reading English), used through Piper's en_US-arctic-medium model.
+    # ksp, aup, gka are male; slp, axb are female.
+    "indian": {
+        "models": {"arctic": "en_US-arctic-medium.onnx"},
+        "maitri": ("arctic", 12, 1.0, 1.0),  # slp: the clearest of the five
+        "ekarupa": ("arctic", 13, 1.06, 0.94),  # aup, a little lower and slower
+        "pool": [("arctic", 3), ("arctic", 12), ("arctic", 13), ("arctic", 15), ("arctic", 17)],
+        "label": "piper en_US-arctic-medium (Indian speakers: ksp, slp, aup, axb, gka)",
+        "base": 1.22,
     },
-    # Standard British voices: clear and natural. Maitri is the single high-quality "Cori" voice;
+    # Standard British voices: neutral and clear. Maitri is the single high-quality "Cori" voice;
     # Ekarupa is the deepest of the twelve ARU speakers; everyone else is drawn from the rest.
-    "clear": {
+    "neutral": {
         "models": {"cori": "en_GB-cori-high.onnx", "aru": "en_GB-aru-medium.onnx"},
-        "maitri": ("cori", None, 1.05, 1.0),
-        "ekarupa": ("aru", 9, 1.12, 0.97),
+        "maitri": ("cori", None, 1.0, 1.0),
+        "ekarupa": ("aru", 9, 1.06, 0.97),
         "pool": [("aru", i) for i in (0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11)],
         "label": "piper en_GB-cori-high + en_GB-aru-medium",
+        "base": 1.22,
     },
 }
 
@@ -55,24 +59,37 @@ def fnv(text: str) -> int:
 
 def style_for(cast: dict, speaker: str) -> dict:
     """Which voice, how fast, how high. Maitri and Ekarupa are fixed; everyone else comes from the name."""
-    if speaker == "Maitri":
-        m, sid, length, pitch = cast["maitri"]
-    elif speaker == "Ekarupa":
-        m, sid, length, pitch = cast["ekarupa"]
+    if speaker in ("Maitri", "Ekarupa"):
+        m, sid, length, pitch = cast[speaker.lower()]
+        return {"model": m, "sid": sid, "length": length * cast["base"], "pitch": pitch}
     else:
         h = fnv(speaker)
         m, sid = cast["pool"][h % len(cast["pool"])]
-        length = 0.95 + ((h >> 4) % 100) / 100 * 0.14
-        pitch = 0.95 + ((h >> 11) % 100) / 100 * 0.10
-    return {"model": m, "sid": sid, "length": length, "pitch": pitch}
+        length = 0.97 + ((h >> 4) % 100) / 100 * 0.08
+        pitch = 0.93 + ((h >> 11) % 100) / 100 * 0.14
+    return {"model": m, "sid": sid, "length": length * cast["base"], "pitch": pitch}
 
 
 def render(voice, text: str, sid, length: float, wav_path: Path) -> None:
+    """Speak sentence by sentence and join them with real pauses, so the line breathes."""
+    import numpy as np
     from piper import SynthesisConfig
 
-    cfg = SynthesisConfig(speaker_id=sid, length_scale=length, noise_scale=0.62, noise_w_scale=0.75)
+    cfg = SynthesisConfig(speaker_id=sid, length_scale=length, noise_scale=0.6, noise_w_scale=0.7)
+    rate = voice.config.sample_rate
+    parts = []
+    for chunk in voice.synthesize(text, syn_config=cfg):
+        a = chunk.audio_float_array
+        parts.append(a)
+        # a longer rest after a full stop or question than after the shorter breaks inside a sentence
+        parts.append(np.zeros(int(rate * 0.42), dtype=np.float32))
+    audio = np.concatenate(parts[:-1]) if len(parts) > 1 else np.concatenate(parts)
+    pcm = (np.clip(audio, -1, 1) * 32767).astype(np.int16)
     with wave.open(str(wav_path), "wb") as wf:
-        voice.synthesize_wav(text, wf, syn_config=cfg)
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(rate)
+        wf.writeframes(pcm.tobytes())
 
 
 def finish(wav: Path, mp3: Path, pitch: float, in_rate: int) -> None:

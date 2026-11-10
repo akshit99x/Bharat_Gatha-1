@@ -1,26 +1,25 @@
 # Voices: what the game ships, and how to replace it with real recordings
 
 **Current state.** No human recordings yet. The game ships with **two sets of pre-rendered neural voices** for
-all 480 spoken lines (`public/voices/clear/` and `public/voices/accent/`, made with Piper), so every player
+all 480 spoken lines (`public/voices/indian/` and `public/voices/neutral/`, made with Piper), so every player
 hears the same voice on any device. Human recordings, if they are ever made, take priority over both, one line
 at a time. Nothing in this document needs to be done for the game to work.
 
 ## The two generated sets
 
-| | **Clear** (default) | **Accent** |
+| | **Indian** (default) | **Neutral** |
 |---|---|---|
-| Sounds like | natural British English | English with an Indian accent |
-| Voices | Maitri: `en_GB-cori-high` (public domain). Everyone else: `en_GB-aru-medium`, 11 speakers (CC BY 4.0) | `en_US-l2arctic-medium`, the four Hindi-first-language speakers (CC BY-NC 4.0) |
-| Ekarupa | the deepest ARU speaker, slower | a lower pitch, slower |
-| Word error (speech recogniser, 102 lines) | **9.2%** | 24.5% |
-| Commercial use | allowed (with attribution) | **not allowed** |
+| Sounds like | Indian-English speakers | British English |
+| Voices | five speakers of the CMU ARCTIC corpus (3 male, 2 female); Maitri: `slp`, Ekarupa: `aup` (lower, slower) | Maitri: `en_GB-cori-high`; everyone else: `en_GB-aru-medium` (11 speakers) |
+| Pace | about 130 words a minute, with a rest between sentences | the same |
 
-I could not listen to either. The word error rate is a speech recogniser's, so it is a fair measure of
-*clarity*, not of how pleasant they sound. The accent set is much harder to follow because the corpus behind it
-is recordings of non-native speakers, which makes a weaker voice model; that is why Clear is the default.
+Both are read slowly (about 12 characters a second; an earlier build ran at 16-17 and was too fast) and clearly,
+because the audience is learning. I could not listen to them. I did measure clarity with a speech recogniser
+on the same 24 test lines: the Indian speakers scored 11.5-14.7% word error, the British voices 8-13%, and a
+learner-accent corpus I tried first (L2-ARCTIC) 25-31%, which is why it was dropped.
 
 - **Priority:** human recording, then the chosen generated set, then the device's own voice. In Settings,
-  "Voice style" offers Auto, Clear, Accent and Device. **Auto** uses Clear, unless the device has a natural
+  "Voice style" offers Auto, Indian, Neutral and Device. **Auto** uses Indian, unless the device has a natural
   Indian-English voice of its own (for example Windows "Neerja Online (Natural)"), in which case it uses that.
 - **Each character** keeps the same voice every time: it is chosen from their name, with a small pace and pitch
   difference, so two characters sharing a base voice still sound distinct.
@@ -28,8 +27,8 @@ is recordings of non-native speakers, which makes a weaker voice model; that is 
   ```bash
   node scripts/voices.mjs export /tmp/lines.json
   pip install piper-tts        # needs ffmpeg too; download the models from huggingface.co/rhasspy/piper-voices
-  python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models --cast clear  --out public/voices/clear
-  python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models --cast accent --out public/voices/accent
+  python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models --cast indian  --out public/voices/indian
+  python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models --cast neutral --out public/voices/neutral
   ```
   Lines are matched by speaker and exact wording; `--only "Maitri,Ekarupa"` re-renders just some speakers.
 
@@ -101,7 +100,7 @@ the reworded line a new ID to re-record.
 
 The Piper voices are free and run offline, but a cloud neural voice (Azure Neural `en-IN-NeerjaNeural` and
 `en-IN-PrabhatNeural`, or Google Cloud `en-IN-Neural2`) has a true Indian-English accent and is more natural
-still. It uses the same pipeline: render the 480 clips once into `public/voices/clear/` (same file names,
+still. It uses the same pipeline: render the 480 clips once into `public/voices/indian/` (same file names,
 same manifest). The whole script is about 75,000 characters, inside those services' free tiers. It needs an API
 key, which belongs in the tool that renders the files and never in the repository. These services' terms
 also permit commercial use, which the Piper voice data does not.

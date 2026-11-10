@@ -16,8 +16,8 @@
  *
  * Voices, in order of preference: a human recording (public/voices); then, unless the device has a
  * natural Indian-English voice of its own, one of the game's two pre-rendered neural voice sets
- * (public/voices/clear: clear British English; public/voices/accent: an Indian-English accent that is
- * harder to understand); then the device's synthesiser. The player chooses between them in Settings.
+ * (public/voices/indian: Indian-English speakers; public/voices/neutral: British English); then the
+ * device's synthesiser. The player chooses between them in Settings.
  *
  * Recorded voices come first. If `public/voices/manifest.json` lists a clip for a line (see
  * docs/VOICE_RECORDING.md), a real person's recording plays; any line without one falls back to the
@@ -51,7 +51,7 @@ export interface SpeechHandle {
 }
 
 /** Where spoken lines come from when there is no human recording. */
-export type VoiceSource = 'auto' | 'clear' | 'accent' | 'device';
+export type VoiceSource = 'auto' | 'indian' | 'neutral' | 'device';
 
 export type VoiceQuality = 'indian-english' | 'hindi' | 'other-english' | 'none';
 
@@ -107,8 +107,8 @@ export class VoiceEngine {
   private clips = new Map<string, string>();
   private clipBase = '';
   /** Pre-rendered neural lines, per set: key -> file. */
-  private clear = new Map<string, string>();
-  private accent = new Map<string, string>();
+  private indian = new Map<string, string>();
+  private neutral = new Map<string, string>();
   private source: VoiceSource = 'auto';
   private playing: HTMLAudioElement | null = null;
 
@@ -133,12 +133,12 @@ export class VoiceEngine {
         return new Map();
       }
     };
-    [this.clips, this.clear, this.accent] = await Promise.all([
+    [this.clips, this.indian, this.neutral] = await Promise.all([
       load('voices/manifest.json'),
-      load('voices/clear/manifest.json'),
-      load('voices/accent/manifest.json'),
+      load('voices/indian/manifest.json'),
+      load('voices/neutral/manifest.json'),
     ]);
-    return this.clips.size + Math.max(this.clear.size, this.accent.size);
+    return this.clips.size + Math.max(this.indian.size, this.neutral.size);
   }
 
   setSource(source: VoiceSource): void {
@@ -152,7 +152,7 @@ export class VoiceEngine {
 
   /** How many lines have a pre-rendered neural voice (in the larger set). */
   get renderedCount(): number {
-    return Math.max(this.clear.size, this.accent.size);
+    return Math.max(this.indian.size, this.neutral.size);
   }
 
   /** True when the device itself offers a natural-sounding Indian-English voice. */
@@ -192,8 +192,8 @@ export class VoiceEngine {
     if (this.source === 'device') return null;
     // Auto trusts the device when it has a natural Indian-English voice of its own.
     if (this.source === 'auto' && this.deviceHasNaturalVoice) return null;
-    const order: Array<['clear' | 'accent', Map<string, string>]> =
-      this.source === 'accent' ? [['accent', this.accent], ['clear', this.clear]] : [['clear', this.clear], ['accent', this.accent]];
+    const order: Array<['indian' | 'neutral', Map<string, string>]> =
+      this.source === 'neutral' ? [['neutral', this.neutral], ['indian', this.indian]] : [['indian', this.indian], ['neutral', this.neutral]];
     for (const [folder, map] of order) {
       const file = map.get(key);
       if (file) return [folder, file];
@@ -272,7 +272,8 @@ export class VoiceEngine {
     // to make one voice into several people.
     const natural = isNatural(voice);
     const pitch = natural ? 1 + (profile.pitch - 1) * 0.18 : profile.pitch;
-    const rate = natural ? 0.97 + (profile.rate - 0.95) * 0.35 : profile.rate;
+    // Learners: a touch slower than the engine's default, whichever kind of voice it is.
+    const rate = (natural ? 0.97 + (profile.rate - 0.95) * 0.35 : profile.rate) * 0.9;
 
     this.cancel();
     const mine = ++this.generation;

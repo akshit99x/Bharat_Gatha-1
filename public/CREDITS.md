@@ -5,21 +5,19 @@
 All pre-rendered voices are synthesised with [Piper](https://github.com/rhasspy/piper) (MIT licence).
 There are two sets, chosen in Settings → Voice style.
 
-**Clear** (`public/voices/clear/`, the default):
+**Indian** (`public/voices/indian/`, the default): the `en_US-arctic-medium` model, using the corpus's five
+Indian-English speakers (ksp, slp, aup, axb, gka). It was trained on the **CMU ARCTIC** speech databases
+(Carnegie Mellon University, http://festvox.org/cmu_arctic/):
+
+> John Kominek and Alan W. Black. "The CMU Arctic speech databases." 5th ISCA Speech Synthesis Workshop, 2004.
+
+The databases are distributed freely by CMU. Piper's model card only says "see LICENSE file" and ships none, so
+**check the corpus's current terms before any commercial release**; for this educational entry, attribution is given here.
+
+**Neutral** (`public/voices/neutral/`):
 - *Maitri*: the `en_GB-cori-high` voice, trained on LibriVox recordings (public domain).
 - *Everyone else*: the `en_GB-aru-medium` voice, trained on the Acoustics Research Unit (University of
   Liverpool) speech corpus, licensed **CC BY 4.0**. Credit: Acoustics Research Unit, University of Liverpool.
-
-**Accent** (`public/voices/accent/`): the `en_US-l2arctic-medium` voice, using the four speakers whose first
-language is Hindi, for an Indian-English accent. It was trained on the **L2-ARCTIC** corpus:
-
-> Guanlong Zhao, Sinem Sonsaat, Alif Silpachai, Ivana Lucic, Evgeny Chukharev-Hudilainen, John Levis,
-> Ricardo Gutierrez-Osuna. "L2-ARCTIC: A Non-Native English Speech Corpus." Interspeech 2018.
-
-L2-ARCTIC is licensed **CC BY-NC 4.0**: attribution is required and **commercial use is not permitted**.
-This project is an educational entry (Smart India Hackathon) and uses it non-commercially. For any
-commercial release, delete `public/voices/accent/`; the game works without it, and the clear set has no
-such restriction.
 
 ## Everything else
 

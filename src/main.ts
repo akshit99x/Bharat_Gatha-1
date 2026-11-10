@@ -1154,11 +1154,11 @@ class Game {
       }),
       choiceRow(
         'Voice style',
-        'Clear is natural British English and the easiest to follow. Accent has an Indian-English accent but is harder to understand. Device is your computer’s own voice. Auto picks Clear, unless your device has a natural Indian-English voice.',
+        'Indian: Indian-English speakers. Neutral: British English. Device: your computer’s own voice. Auto picks Indian, unless your device has a natural Indian-English voice of its own.',
         [
           ['auto', 'Auto'],
-          ['clear', 'Clear'],
-          ['accent', 'Accent'],
+          ['indian', 'Indian'],
+          ['neutral', 'Neutral'],
           ['device', 'Device'],
         ],
         save.settings.voiceSource,

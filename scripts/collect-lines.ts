@@ -64,3 +64,5 @@ export function collectLines(): SpokenLine[] {
   add(MAITRI, VOICE_SAMPLE, 'Settings · voice test');
   return out;
 }
+
+export { pronounceable } from '../src/core/pronounce';

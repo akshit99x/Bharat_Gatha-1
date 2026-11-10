@@ -311,6 +311,13 @@ export class GroundCover {
     }
   }
 
+  /** Thin the field on a slow machine (1 = full). Only the first N instances are drawn. */
+  setLevel(level: number): void {
+    const f = Math.max(0.25, Math.min(1, level));
+    this.grass.count = Math.floor(this.grassCount * f);
+    for (const m of this.flowers) m.count = Math.floor(this.flowerCount * f);
+  }
+
   dispose(): void {
     for (const m of [this.grass, ...this.flowers]) {
       m.geometry.dispose();

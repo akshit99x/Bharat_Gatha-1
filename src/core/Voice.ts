@@ -14,12 +14,19 @@
  * Maitri and Ekarupa are fixed: Maitri warm and unhurried, Ekarupa lower,
  * slower and a little too smooth.
  *
+ * Voices, in order of preference: a human recording (public/voices); then, unless the device has a
+ * natural Indian-English voice of its own, the game's pre-rendered neural voice (public/voices/generated);
+ * then the device's synthesiser. The player can force the second or third from Settings.
+ *
  * Recorded voices come first. If `public/voices/manifest.json` lists a clip for a line (see
  * docs/VOICE_RECORDING.md), a real person's recording plays; any line without one falls back to the
  * synthesiser, so recordings can be added a few at a time, in any order, with nothing breaking.
  */
 
 import { voiceKey } from './voiceKey';
+import { pronounceable } from './pronounce';
+
+export { pronounceable };
 
 export interface VoiceProfile {
   /** Who is speaking. Needed to find a recording of the line. */
@@ -42,60 +49,12 @@ export interface SpeechHandle {
   cancel(): void;
 }
 
+/** Where spoken lines come from when there is no human recording. */
+export type VoiceSource = 'auto' | 'game' | 'device';
+
 export type VoiceQuality = 'indian-english' | 'hindi' | 'other-english' | 'none';
 
 const SILENT: SpeechHandle = { done: Promise.resolve(), audible: false, recorded: false, seconds: null, cancel: () => undefined };
-
-/**
- * How Indian names and terms should be *heard*, not seen. English voices read
- * "Dhundh" and "Gathak" as English words; these respellings steer them to
- * something close to the real sound. Only the spoken text is changed.
- */
-const SAY_AS: Array<[RegExp, string]> = [
-  [/\bDhundh\b/g, 'Dhoondh'],
-  [/\bEkarupa\b/g, 'Ekaroopa'],
-  [/\bMaitri\b/g, 'Maitree'],
-  [/\bGathak\b/g, 'Gaathak'],
-  [/\bGatha\b/g, 'Gaatha'],
-  [/\bSabha\b/g, 'Sabhaa'],
-  [/\bVimana\b/g, 'Vimaana'],
-  [/\bPramana\b/g, 'Pramaana'],
-  [/\bVidya\b/g, 'Vidyaa'],
-  [/\bdhamma\b/gi, 'dhamma'],
-  [/\bSulh-i-kul\b/g, 'Sulh-e-kul'],
-  [/\bChakravyuha\b/g, 'Chakravyooha'],
-  [/\bVibhishana\b/g, 'Vibheeshana'],
-  [/\bRavana\b/g, 'Raavana'],
-  [/\bRama\b/g, 'Raama'],
-  [/\bSita\b/g, 'Seetaa'],
-  [/\bAshoka\b/g, 'Ashoka'],
-  [/\bKalinga\b/g, 'Kalinga'],
-  [/\bMahabharata\b/g, 'Mahaabhaarata'],
-  [/\bRamayana\b/g, 'Raamaayana'],
-  [/\bUttaramerur\b/g, 'Uttaramerur'],
-  [/\bKunjaramallan\b/g, 'Kunjaramallan'],
-  [/\bBrahmi\b/g, 'Braahmi'],
-  [/\bKharosthi\b/g, 'Kharoshthi'],
-  [/\bsulh\b/gi, 'sulh'],
-  [/\bjizya\b/g, 'jizya'],
-  [/\bStupa\b/gi, 'stoopa'],
-  [/\bMeluhha\b/g, 'Meluhha'],
-  [/\bShilpa\b/g, 'Shilpa'],
-  [/\bBhadra\b/g, 'Bhadraa'],
-  [/\bMaratha\b/g, 'Maraathaa'],
-  [/\bHampi\b/g, 'Hampee'],
-  [/\bKonark\b/g, 'Konaark'],
-  [/\bChola\b/g, 'Chola'],
-  [/\bVijayanagara\b/g, 'Vijayanagara'],
-  [/\bIbadat Khana\b/g, 'Ibaadat Khaana'],
-  [/\bTaj\b/g, 'Taaj'],
-];
-
-export function pronounceable(text: string): string {
-  let out = text.replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/\s*—\s*/g, ', ').replace(/…/g, '...');
-  for (const [pattern, spoken] of SAY_AS) out = out.replace(pattern, spoken);
-  return out;
-}
 
 /** Split into sentences of a safe length. Several engines silently stop on long utterances. */
 function chunks(text: string): string[] {
@@ -146,6 +105,9 @@ export class VoiceEngine {
   /** Recorded lines: key -> file. Empty until (and unless) a manifest is found. */
   private clips = new Map<string, string>();
   private clipBase = '';
+  /** Pre-rendered neural lines: key -> file. */
+  private rendered = new Map<string, string>();
+  private source: VoiceSource = 'auto';
   private playing: HTMLAudioElement | null = null;
 
   constructor() {
@@ -158,16 +120,40 @@ export class VoiceEngine {
 
   /** Look for recorded voices. Safe to call whenever; a missing manifest simply means "none yet". */
   async loadRecordings(base = import.meta.env.BASE_URL ?? '/'): Promise<number> {
-    try {
-      const res = await fetch(`${base}voices/manifest.json`, { cache: 'no-cache' });
-      if (!res.ok) return 0;
-      const data = (await res.json()) as { clips?: Record<string, string> };
-      this.clips = new Map(Object.entries(data.clips ?? {}));
-      this.clipBase = `${base}voices/`;
-    } catch {
-      this.clips = new Map();
-    }
-    return this.clips.size;
+    this.clipBase = `${base}voices/`;
+    const load = async (path: string): Promise<Map<string, string>> => {
+      try {
+        const res = await fetch(`${base}${path}`, { cache: 'no-cache' });
+        if (!res.ok) return new Map();
+        const data = (await res.json()) as { clips?: Record<string, string> };
+        return new Map(Object.entries(data.clips ?? {}));
+      } catch {
+        return new Map();
+      }
+    };
+    [this.clips, this.rendered] = await Promise.all([load('voices/manifest.json'), load('voices/generated/manifest.json')]);
+    return this.clips.size + this.rendered.size;
+  }
+
+  setSource(source: VoiceSource): void {
+    this.source = source;
+  }
+
+  /** How many lines have a pre-rendered neural voice. */
+  get renderedCount(): number {
+    return this.rendered.size;
+  }
+
+  /** True when the device itself offers a natural-sounding Indian-English voice. */
+  get deviceHasNaturalVoice(): boolean {
+    return this.quality === 'indian-english' && isNatural(this.pool[0] ?? null);
+  }
+
+  /** Should a pre-rendered line be used in preference to the device's own voice? */
+  private preferRendered(): boolean {
+    if (this.source === 'device') return false;
+    if (this.source === 'game') return true;
+    return !this.deviceHasNaturalVoice;
   }
 
   /** How many lines have a human recording. */
@@ -253,9 +239,15 @@ export class VoiceEngine {
 
   speak(text: string, profile: VoiceProfile): SpeechHandle {
     if (!this.enabled || this.volume <= 0) return SILENT;
-    const file = profile.speaker ? this.clips.get(voiceKey(profile.speaker, text)) : undefined;
+    const key = profile.speaker ? voiceKey(profile.speaker, text) : undefined;
+    const file = key ? this.clips.get(key) : undefined;
     if (file) {
       const clip = this.playClip(`${this.clipBase}${file}`);
+      if (clip) return clip;
+    }
+    const made = key && this.preferRendered() ? this.rendered.get(key) : undefined;
+    if (made) {
+      const clip = this.playClip(`${this.clipBase}generated/${made}`);
       if (clip) return clip;
     }
     const synth = this.synth;

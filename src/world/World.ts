@@ -705,6 +705,11 @@ export class World {
     return this.interactables.find((i) => i.kind === 'pad' && i.padZone === zoneId);
   }
 
+  /** Called by the game when frame time suffers: grass is the cheapest thing to thin. */
+  setDetail(level: number): void {
+    this.groundCover.setLevel(level);
+  }
+
   // ------------------------------------------------------------------- update
 
   update(dt: number, camera: THREE.Camera, elapsed: number, focus?: THREE.Vector3, talking: string | null = null): void {

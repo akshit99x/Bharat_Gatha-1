@@ -111,6 +111,7 @@ class Game {
   private elapsed = 0;
   private sessionStart = Date.now();
   private statsTimer = 0;
+  private lastTier: 'full' | 'lite' | 'off' = 'full';
 
   constructor(private readonly viewport: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -168,6 +169,7 @@ class Game {
 
     audio.setVolumes(save.settings.musicVolume, save.settings.sfxVolume);
     voice.setEnabled(save.settings.voices);
+    voice.setSource(save.settings.voiceSource);
     void voice.loadRecordings();
     voice.setVolume(save.settings.voiceVolume);
     // The score ducks while anybody is speaking.
@@ -450,6 +452,11 @@ class Game {
 
     const sunDir = _sunDir.copy(this.world.sky.sun.position).sub(this.camera.position).normalize();
     this.post.render(dt, this.elapsed, sunDir, this.world.sky.sun.color);
+    // If the post chain has had to step down, the machine is struggling: thin the grass too.
+    if (this.post.currentTier !== this.lastTier) {
+      this.lastTier = this.post.currentTier;
+      this.world.setDetail(this.lastTier === 'full' ? 1 : this.lastTier === 'lite' ? 0.6 : 0.35);
+    }
     this.input.endFrame();
   };
 
@@ -1145,6 +1152,20 @@ class Game {
         save.patchSettings({ voices: v });
         voice.setEnabled(v);
       }),
+      choiceRow(
+        'Voice style',
+        'Auto uses the better of the two. “Game” is the voice that comes with the game; “Device” is your computer’s own.',
+        [
+          ['auto', 'Auto'],
+          ['game', 'Game'],
+          ['device', 'Device'],
+        ],
+        save.settings.voiceSource,
+        (v) => {
+          save.patchSettings({ voiceSource: v as 'auto' | 'game' | 'device' });
+          voice.setSource(v as 'auto' | 'game' | 'device');
+        },
+      ),
       sliderRow('Voice volume', save.settings.voiceVolume, 0, 1, (v) => {
         save.patchSettings({ voiceVolume: v });
         voice.setVolume(v);
@@ -1359,6 +1380,13 @@ const CONTROLS: Array<[string, string[]]> = [
 
 /** Say honestly which voices this device is using, so a flat or foreign-sounding voice has an explanation. */
 function voiceHint(): string {
+  if (voice.renderedCount > 0) {
+    return `The game ships its own voices (${voice.renderedCount} lines). Your device: ${deviceVoiceHint()}`;
+  }
+  return deviceVoiceHint();
+}
+
+function deviceVoiceHint(): string {
   switch (voice.voiceQuality) {
     case 'indian-english': {
       const n = voice.voiceNames.length;
@@ -1389,6 +1417,29 @@ function toggleRow(label: string, hint: string, value: boolean, onChange: (v: bo
     onChange(next);
   });
   row.append(text, sw);
+  return row;
+}
+
+function choiceRow(label: string, hint: string, options: Array<[string, string]>, value: string, onChange: (v: string) => void): HTMLElement {
+  const row = el('div', 'settings-row');
+  const text = el('div');
+  text.append(el('span', undefined, label), el('small', undefined, hint));
+  const group = el('div', 'choice-group');
+  group.setAttribute('role', 'radiogroup');
+  group.setAttribute('aria-label', label);
+  for (const [id, name] of options) {
+    const b = el('button', 'choice', name) as HTMLButtonElement;
+    b.type = 'button';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(id === value));
+    b.addEventListener('click', () => {
+      for (const other of group.children) other.setAttribute('aria-checked', String(other === b));
+      audio.click();
+      onChange(id);
+    });
+    group.appendChild(b);
+  }
+  row.append(text, group);
   return row;
 }
 

@@ -5310,3 +5310,34 @@ body.high-contrast .screen-fx {
   font-weight: 300;
   line-height: 1.55;
 }
+
+/* a small segmented choice, for settings with a few named options */
+
+.choice-group {
+  display: inline-flex;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.choice {
+  padding: 6px 14px;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.choice:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+
+.choice[aria-checked='true'] {
+  background: var(--gold, #e0b04a);
+  color: #1a1426;
+  font-weight: 600;
+}

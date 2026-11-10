@@ -30,7 +30,7 @@ async function load() {
   const keyMod = await import(pathToFileURL(await bundleKey(tmp)).href + '?t=' + Date.now());
   const lines = mod.collectLines();
   rmSync(tmp, { recursive: true, force: true });
-  return { lines, voiceKey: keyMod.voiceKey };
+  return { lines, voiceKey: keyMod.voiceKey, pronounceable: mod.pronounceable };
 }
 async function bundleKey(tmp) {
   const out = join(tmp, 'key.mjs');
@@ -219,13 +219,26 @@ async function cmdCheck() {
   else console.log('\nNo stale recordings.');
 }
 
+/** Hand the lines to an external renderer: key, who, the words, and the words as a speech engine should say them. */
+async function cmdExport(out) {
+  const { lines, voiceKey, pronounceable } = await load();
+  const registry = readJson(REGISTRY, {});
+  const rows = lines.map((l) => {
+    const key = voiceKey(l.speaker, l.text);
+    return { key, id: registry[key] ?? null, speaker: l.speaker, role: l.role, text: l.text, spoken: pronounceable(l.text) };
+  });
+  writeFileSync(out, JSON.stringify(rows, null, 1));
+  console.log(`Wrote ${rows.length} lines to ${out}`);
+}
+
 const [cmd, arg] = process.argv.slice(2);
 if (cmd === 'script') await cmdScript();
 else if (cmd === 'import') {
   await cmdImport(arg);
 } else if (cmd === 'manifest') console.log(`${writeManifest()} clip(s) listed.`);
 else if (cmd === 'check') await cmdCheck();
+else if (cmd === 'export') await cmdExport(arg);
 else {
-  console.log('Commands: script | import <folder> | manifest | check');
+  console.log('Commands: script | import <folder> | manifest | check | export <file.json>');
   process.exit(1);
 }

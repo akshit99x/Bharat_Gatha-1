@@ -147,6 +147,8 @@ export interface Settings {
   /** Spoken lines, using the device's Indian-English voices where it has them. */
   voices: boolean;
   voiceVolume: number;
+  /** Where lines without a human recording come from: auto picks the better of the game's voice and the device's. */
+  voiceSource: 'auto' | 'game' | 'device';
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -165,6 +167,7 @@ export const DEFAULT_SETTINGS: Settings = {
   gentleMode: true,
   voices: true,
   voiceVolume: 0.9,
+  voiceSource: 'auto',
 };
 
 function emptyProfile(): Profile {

@@ -1,4 +1,32 @@
-# Giving the game real voices
+# Voices: what the game ships, and how to replace it with real recordings
+
+**Current state.** No human recordings yet. The game ships with **pre-rendered neural voices** for all 480
+spoken lines (`public/voices/generated/`, made with Piper; see "Generated voices" below), so every player
+hears the same voice on any device. Human recordings, if they are ever made, take priority over these, one
+line at a time. Nothing in this document needs to be done for the game to work.
+
+## Generated voices
+
+- **What:** every line is rendered once with Piper's `en_US-l2arctic-medium` model, using the four speakers
+  whose first language is Hindi. That is what gives the lines an Indian-English accent. Each character is
+  given one of the four, a pace and a small pitch shift, chosen from their name (Maitri and Ekarupa are fixed).
+- **Priority:** human recording, then the generated voice, then the device's own voice. In Settings, "Voice
+  style" can force the game's voice or the device's. **Auto** uses the device's own voice only when it has a
+  natural-sounding Indian-English one (for example Windows "Neerja Online (Natural)"), and the game's voice
+  otherwise.
+- **Licence:** the voice data is CC BY-NC 4.0 (non-commercial, attribution required). That is fine for an
+  educational hackathon entry; it is credited in `public/CREDITS.md`. Before any commercial release, replace
+  the folder with licensed or recorded voices.
+- **Re-rendering** (after the script changes):
+  ```bash
+  node scripts/voices.mjs export /tmp/lines.json
+  pip install piper-tts        # and download en_US-l2arctic-medium.onnx (+ .json) from the piper-voices repo
+  python3 scripts/voices_render.py --lines /tmp/lines.json --model en_US-l2arctic-medium.onnx --out public/voices/generated
+  ```
+  Needs `ffmpeg`. Lines are matched by speaker and exact wording, so only new or reworded lines need rendering
+  (rerun with `--only` for one speaker).
+
+## If you do record real voices later
 
 The game speaks through your browser's built-in synthesiser. On a laptop with good Indian-English
 voices installed (Windows 11 "Neerja / Prabhat Online (Natural)", Chrome on Android, macOS "Rishi" or
@@ -62,15 +90,14 @@ recording stops matching and the game goes back to the synthesiser for that line
 the wrong words. `npm run voices:check` lists any such recordings, and `npm run voices:script` gives
 the reworded line a new ID to re-record.
 
-## Alternative: studio-quality synthetic voices, generated once
+## Upgrading the generated voices
 
-If recording people is not practical before the deadline, a cloud neural voice (Azure Neural
-`en-IN-NeerjaNeural` and `en-IN-PrabhatNeural`, or Google Cloud `en-IN-Neural2`) is far more natural
-than the browser's and sounds the same on every device. It uses the same pipeline: generate the 480
-clips once, drop them in as above. The whole script is about 75,000 characters, which fits inside the
-free tier of those services. It needs an API key, which should be given to the tool that renders the
-files and never committed to the repository. Real recordings are still better, but this is a good
-second choice and a good way to fill Tier 3.
+The Piper voices are free and run offline, but a cloud neural voice (Azure Neural `en-IN-NeerjaNeural` and
+`en-IN-PrabhatNeural`, or Google Cloud `en-IN-Neural2`) has a true Indian-English accent and is more natural
+still. It uses the same pipeline: render the 480 clips once into `public/voices/generated/` (same file names,
+same manifest). The whole script is about 75,000 characters, inside those services' free tiers. It needs an API
+key, which belongs in the tool that renders the files and never in the repository. These services' terms
+also permit commercial use, which the Piper voice data does not.
 
 ## Sound effects and music
 

@@ -103,11 +103,12 @@ rehearse, children and water-carriers wander), turns to face you when you speak,
 you pass, and wears a nameplate that shows a mark when they have something to tell you. Spoken lines use
 the browser's Indian-English voices where the device has them.
 
-**Recorded voices.** If a human recording exists for a line, the game plays it; otherwise the browser
-voice says it, so recordings can be added a few at a time. `npm run voices:script` lists every spoken
-line (480 lines, 80 speakers, about 89 minutes) with a recording ID and one printable page per speaker;
-`npm run voices:import <folder>` trims, levels and installs a folder of recordings. The full plan, the
-instructions for recorders and the options are in [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
+**Voices.** All 480 spoken lines ship pre-rendered with a neural voice (Piper, using speakers whose first
+language is Hindi, so the English has an Indian accent), so every player hears the same voice whatever
+their device. Settings → "Voice style" can switch to the device's own voice; Auto keeps the device's voice
+when it has a natural Indian-English one. If a human recording of a line is ever added it takes priority,
+line by line (`npm run voices:script`, `voices:import`, `voices:check`). Details, licence (the voice data is
+CC BY-NC, so non-commercial) and how to upgrade: [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
 
 **Moving.** Staircases are climbable (their colliders are real stairs); rotated buildings collide as the
 rectangles they are, not as their bounding boxes; walking into a ledge up to about a metre high hops you

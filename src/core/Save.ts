@@ -151,7 +151,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lang: 'en',
   mouseSensitivity: 1,
   invertY: false,
-  musicVolume: 0.5,
+  musicVolume: 0.65,
   sfxVolume: 0.75,
   renderScale: 1,
   shadows: true,

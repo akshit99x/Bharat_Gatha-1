@@ -1,13 +1,14 @@
 /**
  * Fully procedural audio — no sample files, nothing to download.
  *
- * The score is built from raga scales: each zone carries a raga, and the
- * ambient drone + sparse plucked phrases are generated from its swaras. That
- * keeps the soundtrack culturally grounded and the repo tiny, and it means the
- * music never loops identically twice.
+ * Sound effects live here. The score and the soundscapes are in `core/music/`:
+ * each region has a theme (a raga, a rhythmic cycle, a set of instruments and
+ * the sound of its air), and the conductor crossfades between them as you walk.
  */
 
-import { Rng } from './Rng';
+import { Conductor, buildRoom } from './music/Conductor';
+import { RAGA_BOOK } from './music/theory';
+import { themeFor } from './music/themes';
 
 /** Semitone offsets from Sa for a handful of ragas. */
 export const RAGAS: Record<string, number[]> = {
@@ -40,10 +41,11 @@ export class AudioEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private musicBus: GainNode | null = null;
+  private musicFilter: BiquadFilterNode | null = null;
   private sfxBus: GainNode | null = null;
-  private droneNodes: AudioNode[] = [];
-  private melodyTimer: number | null = null;
-  private rng = new Rng('score');
+  private conductor: Conductor | null = null;
+  /** The theme asked for before the audio context existed. */
+  private pendingTheme: string | null = null;
 
   private raga: RagaName = 'bhairav';
   private tonic = 50; // D3 — comfortable drone register
@@ -78,18 +80,27 @@ export class AudioEngine {
     comp.connect(this.master);
 
     this.musicBus = ctx.createGain();
-    this.musicBus.gain.value = this.musicVolume * 0.55;
-    this.musicBus.connect(comp);
+    this.musicBus.gain.value = this.musicVolume * 0.9;
+    // A low-pass in front of the compressor lets the score recede behind a conversation or a puzzle.
+    this.musicFilter = ctx.createBiquadFilter();
+    this.musicFilter.type = 'lowpass';
+    this.musicFilter.frequency.value = 20000;
+    this.musicFilter.Q.value = 0.5;
+    this.musicBus.connect(this.musicFilter).connect(comp);
 
     this.sfxBus = ctx.createGain();
     this.sfxBus.gain.value = this.sfxVolume;
     this.sfxBus.connect(comp);
+
+    // The score: a conductor playing into the music bus, through a shared room.
+    this.conductor = new Conductor(ctx, this.musicBus, buildRoom(ctx, this.musicBus));
+    if (this.pendingTheme) this.setTheme(this.pendingTheme);
   }
 
   setVolumes(music: number, sfx: number): void {
     this.musicVolume = music;
     this.sfxVolume = sfx;
-    if (this.musicBus) this.musicBus.gain.value = music * 0.55;
+    if (this.musicBus) this.musicBus.gain.value = music * 0.9;
     if (this.sfxBus) this.sfxBus.gain.value = sfx;
   }
 
@@ -100,125 +111,44 @@ export class AudioEngine {
    */
   duck(on: boolean): void {
     if (!this.ctx || !this.musicBus) return;
-    const target = this.musicVolume * 0.55 * (on ? 0.3 : 1);
+    const target = this.musicVolume * 0.9 * (on ? 0.3 : 1);
     this.musicBus.gain.setTargetAtTime(target, this.ctx.currentTime, on ? 0.12 : 0.6);
   }
 
-  /** Switch raga when the player crosses into a new zone. */
-  setRaga(raga: RagaName, tonicMidi = 50): void {
-    if (this.raga === raga && this.tonic === tonicMidi) return;
-    this.raga = RAGAS[raga] ? raga : 'bhairav';
-    this.tonic = tonicMidi;
-    if (this.started) {
-      this.stopDrone();
-      this.startDrone();
-    }
+  /**
+   * Soften the score while the player is reading or thinking: the highs roll
+   * off and it sits further back, then comes forward again afterward.
+   */
+  focus(on: boolean): void {
+    if (!this.ctx || !this.musicFilter) return;
+    this.musicFilter.frequency.setTargetAtTime(on ? 1300 : 20000, this.ctx.currentTime, on ? 0.25 : 0.6);
+  }
+
+  /**
+   * Move the score to a region's theme (or the title or flight themes),
+   * crossfading from whatever was playing. Safe to call before audio is unlocked:
+   * the request is remembered and played once it is.
+   */
+  setTheme(id: string, fadeSeconds = 3): void {
+    const theme = themeFor(id);
+    if (!theme) return;
+    this.pendingTheme = id;
+    this.raga = RAGA_BOOK[theme.raga] ? theme.raga : 'bhairav';
+    this.tonic = theme.tonic;
+    this.conductor?.setTheme(theme, fadeSeconds);
   }
 
   startScore(): void {
     this.unlock();
-    if (!this.ctx || this.started) return;
+    if (!this.ctx || !this.conductor || this.started) return;
     this.started = true;
-    this.startDrone();
-    this.scheduleMelody();
+    if (this.pendingTheme) this.conductor.setTheme(themeFor(this.pendingTheme) ?? null, 2);
+    this.conductor.start();
   }
 
   stopScore(): void {
     this.started = false;
-    this.stopDrone();
-    if (this.melodyTimer !== null) {
-      window.clearTimeout(this.melodyTimer);
-      this.melodyTimer = null;
-    }
-  }
-
-  // ----------------------------------------------------------------- drone
-
-  private startDrone(): void {
-    const ctx = this.ctx;
-    const bus = this.musicBus;
-    if (!ctx || !bus) return;
-
-    const sa = noteHz(this.tonic, 0);
-    const scale = RAGAS[this.raga] ?? RAGAS.bhairav!;
-    // Tanpura pairs Sa with Pa (7) — or Ma (5) in ragas that omit Pa.
-    const second = scale.includes(7) ? 7 : 5;
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 820;
-    filter.Q.value = 0.6;
-    filter.connect(bus);
-
-    const droneGain = ctx.createGain();
-    droneGain.gain.value = 0;
-    droneGain.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 4);
-    droneGain.connect(filter);
-
-    for (const [hz, detune, level] of [
-      [sa, 0, 1],
-      [sa, 5, 0.6],
-      [sa * 2, -4, 0.3],
-      [noteHz(this.tonic, second), 2, 0.55],
-    ] as Array<[number, number, number]>) {
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.value = hz;
-      osc.detune.value = detune;
-      const g = ctx.createGain();
-      g.gain.value = 0.09 * level;
-      osc.connect(g).connect(droneGain);
-      osc.start();
-      this.droneNodes.push(osc, g);
-    }
-
-    // Slow breathing LFO so the drone never feels static.
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 0.07;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.06;
-    lfo.connect(lfoGain).connect(droneGain.gain);
-    lfo.start();
-
-    this.droneNodes.push(lfo, lfoGain, droneGain, filter);
-  }
-
-  private stopDrone(): void {
-    const ctx = this.ctx;
-    for (const node of this.droneNodes) {
-      if (node instanceof OscillatorNode) {
-        try {
-          node.stop(ctx ? ctx.currentTime + 0.05 : 0);
-        } catch {
-          /* already stopped */
-        }
-      }
-      try {
-        node.disconnect();
-      } catch {
-        /* ignore */
-      }
-    }
-    this.droneNodes = [];
-  }
-
-  // ---------------------------------------------------------------- melody
-
-  private scheduleMelody(): void {
-    const tick = () => {
-      if (!this.started) return;
-      const scale = RAGAS[this.raga] ?? RAGAS.bhairav!;
-      const phraseLength = this.rng.int(2, 4);
-      let step = this.rng.int(0, scale.length - 1);
-      for (let i = 0; i < phraseLength; i++) {
-        step = Math.max(0, Math.min(scale.length - 1, step + this.rng.int(-2, 2)));
-        const octave = this.rng.bool(0.25) ? 12 : 0;
-        const hz = noteHz(this.tonic + 12, (scale[step] as number) + octave);
-        window.setTimeout(() => this.pluck(hz, 0.16, 'music'), i * this.rng.int(380, 720));
-      }
-      this.melodyTimer = window.setTimeout(tick, this.rng.int(6500, 14000));
-    };
-    this.melodyTimer = window.setTimeout(tick, 3500);
+    this.conductor?.stop();
   }
 
   // ------------------------------------------------------------------- sfx
@@ -314,7 +244,7 @@ export class AudioEngine {
 
   /** Rising arpeggio in the current raga — correct answers, quest completion. */
   success(steps = 3): void {
-    const scale = RAGAS[this.raga] ?? RAGAS.bhairav!;
+    const scale = RAGA_BOOK[this.raga]?.scale ?? RAGA_BOOK.bhairav!.scale;
     for (let i = 0; i < steps; i++) {
       const semi = scale[Math.min(scale.length - 1, i * 2)] as number;
       window.setTimeout(() => this.pluck(noteHz(this.tonic + 12, semi + (i >= scale.length ? 12 : 0)), 0.26), i * 110);

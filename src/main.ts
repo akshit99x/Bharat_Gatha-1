@@ -79,6 +79,8 @@ class Game {
   private readonly veil: HTMLElement;
   /** Regions whose story hook has been checked this session — one cheap lookup per frame. */
   private readonly hooked = new Set<string>();
+  /** The theme waiting for the player to land. */
+  private pendingTheme: string | null = null;
 
   private world!: World;
   private player!: PlayerController;
@@ -148,11 +150,13 @@ class Game {
 
     // Overlays suspend gameplay input and release the pointer.
     bus.on('ui:open', () => {
+      audio.focus(true);
       this.input.setSuspended(true);
       this.input.releaseLock();
       this.hud.dimObjectives(true);
     });
     bus.on('ui:close', () => {
+      audio.focus(false);
       this.input.setSuspended(false);
       this.hud.dimObjectives(false);
       if (this.running && !this.paused) this.input.requestLock();
@@ -327,6 +331,7 @@ class Game {
     this.beginPlay();
     this.player.startRide({ from, to, duration: 52 });
     this.hud.toast('info', 'Press Space to drop', 'Steer with WASD. The canopy opens automatically.', '🪂', 9000);
+    audio.setTheme('flight');
     // Narrated as captions, never as a dialogue, so the crossing keeps moving.
     if (!this.story.prologueSeen()) {
       this.story.markPrologueSeen();
@@ -530,6 +535,13 @@ class Game {
     if (zone && zone.id !== this.currentZone?.id) this.enterZone(zone, false);
 
     this.maybeRunZoneHook();
+    if (this.pendingTheme && this.player.state === 'ground') this.applyTheme();
+  }
+
+  private applyTheme(): void {
+    if (!this.pendingTheme) return;
+    audio.setTheme(this.pendingTheme);
+    this.pendingTheme = null;
   }
 
   /**
@@ -795,7 +807,9 @@ class Game {
 
     this.world.sky.setPalette(zone.palette);
     if (silent) this.world.sky.applyImmediately(zone.palette);
-    audio.setRaga(zone.raga, zone.tonic ?? 50);
+    // The region's theme starts once the player is on the ground (see maybeRunZoneHook's caller).
+    this.pendingTheme = zone.id;
+    if (this.player.state === 'ground' || this.player.state === 'swim') this.applyTheme();
 
     const progress = save.zone(zone.id);
     const firstVisit = !progress.discovered;
@@ -1455,7 +1469,8 @@ async function boot(): Promise<void> {
 
   const game = new Game(viewport);
   // Handy for debugging from the console; harmless in production.
-  (window as unknown as { game?: Game }).game = game;
+  (window as unknown as { game?: Game; audio?: typeof audio }).game = game;
+  (window as unknown as { audio?: typeof audio }).audio = audio;
   try {
     await game.build(setProgress);
   } catch (err) {
@@ -1471,6 +1486,17 @@ async function boot(): Promise<void> {
   if (progressBlock) progressBlock.hidden = true;
   if (actions) actions.hidden = false;
   if (continueBtn && save.hasProgress) continueBtn.hidden = false;
+
+  // The title theme starts on the first touch of the page: browsers do not allow sound before one.
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      audio.unlock();
+      audio.setTheme('title', 1.5);
+      audio.startScore();
+    },
+    { once: true },
+  );
 
   const launch = (fresh: boolean): void => {
     audio.unlock();

@@ -51,6 +51,7 @@ export class DialogueBox {
       box.setAttribute('aria-live', 'polite');
       document.body.appendChild(box);
       this.root = box;
+      audio.focus(true);
 
       const head = el('div', 'dl-head');
       const avatar = el('div', 'dl-avatar', speaker.icon);
@@ -234,6 +235,7 @@ export class DialogueBox {
   private close(): void {
     this.speech?.cancel();
     this.speech = null;
+    audio.focus(false);
     if (this.keyHandler) {
       window.removeEventListener('keydown', this.keyHandler, true);
       this.keyHandler = null;

@@ -45,12 +45,10 @@ import type { ObjectiveRow } from './story/StoryEngine';
 /**
  * Bootstrap and game loop.
  *
- * This wires the four systems together — terrain, procedural monuments, the
- * first-person controller and the quiz engine — plus enough HUD and interaction
- * to actually play them. The per-challenge mini-game runtimes (archery,
- * assembly, pattern, trade, sequencing, collection) are not built yet; their
- * posts currently show the brief and run the challenge's quiz round, and the
- * dialogue challenges run in full.
+ * Wires the systems together — terrain, procedural monuments, the character
+ * controller, the quiz engine, the story layer and the mini-games — plus enough
+ * HUD and interaction to play them. Each challenge kind has its own mini-game
+ * under `minigames/`; conversations run in the dialogue box.
  */
 
 const SCAN_RANGE = 150;
@@ -739,27 +737,8 @@ class Game {
       return;
     }
 
-    // Kinds without a game yet: show the brief and what it is meant to teach,
-    // then run the associated quiz round so the learning still happens.
-    const shown = await this.showChallengeBrief(challenge);
-    if (!shown) return;
-    const count = challenge.quizAfter && challenge.quizAfter > 0 ? challenge.quizAfter : 3;
-    const result = await this.runQuiz(zoneId, 'challenge', count, challenge.name);
-    if (result && result.percent >= 60) {
-      if (save.completeChallenge(zoneId, challenge.id)) {
-        for (const id of challenge.unlocks ?? []) {
-          if (save.unlockCodex(id)) {
-            const entry = getCodex(id);
-            this.hud.toast('codex', `Codex: ${entry?.title ?? id}`, 'Unlocked.', '📖', 5000);
-          }
-        }
-        save.addVidya(challenge.vidya);
-        bus.emit('vidya:gain', { amount: challenge.vidya, reason: challenge.name });
-        this.hud.toast('good', challenge.name, challenge.teaches, '✓', 8000);
-        this.refreshObjectives();
-        this.sayAnchorBeat(challenge.id);
-      }
-    }
+    // Every kind now has a game. Anything that slips through is a content error, not something to fake.
+    console.warn(`[challenge] "${challenge.id}" has kind "${challenge.kind}" with no runner`);
   }
 
   /** Pay out a finished mini-game: codex, Vidya scaled a little by how cleanly it went, and the completion record. */
@@ -781,56 +760,6 @@ class Game {
     bus.emit('vidya:gain', { amount: gained, reason: challenge.name });
     bus.emit('challenge:finish', { challengeId: challenge.id, success: true, score: result.score });
     this.refreshObjectives();
-  }
-
-  private showChallengeBrief(challenge: ChallengeSpec): Promise<boolean> {
-    return new Promise((resolve) => {
-      const { panel, body, foot } = buildPanel({
-        title: challenge.name,
-        subtitle: KIND_LABEL[challenge.kind],
-        closable: true,
-        onClose: () => {
-          closeOverlay();
-          resolve(false);
-        },
-      });
-
-      const prose = el('div', 'prose');
-      const task = el('h3', undefined, 'The task');
-      const taskP = el('p', undefined, challenge.brief);
-      const teaches = el('h3', undefined, 'What this teaches');
-      const teachesP = el('p', undefined, challenge.teaches);
-      prose.append(task, taskP, teaches, teachesP);
-
-      const note = el('p', undefined, '');
-      note.style.cssText =
-        'margin-top:1.4rem;padding:0.8rem 1rem;border-left:2px solid var(--gold);background:rgb(232 180 75 / 0.08);border-radius:0 8px 8px 0;font-size:0.84rem;';
-      note.textContent =
-        'The interactive version of this challenge is not built yet. For now the questions it leads to are asked directly, so the content is here even though the mini-game is not.';
-      prose.appendChild(note);
-
-      body.appendChild(prose);
-
-      const cancel = button('Not now', 'btn btn-ghost');
-      cancel.addEventListener('click', () => {
-        closeOverlay();
-        resolve(false);
-      });
-      const go = button('Answer the questions', 'btn btn-primary');
-      go.addEventListener('click', () => {
-        closeOverlay();
-        resolve(true);
-      });
-      foot.append(cancel, go);
-
-      mountOverlay('challenge-brief', panel, {
-        onEscape: () => {
-          closeOverlay();
-          resolve(false);
-        },
-      });
-      go.focus();
-    });
   }
 
   private async runQuiz(
@@ -1381,16 +1310,6 @@ const SOURCE_NOTE_TEXT: Record<string, string> = {
   debate: 'Historians genuinely disagree about this.',
 };
 
-const KIND_LABEL: Record<string, string> = {
-  archery: 'Archery challenge',
-  assembly: 'Assembly challenge',
-  pattern: 'Pattern challenge',
-  scriptMatch: 'Script-matching challenge',
-  trade: 'Trade and weights challenge',
-  sequence: 'Sequencing challenge',
-  collect: 'Collection challenge',
-  dialogue: 'Conversation',
-};
 
 const CONTROLS: Array<[string, string[]]> = [
   ['Move', ['W', 'A', 'S', 'D']],

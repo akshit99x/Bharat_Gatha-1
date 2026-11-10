@@ -103,6 +103,29 @@ its wording, and nothing is ever deducted. The full design, cast and chapter-by-
 
 ---
 
+## The challenges
+
+Every challenge is a real game, never a quiz in disguise. None of them can be failed outright; the ones that
+can be lost just offer another go. A wrong move explains itself, and the score only decides how much Vidya you
+earn, never whether you can go on.
+
+| Kind | Challenges | How it plays |
+|---|---|---|
+| **Sequence** | 10 | Drag or keyboard-reorder cards into order. A check says how many are in the right place, never which. On success the timeline unfolds with each step's date and detail |
+| **Script matching** | 5 | Pick a sign, then its meaning; a line draws between them. After two misses on one sign, the right answer pulses |
+| **Assembly** | 7 | Isometric blocks at their real relative sizes onto ordered steps. A piece for a later step says what must come first. A finished build is "switched on" — water through a drain, light through a monument |
+| **Trade** | 3 | A pan balance that is a damped-spring simulation. Set a quantity with the period's own weights, load goods until it hangs level. Scored on how few weights you used — which is why a binary series makes a good standard |
+| **Pattern** | 3 | Paint a design under mirror, four-fold or rotational symmetry. A finished design proves itself by turning or flipping |
+| **Archery** | 3 | A ballistics range in perspective: aim with breath sway, draw to full, arrow drop over distance, wind on the pennant, moving targets. A miss says why. Drona's test only scores the eye |
+| **Gathering** | 1 | A meadow of labelled plants, genuine and look-alike. A look-alike goes back with the reason it is wrong |
+| **Conversation** | 10 | The dialogue box, with ethical choices that never punish |
+
+`validateMiniGames()` runs at startup and checks every challenge's data — whether the weights can make the
+target, whether the symmetry contradicts itself, whether every socket has a piece. It has already caught a
+pattern that could not have been completed.
+
+---
+
 ## How it handles history
 
 This is the part that was designed first.
@@ -249,12 +272,13 @@ settings and the learning-record export.
 in-world haze that dissolves when a claim is corrected, eleven trails, panel restoration with a
 haze-lifting reveal, the Gatha scroll, the Sabha of Sources, the Twelfth Panel and three endings.
 
-**Not built yet:** the interactive runtimes for the other six challenge kinds — archery, assembly,
-pattern, script-matching, trade/weights and sequencing. All 42 challenges have their full data
-written (targets, pieces, sockets, glyph pairs, weights, orderings) and their posts stand in the
-world; interacting with a non-dialogue one currently shows the brief and what it teaches, says
-plainly that the mini-game is not built, and runs its quiz round so the learning still happens.
-Those six runtimes are the next piece of work.
+**Mini-games:** all eight challenge kinds are playable — 42 challenges in total.
+
+**Not built yet:** nothing from the original plan.
+
+**What could come next:** archery in the 3D world rather than on a range view; recorded voices for the key lines;
+a full Hindi text option (the setting exists, the translated content does not); a teacher view over the exported
+learning records; more regions on the same engine.
 
 ---
 

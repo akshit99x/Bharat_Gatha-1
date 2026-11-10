@@ -13,12 +13,20 @@ import type { Collider } from './architecture/kit';
 const CELL = 40;
 
 export interface Box {
+  /** Enclosing axis-aligned bounds. For an oriented box these are the broad-phase bounds only. */
   minX: number;
   minY: number;
   minZ: number;
   maxX: number;
   maxY: number;
   maxZ: number;
+  /**
+   * Set when the box was rotated by something other than a quarter-turn. The footprint is then an
+   * oriented rectangle: centre, half extents and the sine/cosine of its yaw. The player collides
+   * with that, not with the (larger) enclosing box, so a building turned 30 degrees has no invisible
+   * corners.
+   */
+  obb?: { cx: number; cz: number; hx: number; hz: number; c: number; s: number };
 }
 
 export interface ResolveResult {
@@ -71,6 +79,8 @@ export class CollisionWorld {
   addPlaced(colliders: readonly Collider[], originX: number, originY: number, originZ: number, rotY = 0, scale = 1): void {
     const c = Math.cos(rotY);
     const s = Math.sin(rotY);
+    // A quarter-turn keeps boxes axis-aligned, so the enclosing box is exact and no OBB is needed.
+    const oriented = Math.abs(s * c) > 0.002;
     for (const box of colliders) {
       const [lx0, ly0, lz0] = box.min;
       const [lx1, ly1, lz1] = box.max;
@@ -90,6 +100,7 @@ export class CollisionWorld {
           if (rz > maxZ) maxZ = rz;
         }
       }
+      const index = this.boxes.length;
       this.add(
         originX + minX,
         originY + ly0 * scale,
@@ -98,6 +109,20 @@ export class CollisionWorld {
         originY + ly1 * scale,
         originZ + maxZ,
       );
+      // `add` rejects degenerate boxes; only decorate the one it actually stored.
+      if (oriented && this.boxes.length > index) {
+        const mx = ((lx0 + lx1) / 2) * scale;
+        const mz = ((lz0 + lz1) / 2) * scale;
+        const stored = this.boxes[index] as Box;
+        stored.obb = {
+          cx: originX + mx * c + mz * s,
+          cz: originZ - mx * s + mz * c,
+          hx: Math.abs(lx1 - lx0) * 0.5 * scale,
+          hz: Math.abs(lz1 - lz0) * 0.5 * scale,
+          c,
+          s,
+        };
+      }
     }
   }
 
@@ -140,7 +165,7 @@ export class CollisionWorld {
       const b = this.boxes[i] as Box;
       if (b.maxY > y + stepHeight) continue;
       if (b.maxY < y - 2.2) continue;
-      if (!overlapsXZ(px, pz, radius, b)) continue;
+      if (!overlapsBox(px, pz, radius, b)) continue;
       if (supportY === null || b.maxY > supportY) supportY = b.maxY;
     }
 
@@ -152,33 +177,58 @@ export class CollisionWorld {
         if (b.maxY <= feet + stepHeight) continue;
         if (b.minY >= feet + height) continue;
 
-        const cx = clamp(px, b.minX, b.maxX);
-        const cz = clamp(pz, b.minZ, b.maxZ);
-        let dx = px - cx;
-        let dz = pz - cz;
+        // Work in the box's own frame, so a rotated building is a rectangle and not its bounding box.
+        const o = b.obb;
+        let x0 = b.minX;
+        let x1 = b.maxX;
+        let z0 = b.minZ;
+        let z1 = b.maxZ;
+        let qx = px;
+        let qz = pz;
+        if (o) {
+          const ox = px - o.cx;
+          const oz = pz - o.cz;
+          qx = ox * o.c - oz * o.s;
+          qz = ox * o.s + oz * o.c;
+          x0 = -o.hx;
+          x1 = o.hx;
+          z0 = -o.hz;
+          z1 = o.hz;
+        }
+        const cx = clamp(qx, x0, x1);
+        const cz = clamp(qz, z0, z1);
+        const dx = qx - cx;
+        const dz = qz - cz;
         const dist = Math.hypot(dx, dz);
+        let pushX = 0;
+        let pushZ = 0;
 
         if (dist > 1e-6) {
           if (dist >= radius) continue;
           const push = radius - dist;
-          px += (dx / dist) * push;
-          pz += (dz / dist) * push;
-          blocked = true;
+          pushX = (dx / dist) * push;
+          pushZ = (dz / dist) * push;
         } else {
           // Centre is inside the box — eject along the shallowest face.
-          const left = px - b.minX;
-          const right = b.maxX - px;
-          const back = pz - b.minZ;
-          const front = b.maxZ - pz;
+          const left = qx - x0;
+          const right = x1 - qx;
+          const back = qz - z0;
+          const front = z1 - qz;
           const min = Math.min(left, right, back, front);
-          if (min === left) px = b.minX - radius;
-          else if (min === right) px = b.maxX + radius;
-          else if (min === back) pz = b.minZ - radius;
-          else pz = b.maxZ + radius;
-          blocked = true;
+          if (min === left) pushX = x0 - radius - qx;
+          else if (min === right) pushX = x1 + radius - qx;
+          else if (min === back) pushZ = z0 - radius - qz;
+          else pushZ = z1 + radius - qz;
         }
-        dx = 0;
-        dz = 0;
+        if (o) {
+          // Back to world space.
+          px += pushX * o.c + pushZ * o.s;
+          pz += -pushX * o.s + pushZ * o.c;
+        } else {
+          px += pushX;
+          pz += pushZ;
+        }
+        blocked = true;
       }
     }
 
@@ -192,7 +242,7 @@ export class CollisionWorld {
     for (const i of ids) {
       const b = this.boxes[i] as Box;
       if (b.maxY > y + 0.1) continue;
-      if (!overlapsXZ(x, z, radius, b)) continue;
+      if (!overlapsBox(x, z, radius, b)) continue;
       if (best === null || b.maxY > best) best = b.maxY;
     }
     return best;
@@ -237,6 +287,19 @@ export class CollisionWorld {
   }
 }
 
+/** Does a circle of `radius` at (x, z) touch the box's footprint — oriented if it has one? */
+function overlapsBox(x: number, z: number, radius: number, b: Box): boolean {
+  const o = b.obb;
+  if (!o) return overlapsXZ(x, z, radius, b);
+  const ox = x - o.cx;
+  const oz = z - o.cz;
+  const qx = ox * o.c - oz * o.s;
+  const qz = ox * o.s + oz * o.c;
+  const dx = qx - clamp(qx, -o.hx, o.hx);
+  const dz = qz - clamp(qz, -o.hz, o.hz);
+  return dx * dx + dz * dz <= radius * radius;
+}
+
 function overlapsXZ(x: number, z: number, radius: number, b: Box): boolean {
   const cx = clamp(x, b.minX, b.maxX);
   const cz = clamp(z, b.minZ, b.maxZ);
@@ -257,10 +320,20 @@ function raySlab(
 ): number | null {
   let tmin = 0;
   let tmax = maxDist;
-  const o = [ox, oy, oz];
-  const d = [dx, dy, dz];
-  const lo = [b.minX, b.minY, b.minZ];
-  const hi = [b.maxX, b.maxY, b.maxZ];
+  let o = [ox, oy, oz];
+  let d = [dx, dy, dz];
+  let lo = [b.minX, b.minY, b.minZ];
+  let hi = [b.maxX, b.maxY, b.maxZ];
+  const ob = b.obb;
+  if (ob) {
+    // Into the box's own frame, so rays stop on the walls you can see, not on the enclosing box.
+    const rx = ox - ob.cx;
+    const rz = oz - ob.cz;
+    o = [rx * ob.c - rz * ob.s, oy, rx * ob.s + rz * ob.c];
+    d = [dx * ob.c - dz * ob.s, dy, dx * ob.s + dz * ob.c];
+    lo = [-ob.hx, b.minY, -ob.hz];
+    hi = [ob.hx, b.maxY, ob.hz];
+  }
   for (let a = 0; a < 3; a++) {
     const da = d[a] as number;
     const oa = o[a] as number;

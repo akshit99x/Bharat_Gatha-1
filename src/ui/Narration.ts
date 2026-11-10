@@ -208,7 +208,9 @@ export class Narration {
     // Keep the caption in step with the voice: about 14 characters a second at normal pace.
     const typeCps = speech.audible ? 14 * voice.profileForSpeaker(line.name).rate : TYPE_CPS;
     const tick = (now: number): void => {
-      const shown = Math.min(line.text.length, Math.floor(((now - started) / 1000) * typeCps));
+      // A recording knows its own length: pace the words to it (finishing just before the voice does).
+      const cps = speech.recorded && speech.seconds ? line.text.length / (speech.seconds * 0.94) : typeCps;
+      const shown = Math.min(line.text.length, Math.floor(((now - started) / 1000) * cps));
       this.text.textContent = line.text.slice(0, shown);
       if (shown < line.text.length) this.raf = requestAnimationFrame(tick);
       else settle();

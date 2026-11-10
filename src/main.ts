@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Post } from './render/Post';
+import { VOICE_SAMPLE } from './content/story/sabha';
 import './styles/main.css';
 
 import { Input } from './core/Input';
@@ -166,6 +167,7 @@ class Game {
 
     audio.setVolumes(save.settings.musicVolume, save.settings.sfxVolume);
     voice.setEnabled(save.settings.voices);
+    void voice.loadRecordings();
     voice.setVolume(save.settings.voiceVolume);
     // The score ducks while anybody is speaking.
     voice.watch((speaking) => audio.duck(speaking));
@@ -1151,10 +1153,7 @@ class Game {
 
     const sample = button('Hear a voice', 'btn btn-ghost');
     sample.addEventListener('click', () => {
-      voice.speak(
-        'Namaste, Gathak. I am Maitri, keeper of the Gatha. If you can hear this, the voices are working.',
-        voice.profileForSpeaker('Maitri'),
-      );
+      voice.speak(VOICE_SAMPLE, voice.profileForSpeaker('Maitri'));
     });
 
     const exportBtn = button('Export learning record', 'btn btn-ghost');

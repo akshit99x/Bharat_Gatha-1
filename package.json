@@ -8,7 +8,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "voices:script": "node scripts/voices.mjs script",
+    "voices:import": "node scripts/voices.mjs import",
+    "voices:manifest": "node scripts/voices.mjs manifest",
+    "voices:check": "node scripts/voices.mjs check"
   },
   "dependencies": {
     "three": "0.169.0"

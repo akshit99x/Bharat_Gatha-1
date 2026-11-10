@@ -77,7 +77,7 @@ export class DialogueBox {
        * Type a line out, then run `then`. Paced to the voice when there is one
        * (about 14 characters a second at normal pace), otherwise a brisk read.
        */
-      const reveal = (full: string, rate: number, audible: boolean, then: () => void): void => {
+      const reveal = (full: string, rate: number, audible: boolean, then: () => void, clip?: SpeechHandle | null): void => {
         cancelAnimationFrame(raf);
         const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
         if (reduce) {
@@ -100,7 +100,8 @@ export class DialogueBox {
         skipTyping = complete;
         const tick = (now: number): void => {
           if (skipTyping !== complete) return;
-          const shown = Math.min(full.length, Math.floor(((now - started) / 1000) * cps));
+          const live = clip?.recorded && clip.seconds ? full.length / (clip.seconds * 0.94) : cps;
+          const shown = Math.min(full.length, Math.floor(((now - started) / 1000) * live));
           text.textContent = full.slice(0, shown);
           if (shown < full.length) raf = requestAnimationFrame(tick);
           else complete();
@@ -130,7 +131,7 @@ export class DialogueBox {
         say(node.text);
         choicesWrap.replaceChildren();
         nextHint.textContent = '';
-        reveal(node.text, profile.rate, this.speech?.audible === true, () => controls(node));
+        reveal(node.text, profile.rate, this.speech?.audible === true, () => controls(node), this.speech);
       };
 
       /** The choices, or the continue prompt, once the line has finished arriving. */

@@ -1,30 +1,37 @@
 # Voices: what the game ships, and how to replace it with real recordings
 
-**Current state.** No human recordings yet. The game ships with **pre-rendered neural voices** for all 480
-spoken lines (`public/voices/generated/`, made with Piper; see "Generated voices" below), so every player
-hears the same voice on any device. Human recordings, if they are ever made, take priority over these, one
-line at a time. Nothing in this document needs to be done for the game to work.
+**Current state.** No human recordings yet. The game ships with **two sets of pre-rendered neural voices** for
+all 480 spoken lines (`public/voices/clear/` and `public/voices/accent/`, made with Piper), so every player
+hears the same voice on any device. Human recordings, if they are ever made, take priority over both, one line
+at a time. Nothing in this document needs to be done for the game to work.
 
-## Generated voices
+## The two generated sets
 
-- **What:** every line is rendered once with Piper's `en_US-l2arctic-medium` model, using the four speakers
-  whose first language is Hindi. That is what gives the lines an Indian-English accent. Each character is
-  given one of the four, a pace and a small pitch shift, chosen from their name (Maitri and Ekarupa are fixed).
-- **Priority:** human recording, then the generated voice, then the device's own voice. In Settings, "Voice
-  style" can force the game's voice or the device's. **Auto** uses the device's own voice only when it has a
-  natural-sounding Indian-English one (for example Windows "Neerja Online (Natural)"), and the game's voice
-  otherwise.
-- **Licence:** the voice data is CC BY-NC 4.0 (non-commercial, attribution required). That is fine for an
-  educational hackathon entry; it is credited in `public/CREDITS.md`. Before any commercial release, replace
-  the folder with licensed or recorded voices.
-- **Re-rendering** (after the script changes):
+| | **Clear** (default) | **Accent** |
+|---|---|---|
+| Sounds like | natural British English | English with an Indian accent |
+| Voices | Maitri: `en_GB-cori-high` (public domain). Everyone else: `en_GB-aru-medium`, 11 speakers (CC BY 4.0) | `en_US-l2arctic-medium`, the four Hindi-first-language speakers (CC BY-NC 4.0) |
+| Ekarupa | the deepest ARU speaker, slower | a lower pitch, slower |
+| Word error (speech recogniser, 102 lines) | **9.2%** | 24.5% |
+| Commercial use | allowed (with attribution) | **not allowed** |
+
+I could not listen to either. The word error rate is a speech recogniser's, so it is a fair measure of
+*clarity*, not of how pleasant they sound. The accent set is much harder to follow because the corpus behind it
+is recordings of non-native speakers, which makes a weaker voice model; that is why Clear is the default.
+
+- **Priority:** human recording, then the chosen generated set, then the device's own voice. In Settings,
+  "Voice style" offers Auto, Clear, Accent and Device. **Auto** uses Clear, unless the device has a natural
+  Indian-English voice of its own (for example Windows "Neerja Online (Natural)"), in which case it uses that.
+- **Each character** keeps the same voice every time: it is chosen from their name, with a small pace and pitch
+  difference, so two characters sharing a base voice still sound distinct.
+- **Re-rendering** (after the script changes): each set needs the Piper models in one folder.
   ```bash
   node scripts/voices.mjs export /tmp/lines.json
-  pip install piper-tts        # and download en_US-l2arctic-medium.onnx (+ .json) from the piper-voices repo
-  python3 scripts/voices_render.py --lines /tmp/lines.json --model en_US-l2arctic-medium.onnx --out public/voices/generated
+  pip install piper-tts        # needs ffmpeg too; download the models from huggingface.co/rhasspy/piper-voices
+  python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models --cast clear  --out public/voices/clear
+  python3 scripts/voices_render.py --lines /tmp/lines.json --models ./piper-models --cast accent --out public/voices/accent
   ```
-  Needs `ffmpeg`. Lines are matched by speaker and exact wording, so only new or reworded lines need rendering
-  (rerun with `--only` for one speaker).
+  Lines are matched by speaker and exact wording; `--only "Maitri,Ekarupa"` re-renders just some speakers.
 
 ## If you do record real voices later
 
@@ -94,7 +101,7 @@ the reworded line a new ID to re-record.
 
 The Piper voices are free and run offline, but a cloud neural voice (Azure Neural `en-IN-NeerjaNeural` and
 `en-IN-PrabhatNeural`, or Google Cloud `en-IN-Neural2`) has a true Indian-English accent and is more natural
-still. It uses the same pipeline: render the 480 clips once into `public/voices/generated/` (same file names,
+still. It uses the same pipeline: render the 480 clips once into `public/voices/clear/` (same file names,
 same manifest). The whole script is about 75,000 characters, inside those services' free tiers. It needs an API
 key, which belongs in the tool that renders the files and never in the repository. These services' terms
 also permit commercial use, which the Piper voice data does not.

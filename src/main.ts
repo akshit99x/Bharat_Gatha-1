@@ -5,7 +5,7 @@ import './styles/main.css';
 
 import { Input } from './core/Input';
 import { bus } from './core/EventBus';
-import { save } from './core/Save';
+import { save, type Settings } from './core/Save';
 import { audio } from './core/Audio';
 import { voice } from './core/Voice';
 import { Rng } from './core/Rng';
@@ -1154,16 +1154,17 @@ class Game {
       }),
       choiceRow(
         'Voice style',
-        'Auto uses the better of the two. “Game” is the voice that comes with the game; “Device” is your computer’s own.',
+        'Clear is natural British English and the easiest to follow. Accent has an Indian-English accent but is harder to understand. Device is your computer’s own voice. Auto picks Clear, unless your device has a natural Indian-English voice.',
         [
           ['auto', 'Auto'],
-          ['game', 'Game'],
+          ['clear', 'Clear'],
+          ['accent', 'Accent'],
           ['device', 'Device'],
         ],
         save.settings.voiceSource,
         (v) => {
-          save.patchSettings({ voiceSource: v as 'auto' | 'game' | 'device' });
-          voice.setSource(v as 'auto' | 'game' | 'device');
+          save.patchSettings({ voiceSource: v as Settings['voiceSource'] });
+          voice.setSource(v as Settings['voiceSource']);
         },
       ),
       sliderRow('Voice volume', save.settings.voiceVolume, 0, 1, (v) => {

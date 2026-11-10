@@ -2,21 +2,24 @@
 
 ## Spoken voices (generated)
 
-The game's pre-rendered voices (`public/voices/generated/`) are synthesised with
-[Piper](https://github.com/rhasspy/piper) (MIT licence) using the `en_US-l2arctic-medium` model.
+All pre-rendered voices are synthesised with [Piper](https://github.com/rhasspy/piper) (MIT licence).
+There are two sets, chosen in Settings → Voice style.
 
-That model was trained on the **L2-ARCTIC** corpus:
+**Clear** (`public/voices/clear/`, the default):
+- *Maitri*: the `en_GB-cori-high` voice, trained on LibriVox recordings (public domain).
+- *Everyone else*: the `en_GB-aru-medium` voice, trained on the Acoustics Research Unit (University of
+  Liverpool) speech corpus, licensed **CC BY 4.0**. Credit: Acoustics Research Unit, University of Liverpool.
+
+**Accent** (`public/voices/accent/`): the `en_US-l2arctic-medium` voice, using the four speakers whose first
+language is Hindi, for an Indian-English accent. It was trained on the **L2-ARCTIC** corpus:
 
 > Guanlong Zhao, Sinem Sonsaat, Alif Silpachai, Ivana Lucic, Evgeny Chukharev-Hudilainen, John Levis,
 > Ricardo Gutierrez-Osuna. "L2-ARCTIC: A Non-Native English Speech Corpus." Interspeech 2018.
 
 L2-ARCTIC is licensed **CC BY-NC 4.0**: attribution is required and **commercial use is not permitted**.
-This project is an educational entry (Smart India Hackathon) and uses the voices non-commercially. If the
-game is ever distributed commercially, replace `public/voices/generated/` with licensed or recorded voices
-(see `docs/VOICE_RECORDING.md`); the game works without that folder.
-
-The four speakers used are those whose first language is Hindi, which is what gives the lines an
-Indian-English accent.
+This project is an educational entry (Smart India Hackathon) and uses it non-commercially. For any
+commercial release, delete `public/voices/accent/`; the game works without it, and the clear set has no
+such restriction.
 
 ## Everything else
 

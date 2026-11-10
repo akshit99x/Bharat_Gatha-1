@@ -103,16 +103,19 @@ rehearse, children and water-carriers wander), turns to face you when you speak,
 you pass, and wears a nameplate that shows a mark when they have something to tell you. Spoken lines use
 the browser's Indian-English voices where the device has them.
 
-**Voices.** All 480 spoken lines ship pre-rendered with a neural voice (Piper, using speakers whose first
-language is Hindi, so the English has an Indian accent), so every player hears the same voice whatever
-their device. Settings → "Voice style" can switch to the device's own voice; Auto keeps the device's voice
-when it has a natural Indian-English one. If a human recording of a line is ever added it takes priority,
-line by line (`npm run voices:script`, `voices:import`, `voices:check`). Details, licence (the voice data is
-CC BY-NC, so non-commercial) and how to upgrade: [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
+**Voices.** All 480 spoken lines ship pre-rendered with a neural voice (Piper), in two sets: **Clear**
+(natural British English, the default, the easiest to follow) and **Accent** (an Indian-English accent, but
+measurably harder to understand), so every player hears the same voice on any device. Settings → "Voice
+style" switches between them or to the device's own voice; Auto keeps the device's voice when it has a
+natural Indian-English one. A human recording of a line, if one is ever added, takes priority (`npm run
+voices:script`, `voices:import`, `voices:check`). Licences (the Accent data is CC BY-NC, so non-commercial),
+how it was measured and how to upgrade: [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
 
 **Moving.** Staircases are climbable (their colliders are real stairs); rotated buildings collide as the
 rectangles they are, not as their bounding boxes; walking into a ledge up to about a metre high hops you
 onto it; the view eases over steps instead of jolting; the camera stops short of hillsides.
+
+**Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
 **The Journey screen (`M`).** One screen, three tabs: **Map** (the island, regions, fast travel, what is
 discovered and what is not), **Roadmap** (all eleven chapters, what each still needs, and the next step
@@ -344,3 +347,10 @@ worth checking if you are extending it: the Harappan weight series and brick rat
 inscriptions, Ashoka's Major Rock Edicts 12 and 13, the Thanjavur construction, Aryabhata's
 `asanna`, the Jantar Mantar instrument functions, and the Vijayanagara survey. The `debate`-tagged
 entries are the ones to read first — they are where the interesting history is.
+
+## Testing movement
+
+`scripts/tests/` holds three Playwright scripts that drive the real player controller (`npm i -D playwright`, run
+`npm run dev`, then `node scripts/tests/walk.mjs`): **walk** (walks 8 directions from every interactable and a
+grid of land, and reports trapped or popping spots), **climb** (approaches every landmark) and **vault**
+(ledges of several heights, rotated and not).

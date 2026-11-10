@@ -4,6 +4,7 @@ import { Terrain, SEA_LEVEL } from './Terrain';
 import { Sky } from './Sky';
 import { Water } from './Water';
 import { GroundCover } from './GroundCover';
+import { Birds } from './Birds';
 import { Vegetation, defaultVegetationOptions, type ExclusionCircle } from './Vegetation';
 import { CollisionWorld } from './Collision';
 import { buildLandmark } from './architecture';
@@ -106,6 +107,7 @@ export class World {
   /** Ambient dust and pollen; follows the camera. */
   readonly atmosphere = new Atmosphere();
   private readonly groundCover: GroundCover;
+  private readonly birds: Birds;
   readonly group = new THREE.Group();
 
   readonly landmarks: PlacedLandmark[] = [];
@@ -164,6 +166,9 @@ export class World {
 
     this.groundCover = new GroundCover(this.terrain, this.collision, opts.seed, scale);
     this.group.add(this.groundCover.group);
+
+    this.birds = new Birds(this.terrain);
+    this.group.add(this.birds.mesh);
   }
 
   // ----------------------------------------------------------------- placement
@@ -722,6 +727,7 @@ export class World {
     }
     this.updateNpcs(dt, focus ?? camera.position, talking);
     this.groundCover.update(focus ?? camera.position);
+    this.birds.update(focus ?? camera.position, elapsed);
 
     // Low sun, more glow in the air.
     const sunDir = _v1.copy(this.sky.sun.position).sub(camera.position).normalize();
@@ -754,6 +760,7 @@ export class World {
     this.personGeometries.clear();
     this.atmosphere.dispose();
     this.groundCover.dispose();
+    this.birds.dispose();
     this.vegetation.dispose();
     this.water.dispose();
     this.sky.dispose();

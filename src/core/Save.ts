@@ -142,6 +142,9 @@ export interface Settings {
   subtitles: boolean;
   /** When on, the glider deploys automatically and falling cannot hurt you. */
   gentleMode: boolean;
+  /** Spoken lines, using the device's Indian-English voices where it has them. */
+  voices: boolean;
+  voiceVolume: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -157,6 +160,8 @@ export const DEFAULT_SETTINGS: Settings = {
   highContrast: false,
   subtitles: true,
   gentleMode: true,
+  voices: true,
+  voiceVolume: 0.9,
 };
 
 function emptyProfile(): Profile {

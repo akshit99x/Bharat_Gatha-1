@@ -5,6 +5,7 @@ import { Input } from './core/Input';
 import { bus } from './core/EventBus';
 import { save } from './core/Save';
 import { audio } from './core/Audio';
+import { voice } from './core/Voice';
 import { Rng } from './core/Rng';
 
 import { World } from './world/World';
@@ -133,6 +134,10 @@ class Game {
     document.body.appendChild(this.veil);
 
     audio.setVolumes(save.settings.musicVolume, save.settings.sfxVolume);
+    voice.setEnabled(save.settings.voices);
+    voice.setVolume(save.settings.voiceVolume);
+    // The score ducks while anybody is speaking.
+    voice.watch((speaking) => audio.duck(speaking));
     this.applyAccessibility();
 
     window.addEventListener('resize', () => this.resize());
@@ -1084,6 +1089,14 @@ class Game {
         save.patchSettings({ sfxVolume: v });
         audio.setVolumes(save.settings.musicVolume, v);
       }),
+      toggleRow('Spoken voices', voiceHint(), save.settings.voices, (v) => {
+        save.patchSettings({ voices: v });
+        voice.setEnabled(v);
+      }),
+      sliderRow('Voice volume', save.settings.voiceVolume, 0, 1, (v) => {
+        save.patchSettings({ voiceVolume: v });
+        voice.setVolume(v);
+      }),
     );
     body.appendChild(rows);
 
@@ -1094,18 +1107,27 @@ class Game {
       await this.runQuiz(this.currentZone?.id ?? null, 'practice', 6, 'Practice round');
     });
 
+    const sample = button('Hear a voice', 'btn btn-ghost');
+    sample.addEventListener('click', () => {
+      voice.speak(
+        'Namaste, Gathak. I am Maitri, keeper of the Gatha. If you can hear this, the voices are working.',
+        voice.profileForSpeaker('Maitri'),
+      );
+    });
+
     const exportBtn = button('Export learning record', 'btn btn-ghost');
     exportBtn.addEventListener('click', () => this.exportReport());
 
     const resume = button('Resume', 'btn btn-primary');
     resume.addEventListener('click', () => this.resume());
 
-    foot.append(practice, exportBtn, resume);
+    foot.append(practice, sample, exportBtn, resume);
     mountOverlay('pause', panel, { onEscape: () => this.resume() });
     resume.focus();
   }
 
   private resume(): void {
+    voice.cancel();
     closeOverlay();
     this.paused = false;
     this.input.requestLock();
@@ -1352,6 +1374,22 @@ const CONTROLS: Array<[string, string[]]> = [
   ['Answer a question', ['1', '2', '3', '4']],
   ['Continue', ['Enter']],
 ];
+
+/** Say honestly which voices this device is using, so a flat or foreign-sounding voice has an explanation. */
+function voiceHint(): string {
+  switch (voice.voiceQuality) {
+    case 'indian-english': {
+      const n = voice.voiceNames.length;
+      return `English (India): ${voice.voiceNames[0]}${n > 1 ? ` and ${n - 1} more` : ''}.`;
+    }
+    case 'hindi':
+      return 'No English (India) voice on this device, so a Hindi voice is reading the lines. Install English (India) in your system speech settings for the best result.';
+    case 'other-english':
+      return 'No Indian voice on this device, so a standard English voice is speaking. Install English (India) in your system speech settings for the best result.';
+    default:
+      return voice.supported ? 'No speech voices were found on this device.' : 'This browser cannot speak. Captions only.';
+  }
+}
 
 function toggleRow(label: string, hint: string, value: boolean, onChange: (v: boolean) => void): HTMLElement {
   const row = el('div', 'settings-row');

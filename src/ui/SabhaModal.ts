@@ -1,4 +1,5 @@
 import { audio } from '../core/Audio';
+import { voice } from '../core/Voice';
 import { MOTIF_LABEL, VERDICT_GLOSS, VERDICT_LABEL, VERDICT_ORDER, type Plaque } from '../content/story';
 import type { StoryEngine } from '../story/StoryEngine';
 import { EKARUPA, MAITRI } from '../story/StoryEngine';
@@ -46,6 +47,7 @@ export class SabhaModal {
       });
       const close = (): void => {
         detach();
+        voice.cancel();
         closeOverlay();
         resolve(outcome);
       };
@@ -65,6 +67,7 @@ export class SabhaModal {
         stage.dataset.who = 'ekarupa';
         stage.append(el('div', 'sb-name', `${EKARUPA.icon} ${EKARUPA.name}`));
         for (const line of OPENING) stage.append(el('p', 'sb-line', line));
+        voice.speak(OPENING.join(' '), voice.profileForSpeaker('Ekarupa'));
         body.appendChild(stage);
         body.appendChild(
           el('p', 'sb-note', total === 0 ? 'Every claim has already been settled.' : `${total} claim${total === 1 ? '' : 's'}, drawn from the panels you have restored.`),
@@ -99,6 +102,7 @@ export class SabhaModal {
         );
         if (zone) stage.append(el('small', 'sb-from', `From ${zone.name}.`));
 
+        voice.speak(plaque.claim, voice.profileForSpeaker('Ekarupa'));
         const ask = el('h3', 'pq-h', plaque.ask ?? 'Where does the honest version of this claim belong?');
         const options = el('div', 'pq-options');
         const result = el('div', 'sb-result');
@@ -149,6 +153,7 @@ export class SabhaModal {
           result.append(el('p', undefined, plaque.correction));
           const witness = this.story.witnessFor(plaque.zoneId);
           if (witness) {
+            voice.speak(witness.text, voice.profileForSpeaker(witness.speaker.name));
             const w = el('div', 'sb-witness');
             w.append(el('b', undefined, `${witness.speaker.icon} ${witness.speaker.name}, called as a witness`), el('p', undefined, `“${witness.text}”`));
             result.appendChild(w);
@@ -172,6 +177,7 @@ export class SabhaModal {
         const stage = el('div', 'sb-stage');
         stage.dataset.who = 'maitri';
         stage.append(el('div', 'sb-name', `${MAITRI.icon} ${MAITRI.name}`), el('p', 'sb-line', CLOSING));
+        voice.speak(CLOSING, voice.profileForSpeaker('Maitri'));
         const canvas = el('canvas', 'sb-braid');
         body.append(stage, canvas);
 

@@ -93,6 +93,17 @@ export class AudioEngine {
     if (this.sfxBus) this.sfxBus.gain.value = sfx;
   }
 
+  /**
+   * Lower the music while somebody is speaking, and bring it back after. The
+   * score is a drone and sparse plucks, so a dip of about two-thirds is enough
+   * to make speech clear without the music seeming to stop.
+   */
+  duck(on: boolean): void {
+    if (!this.ctx || !this.musicBus) return;
+    const target = this.musicVolume * 0.55 * (on ? 0.3 : 1);
+    this.musicBus.gain.setTargetAtTime(target, this.ctx.currentTime, on ? 0.12 : 0.6);
+  }
+
   /** Switch raga when the player crosses into a new zone. */
   setRaga(raga: RagaName, tonicMidi = 50): void {
     if (this.raga === raga && this.tonic === tonicMidi) return;

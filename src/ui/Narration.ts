@@ -1,4 +1,5 @@
 import { audio } from '../core/Audio';
+import { voice, type SpeechHandle } from '../core/Voice';
 import type { Mask } from '../content/story';
 import { el } from './overlay';
 
@@ -40,6 +41,7 @@ export class Narration {
   /** Cancels the typing animation on the line now showing. Null once the line is fully shown. */
   private finishTyping: (() => void) | null = null;
   private raf = 0;
+  private speech: SpeechHandle | null = null;
 
   constructor() {
     this.root = el('div', 'narration');
@@ -80,6 +82,8 @@ export class Narration {
 
   /** Drop everything queued and hide the box. Pending promises resolve. */
   clear(): void {
+    this.speech?.cancel();
+    this.speech = null;
     cancelAnimationFrame(this.raf);
     this.finishTyping = null;
     this.text.classList.remove('typing');
@@ -99,6 +103,8 @@ export class Narration {
       this.finishTyping();
       return;
     }
+    this.speech?.cancel();
+    this.speech = null;
     if (this.timer !== null) window.clearTimeout(this.timer);
     this.timer = null;
     const finishing = this.current;
@@ -126,7 +132,11 @@ export class Narration {
     void this.root.offsetWidth;
     this.root.classList.add('nr-in');
 
-    audio.pluck(line.voice === 'ekarupa' ? 147 : 392, 0.1);
+    // Speak the line. When a voice is available the caption stays up until the
+    // voice has finished; otherwise it falls back to a reading allowance.
+    const speech = voice.speak(line.text, voice.profileForSpeaker(line.name));
+    this.speech = speech;
+    if (!speech.audible) audio.pluck(line.voice === 'ekarupa' ? 147 : 392, 0.1);
 
     this.current = item.done;
 
@@ -134,13 +144,23 @@ export class Narration {
       this.finishTyping = null;
       this.text.classList.remove('typing');
       this.text.textContent = line.text;
-      this.timer = window.setTimeout(() => {
+      const advance = (): void => {
         this.timer = null;
+        this.speech = null;
         const finishing = this.current;
         this.current = null;
         finishing?.();
         this.next();
-      }, linger(line.text));
+      };
+      if (speech.audible) {
+        // Wait for the voice, then a short breath before the next line.
+        void speech.done.then(() => {
+          if (this.current !== item.done) return; // skipped or cleared meanwhile
+          this.timer = window.setTimeout(advance, 700);
+        });
+      } else {
+        this.timer = window.setTimeout(advance, linger(line.text));
+      }
     };
 
     if (reducedMotion()) {
@@ -152,8 +172,10 @@ export class Narration {
     this.text.classList.add('typing');
     this.text.textContent = '';
     const started = performance.now();
+    // Keep the caption in step with the voice: about 14 characters a second at normal pace.
+    const typeCps = speech.audible ? 14 * voice.profileForSpeaker(line.name).rate : TYPE_CPS;
     const tick = (now: number): void => {
-      const shown = Math.min(line.text.length, Math.floor(((now - started) / 1000) * TYPE_CPS));
+      const shown = Math.min(line.text.length, Math.floor(((now - started) / 1000) * typeCps));
       this.text.textContent = line.text.slice(0, shown);
       if (shown < line.text.length) this.raf = requestAnimationFrame(tick);
       else settle();

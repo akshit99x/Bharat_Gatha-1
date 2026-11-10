@@ -214,6 +214,14 @@ dimmed.
 
 - **Seeded world.** Terrain, scatter and question order all derive from one seed, so a teacher can
   hand out a seed and every student gets the same map and the same round.
+- **Spoken voices.** Every conversation, caption and Sabha line is spoken through the browser's own speech
+  engine, so there are still no audio files. It asks for **English (India)** voices first, then Hindi, then any
+  English voice, and the pause menu says which one your device is using. Nobody is assigned a gender: each
+  person gets a stable voice from a hash of their name, with a small pitch and pace shift, so the same person
+  always sounds the same. Maitri is warm and unhurried; Ekarupa is lower, slower and a little too smooth. Indian
+  names and terms are respelled for the voice only (Dhundh → "Dhoondh"), never on screen. The music ducks
+  under speech. Best results on Edge or Chrome with an English (India) voice installed; on Windows that is
+  Settings → Time & language → Speech.
 - **Procedural score.** Each zone carries a raga; the drone and the sparse plucked phrases are
   generated from its swaras. No audio files, and the music never loops identically.
 - **Learning record.** The save profile doubles as an exportable JSON record — per-question history,

@@ -27,6 +27,8 @@ import { PlaqueModal } from './ui/PlaqueModal';
 import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
+import { MiniGames } from './minigames/MiniGames';
+import type { MiniGameResult } from './minigames/types';
 import { StoryEngine, EKARUPA, MAITRI, SABHA_MIN_PANELS, type Speaker } from './story/StoryEngine';
 import { CHAPTERS, PROLOGUE, getChapter, validateStory, type StoryLine } from './content/story';
 import { buildPanel, button, closeOverlay, el, mountOverlay, overlayOpen } from './ui/overlay';
@@ -68,6 +70,7 @@ class Game {
   private readonly quizModal: QuizModal;
   private readonly dialogue = new DialogueBox();
   private readonly story = new StoryEngine(save);
+  private readonly minigames = new MiniGames();
   private readonly narration = new Narration();
   private readonly plaqueModal = new PlaqueModal(this.story);
   private readonly sabhaModal = new SabhaModal(this.story);
@@ -724,9 +727,19 @@ class Game {
       return;
     }
 
-    // The other six challenge kinds do not have their mini-game runtimes yet.
-    // Rather than pretend, show the brief and what it is meant to teach, then
-    // run the associated quiz round so the learning still happens.
+    // A playable game, where the kind has one: finish it to complete the
+    // challenge, then an optional quiz round follows, as with a conversation.
+    if (this.minigames.has(challenge.kind)) {
+      const result = await this.minigames.run(challenge);
+      if (!result || !result.passed) return;
+      this.completeMiniGame(challenge, zoneId, result);
+      if (challenge.quizAfter && challenge.quizAfter > 0) await this.runQuiz(zoneId, 'challenge', challenge.quizAfter, challenge.name);
+      this.sayAnchorBeat(challenge.id);
+      return;
+    }
+
+    // Kinds without a game yet: show the brief and what it is meant to teach,
+    // then run the associated quiz round so the learning still happens.
     const shown = await this.showChallengeBrief(challenge);
     if (!shown) return;
     const count = challenge.quizAfter && challenge.quizAfter > 0 ? challenge.quizAfter : 3;
@@ -746,6 +759,27 @@ class Game {
         this.sayAnchorBeat(challenge.id);
       }
     }
+  }
+
+  /** Pay out a finished mini-game: codex, Vidya scaled a little by how cleanly it went, and the completion record. */
+  private completeMiniGame(challenge: ChallengeSpec, zoneId: string, result: MiniGameResult): void {
+    for (const id of challenge.unlocks ?? []) {
+      if (save.unlockCodex(id)) {
+        const entry = getCodex(id);
+        this.hud.toast('codex', `Codex: ${entry?.title ?? id}`, 'Unlocked.', '📖', 5000);
+      }
+    }
+    // Between 70% and 100% of the listed Vidya, by score. Never zero, never a gate.
+    let gained = Math.round(challenge.vidya * (0.7 + 0.3 * (result.score / 100)));
+    if (save.completeChallenge(zoneId, challenge.id)) {
+      this.hud.toast('good', challenge.name, challenge.teaches, '✓', 8000);
+    } else {
+      gained = Math.round(gained * 0.3);
+    }
+    save.addVidya(gained);
+    bus.emit('vidya:gain', { amount: gained, reason: challenge.name });
+    bus.emit('challenge:finish', { challengeId: challenge.id, success: true, score: result.score });
+    this.refreshObjectives();
   }
 
   private showChallengeBrief(challenge: ChallengeSpec): Promise<boolean> {

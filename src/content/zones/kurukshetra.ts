@@ -238,8 +238,8 @@ export const kurukshetra: Zone = {
           [4, 1, 1],
           [5, 2, 2],
           [4, 3, 3],
-          [2, 1, 1],
-          [1, 2, 2],
+          [2, 2, 0],
+          [3, 1, 2],
         ],
         hint:
           'Abhimanyu’s story turns on this: he was taught how to enter the formation but not how to come out. Rotate what you are given around the centre.',

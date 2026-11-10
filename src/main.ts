@@ -27,6 +27,9 @@ import { PlaqueModal } from './ui/PlaqueModal';
 import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
+import { MiniGames } from './minigames/MiniGames';
+import type { MiniGameResult } from './minigames/types';
+import { validateMiniGames } from './minigames/validate';
 import { StoryEngine, EKARUPA, MAITRI, SABHA_MIN_PANELS, type Speaker } from './story/StoryEngine';
 import { CHAPTERS, PROLOGUE, getChapter, validateStory, type StoryLine } from './content/story';
 import { buildPanel, button, closeOverlay, el, mountOverlay, overlayOpen } from './ui/overlay';
@@ -42,12 +45,10 @@ import type { ObjectiveRow } from './story/StoryEngine';
 /**
  * Bootstrap and game loop.
  *
- * This wires the four systems together — terrain, procedural monuments, the
- * first-person controller and the quiz engine — plus enough HUD and interaction
- * to actually play them. The per-challenge mini-game runtimes (archery,
- * assembly, pattern, trade, sequencing, collection) are not built yet; their
- * posts currently show the brief and run the challenge's quiz round, and the
- * dialogue challenges run in full.
+ * Wires the systems together — terrain, procedural monuments, the character
+ * controller, the quiz engine, the story layer and the mini-games — plus enough
+ * HUD and interaction to play them. Each challenge kind has its own mini-game
+ * under `minigames/`; conversations run in the dialogue box.
  */
 
 const SCAN_RANGE = 150;
@@ -68,6 +69,7 @@ class Game {
   private readonly quizModal: QuizModal;
   private readonly dialogue = new DialogueBox();
   private readonly story = new StoryEngine(save);
+  private readonly minigames = new MiniGames();
   private readonly narration = new Narration();
   private readonly plaqueModal = new PlaqueModal(this.story);
   private readonly sabhaModal = new SabhaModal(this.story);
@@ -175,7 +177,7 @@ class Game {
     onProgress(0.06, 'Checking the chronicles…');
     await nextFrame();
 
-    const contentProblems = [...validateContent(), ...validateQuestions(), ...validateStory()];
+    const contentProblems = [...validateContent(), ...validateQuestions(), ...validateStory(), ...validateMiniGames()];
     if (contentProblems.length > 0) {
       console.warn(`[content] ${contentProblems.length} problem(s) found:`);
       for (const p of contentProblems) console.warn(`  · ${p}`);
@@ -724,78 +726,40 @@ class Game {
       return;
     }
 
-    // The other six challenge kinds do not have their mini-game runtimes yet.
-    // Rather than pretend, show the brief and what it is meant to teach, then
-    // run the associated quiz round so the learning still happens.
-    const shown = await this.showChallengeBrief(challenge);
-    if (!shown) return;
-    const count = challenge.quizAfter && challenge.quizAfter > 0 ? challenge.quizAfter : 3;
-    const result = await this.runQuiz(zoneId, 'challenge', count, challenge.name);
-    if (result && result.percent >= 60) {
-      if (save.completeChallenge(zoneId, challenge.id)) {
-        for (const id of challenge.unlocks ?? []) {
-          if (save.unlockCodex(id)) {
-            const entry = getCodex(id);
-            this.hud.toast('codex', `Codex: ${entry?.title ?? id}`, 'Unlocked.', '📖', 5000);
-          }
-        }
-        save.addVidya(challenge.vidya);
-        bus.emit('vidya:gain', { amount: challenge.vidya, reason: challenge.name });
-        this.hud.toast('good', challenge.name, challenge.teaches, '✓', 8000);
-        this.refreshObjectives();
-        this.sayAnchorBeat(challenge.id);
-      }
+    // A playable game, where the kind has one: finish it to complete the
+    // challenge, then an optional quiz round follows, as with a conversation.
+    if (this.minigames.has(challenge.kind)) {
+      const result = await this.minigames.run(challenge);
+      if (!result || !result.passed) return;
+      this.completeMiniGame(challenge, zoneId, result);
+      if (challenge.quizAfter && challenge.quizAfter > 0) await this.runQuiz(zoneId, 'challenge', challenge.quizAfter, challenge.name);
+      this.sayAnchorBeat(challenge.id);
+      return;
     }
+
+    // Every kind now has a game. Anything that slips through is a content error, not something to fake.
+    console.warn(`[challenge] "${challenge.id}" has kind "${challenge.kind}" with no runner`);
   }
 
-  private showChallengeBrief(challenge: ChallengeSpec): Promise<boolean> {
-    return new Promise((resolve) => {
-      const { panel, body, foot } = buildPanel({
-        title: challenge.name,
-        subtitle: KIND_LABEL[challenge.kind],
-        closable: true,
-        onClose: () => {
-          closeOverlay();
-          resolve(false);
-        },
-      });
-
-      const prose = el('div', 'prose');
-      const task = el('h3', undefined, 'The task');
-      const taskP = el('p', undefined, challenge.brief);
-      const teaches = el('h3', undefined, 'What this teaches');
-      const teachesP = el('p', undefined, challenge.teaches);
-      prose.append(task, taskP, teaches, teachesP);
-
-      const note = el('p', undefined, '');
-      note.style.cssText =
-        'margin-top:1.4rem;padding:0.8rem 1rem;border-left:2px solid var(--gold);background:rgb(232 180 75 / 0.08);border-radius:0 8px 8px 0;font-size:0.84rem;';
-      note.textContent =
-        'The interactive version of this challenge is not built yet. For now the questions it leads to are asked directly, so the content is here even though the mini-game is not.';
-      prose.appendChild(note);
-
-      body.appendChild(prose);
-
-      const cancel = button('Not now', 'btn btn-ghost');
-      cancel.addEventListener('click', () => {
-        closeOverlay();
-        resolve(false);
-      });
-      const go = button('Answer the questions', 'btn btn-primary');
-      go.addEventListener('click', () => {
-        closeOverlay();
-        resolve(true);
-      });
-      foot.append(cancel, go);
-
-      mountOverlay('challenge-brief', panel, {
-        onEscape: () => {
-          closeOverlay();
-          resolve(false);
-        },
-      });
-      go.focus();
-    });
+  /** Pay out a finished mini-game: codex, Vidya scaled a little by how cleanly it went, and the completion record. */
+  private completeMiniGame(challenge: ChallengeSpec, zoneId: string, result: MiniGameResult): void {
+    for (const id of challenge.unlocks ?? []) {
+      if (save.unlockCodex(id)) {
+        const entry = getCodex(id);
+        this.hud.toast('codex', `Codex: ${entry?.title ?? id}`, 'Unlocked.', '📖', 5000);
+      }
+    }
+    // Between 70% and 100% of the listed Vidya, by score. Never zero, never a gate.
+    let gained = Math.round(challenge.vidya * (0.7 + 0.3 * (result.score / 100)));
+    if (save.completeChallenge(zoneId, challenge.id)) {
+      this.hud.toast('good', challenge.name, challenge.teaches, '✓', 8000);
+    } else {
+      gained = Math.round(gained * 0.3);
+    }
+    save.addVidya(gained);
+    bus.emit('vidya:gain', { amount: gained, reason: challenge.name });
+    bus.emit('challenge:finish', { challengeId: challenge.id, success: true, score: result.score });
+    this.refreshObjectives();
   }
 
   private async runQuiz(
@@ -1346,16 +1310,6 @@ const SOURCE_NOTE_TEXT: Record<string, string> = {
   debate: 'Historians genuinely disagree about this.',
 };
 
-const KIND_LABEL: Record<string, string> = {
-  archery: 'Archery challenge',
-  assembly: 'Assembly challenge',
-  pattern: 'Pattern challenge',
-  scriptMatch: 'Script-matching challenge',
-  trade: 'Trade and weights challenge',
-  sequence: 'Sequencing challenge',
-  collect: 'Collection challenge',
-  dialogue: 'Conversation',
-};
 
 const CONTROLS: Array<[string, string[]]> = [
   ['Move', ['W', 'A', 'S', 'D']],

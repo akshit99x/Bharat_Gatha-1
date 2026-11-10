@@ -333,6 +333,13 @@ export class Terrain {
     return col;
   }
 
+  /** The colour of the ground at a point, for anything that grows out of it. */
+  surfaceColorAt(x: number, z: number): number {
+    const ix = Math.floor((x + WORLD_HALF) / CELL_SIZE);
+    const iz = Math.floor((z + WORLD_HALF) / CELL_SIZE);
+    return this.colorAt(x, z, this.heightAt(x, z), ix, iz);
+  }
+
   private gridAt(ix: number, iz: number): number {
     const cx = clamp(ix, 0, GRID_VERTS - 1);
     const cz = clamp(iz, 0, GRID_VERTS - 1);

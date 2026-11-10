@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Terrain, SEA_LEVEL } from './Terrain';
 import { Sky } from './Sky';
 import { Water } from './Water';
+import { GroundCover } from './GroundCover';
 import { Vegetation, defaultVegetationOptions, type ExclusionCircle } from './Vegetation';
 import { CollisionWorld } from './Collision';
 import { buildLandmark } from './architecture';
@@ -28,6 +29,8 @@ import { getChapter } from '../content/story';
 export interface PlacedLandmark {
   id: string;
   name: string;
+  /** The kind of structure it is; also decides what it sounds like. */
+  kind: string;
   zoneId: string;
   codexId?: string;
   scanSeconds: number;
@@ -102,6 +105,7 @@ export class World {
   readonly collision = new CollisionWorld();
   /** Ambient dust and pollen; follows the camera. */
   readonly atmosphere = new Atmosphere();
+  private readonly groundCover: GroundCover;
   readonly group = new THREE.Group();
 
   readonly landmarks: PlacedLandmark[] = [];
@@ -157,6 +161,9 @@ export class World {
     floraOpts.rocks = Math.round(floraOpts.rocks * scale);
     this.vegetation = new Vegetation(this.terrain, exclusions, floraOpts);
     this.group.add(this.vegetation.group);
+
+    this.groundCover = new GroundCover(this.terrain, this.collision, opts.seed, scale);
+    this.group.add(this.groundCover.group);
   }
 
   // ----------------------------------------------------------------- placement
@@ -200,6 +207,7 @@ export class World {
     const placed: PlacedLandmark = {
       id: landmark.id,
       name: landmark.name,
+      kind: landmark.kind,
       zoneId: zone.id,
       codexId: landmark.codexId,
       scanSeconds: landmark.scanSeconds ?? 2.5,
@@ -708,6 +716,7 @@ export class World {
       b.mesh.rotation.y += dt * b.spin;
     }
     this.updateNpcs(dt, focus ?? camera.position, talking);
+    this.groundCover.update(focus ?? camera.position);
 
     // Low sun, more glow in the air.
     const sunDir = _v1.copy(this.sky.sun.position).sub(camera.position).normalize();
@@ -739,6 +748,7 @@ export class World {
     for (const geo of this.personGeometries.values()) geo.dispose();
     this.personGeometries.clear();
     this.atmosphere.dispose();
+    this.groundCover.dispose();
     this.vegetation.dispose();
     this.water.dispose();
     this.sky.dispose();

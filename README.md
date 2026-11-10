@@ -93,17 +93,33 @@ rendering it offline and measuring it, so nothing is louder than anything else.
 Kosala, wind over Kurukshetra, a forge in Chola country, a fountain and a bazaar crowd in Agra, crickets
 at dusk. Music has its own volume slider; `Esc` → Settings.
 
+**Places that sound like places.** Walk toward a stepwell and you hear water; toward a bronze foundry,
+the forge; toward a harbour, surf and gulls; toward a temple, its bells; through a bazaar, the crowd.
+These are positioned sources, so they come from the right direction and fade with distance. Footsteps
+change with the ground: stone, sand, grass, bare earth, water.
+
 **People.** NPCs are not statues. Each has a role-based routine (smiths hammer, scribes write, dancers
 rehearse, children and water-carriers wander), turns to face you when you speak, offers a short remark as
 you pass, and wears a nameplate that shows a mark when they have something to tell you. Spoken lines use
 the browser's Indian-English voices where the device has them.
+
+**Recorded voices.** If a human recording exists for a line, the game plays it; otherwise the browser
+voice says it, so recordings can be added a few at a time. `npm run voices:script` lists every spoken
+line (480 lines, 80 speakers, about 89 minutes) with a recording ID and one printable page per speaker;
+`npm run voices:import <folder>` trims, levels and installs a folder of recordings. The full plan, the
+instructions for recorders and the options are in [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
+
+**Moving.** Staircases are climbable (their colliders are real stairs); rotated buildings collide as the
+rectangles they are, not as their bounding boxes; walking into a ledge up to about a metre high hops you
+onto it; the view eases over steps instead of jolting; the camera stops short of hillsides.
 
 **The Journey screen (`M`).** One screen, three tabs: **Map** (the island, regions, fast travel, what is
 discovered and what is not), **Roadmap** (all eleven chapters, what each still needs, and the next step
 for the one you are in) and **Guide** (controls, and a checklist that tracks your first steps).
 
 **Graphics.** Stone and terrain carry world-space weathering that varies hue and wear so no two walls read
-as the same texture; foliage sways in a gust field. The sea knows its own depth — turquoise shallows,
+as the same texture; foliage sways in a gust field, and a recycled field of grass and wildflowers grows
+out of the ground's own colour around the player. The sea knows its own depth — turquoise shallows,
 deep blue, lines of surf at the shore, and the sand showing through thin water. A post-processing chain
 adds bloom, sun shafts, a gentle warm/cool grade, vignette and grain over a multisampled HDR target.
 "Cinematic lighting" in Settings turns it off, and it steps itself down on slow machines.

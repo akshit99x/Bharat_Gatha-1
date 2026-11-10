@@ -61,6 +61,7 @@ const SCAN_RANGE = 150;
 /** Reused each frame so the scan probe allocates nothing. */
 const _fwd = new THREE.Vector3();
 const _sunDir = new THREE.Vector3();
+const _look = new THREE.Vector3();
 
 class Game {
   private readonly renderer: THREE.WebGLRenderer;
@@ -234,6 +235,11 @@ class Game {
       shadows: save.settings.shadows,
       floraScale: save.settings.renderScale < 1 ? 0.6 : 1,
     });
+
+    // Places with a sound of their own: water at the stepwells, bells at the temples, surf at the harbours.
+    audio.setEmitters(
+      this.world.landmarks.map((l) => ({ id: l.id, kind: l.kind, x: l.position.x, y: l.position.y, z: l.position.z, radius: l.radius })),
+    );
 
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
@@ -433,6 +439,8 @@ class Game {
     }
 
     this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
+    this.camera.getWorldDirection(_look);
+    audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
     this.labels.setVisible(!blocked || this.dialogue.isOpen);
     this.labels.update(this.world.npcView, this.camera, (id) => this.npcMark(id), this.viewport.clientWidth, this.viewport.clientHeight);
     this.updateVimana();

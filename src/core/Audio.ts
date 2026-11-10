@@ -6,6 +6,7 @@
  * the sound of its air), and the conductor crossfades between them as you walk.
  */
 
+import { Emitters, type EmitterSource } from './music/Emitters';
 import { Conductor, buildRoom } from './music/Conductor';
 import { RAGA_BOOK } from './music/theory';
 import { themeFor } from './music/themes';
@@ -44,6 +45,8 @@ export class AudioEngine {
   private musicFilter: BiquadFilterNode | null = null;
   private sfxBus: GainNode | null = null;
   private conductor: Conductor | null = null;
+  private emitters: Emitters | null = null;
+  private pendingEmitters: readonly EmitterSource[] = [];
   /** The theme asked for before the audio context existed. */
   private pendingTheme: string | null = null;
 
@@ -94,6 +97,11 @@ export class AudioEngine {
 
     // The score: a conductor playing into the music bus, through a shared room.
     this.conductor = new Conductor(ctx, this.musicBus, buildRoom(ctx, this.musicBus));
+    // Places that make their own sound travel with the sound effects, not the score, so reading
+    // (which softens the music) never silences the world.
+    this.emitters = new Emitters(ctx, this.sfxBus);
+    this.emitters.setLevel(0.9);
+    if (this.pendingEmitters.length) this.emitters.setSources(this.pendingEmitters);
     if (this.pendingTheme) this.setTheme(this.pendingTheme);
   }
 
@@ -102,6 +110,17 @@ export class AudioEngine {
     this.sfxVolume = sfx;
     if (this.musicBus) this.musicBus.gain.value = music * 0.9;
     if (this.sfxBus) this.sfxBus.gain.value = sfx;
+  }
+
+  /** The places in the world that make their own sound (see music/Emitters.ts). */
+  setEmitters(list: readonly EmitterSource[]): void {
+    this.pendingEmitters = list;
+    this.emitters?.setSources(list);
+  }
+
+  /** Tell the audio where the listener is and which way they face. Call once per frame. */
+  listen(x: number, y: number, z: number, fx: number, fy: number, fz: number): void {
+    this.emitters?.update(x, y, z, fx, fy, fz);
   }
 
   /**
@@ -220,8 +239,33 @@ export class AudioEngine {
     src.start(now);
   }
 
+  /** What the ground is, for footsteps. Set by the player controller. */
+  surface: 'earth' | 'grass' | 'stone' | 'sand' | 'water' = 'earth';
+
   footstep(soft = false): void {
-    this.noise(soft ? 0.09 : 0.13, soft ? 0.055 : 0.1, 'bandpass', soft ? 420 : 240, 1.2, soft ? 180 : 90);
+    // A little different every time, so a long walk is not a metronome.
+    const j = 0.88 + Math.random() * 0.24;
+    switch (this.surface) {
+      case 'stone':
+        // A harder tap with a short ring, as on a worn paving slab.
+        this.noise(0.07, soft ? 0.05 : 0.1, 'bandpass', 1500 * j, 2.4, 700);
+        this.noise(0.12, soft ? 0.03 : 0.06, 'bandpass', 380 * j, 1.5, 220);
+        break;
+      case 'sand':
+        // A soft crunch: filtered noise with more air in it.
+        this.noise(0.2, soft ? 0.04 : 0.08, 'highpass', 1500 * j, 0.6, 3200);
+        this.noise(0.12, soft ? 0.03 : 0.05, 'lowpass', 300, 0.8, 120);
+        break;
+      case 'grass':
+        this.noise(0.17, soft ? 0.04 : 0.075, 'bandpass', 2300 * j, 0.7, 1100);
+        this.noise(0.1, soft ? 0.03 : 0.05, 'lowpass', 260, 1, 100);
+        break;
+      case 'water':
+        this.noise(0.28, soft ? 0.05 : 0.09, 'bandpass', 900 * j, 0.8, 2600);
+        break;
+      default:
+        this.noise(soft ? 0.09 : 0.13, soft ? 0.055 : 0.1, 'bandpass', (soft ? 420 : 240) * j, 1.2, soft ? 180 : 90);
+    }
   }
 
   bowDraw(): void {

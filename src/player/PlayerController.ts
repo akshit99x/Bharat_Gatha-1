@@ -5,6 +5,7 @@ import type { Settings } from '../core/Save';
 import { SEA_LEVEL, WORLD_HALF } from '../world/Terrain';
 import { audio } from '../core/Audio';
 import { clamp } from '../core/Noise';
+import { zoneAt } from '../content/zones';
 import { PlayerAvatar, type AvatarPose } from './PlayerAvatar';
 import { CameraRig, type CameraMode } from './CameraRig';
 
@@ -48,6 +49,9 @@ const FREEFALL_MAX_HORIZONTAL = 30;
 const GLIDE_DESCENT = -7.0;
 const GLIDE_SPEED = 25;
 const GLIDE_TURN = 1.5;
+
+/** Regions where the ground underfoot is bare earth rather than grass. */
+const DRY_BIOMES = new Set<string>(['desertFringe', 'dryPlains', 'mesopotamianDelta', 'deccanBoulder', 'coastalDune']);
 
 const PITCH_LIMIT = Math.PI / 2 - 0.02;
 
@@ -571,7 +575,10 @@ export class PlayerController {
     this.position.z = r.z;
 
     const terrainY = this.world.terrain.heightAt(this.position.x, this.position.z);
-    const surface = r.supportY !== null && r.supportY > terrainY ? r.supportY : terrainY;
+    const onBuilt = r.supportY !== null && r.supportY > terrainY + 0.05;
+    const surface = onBuilt ? (r.supportY as number) : terrainY;
+    // What is underfoot, for the sound of walking on it.
+    audio.surface = onBuilt ? 'stone' : terrainY < SEA_LEVEL + 2.2 ? 'sand' : DRY_BIOMES.has(zoneAt(this.position.x, this.position.z)?.biome ?? '') ? 'earth' : 'grass';
 
     if (this.position.y <= surface + 0.02) {
       // Landed, or walked up a step.

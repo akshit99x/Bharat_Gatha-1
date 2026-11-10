@@ -10,6 +10,7 @@ import { Kit } from './architecture/kit';
 import { stoneMaterial, glowMaterial, shade } from './Materials';
 import { Rng } from '../core/Rng';
 import { Chariot } from '../vehicles/Chariot';
+import { Atmosphere } from './Atmosphere';
 import { ZONES, zoneAt, worldPos } from '../content/zones';
 import type { Landmark, Zone, ChallengeSpec, NpcSpec } from '../content/types';
 import type { Plaque } from '../content/story';
@@ -76,6 +77,8 @@ export class World {
   readonly water: Water;
   readonly vegetation: Vegetation;
   readonly collision = new CollisionWorld();
+  /** Ambient dust and pollen; follows the camera. */
+  readonly atmosphere = new Atmosphere();
   readonly group = new THREE.Group();
 
   readonly landmarks: PlacedLandmark[] = [];
@@ -102,6 +105,7 @@ export class World {
 
     this.water = new Water();
     this.group.add(this.water.mesh);
+    this.group.add(this.atmosphere.points);
 
     // Monuments first — vegetation needs to know where not to grow.
     const exclusions: ExclusionCircle[] = [];
@@ -566,6 +570,10 @@ export class World {
       b.mesh.position.y = b.baseY + Math.sin(elapsed * b.speed + b.phase) * 0.3;
       b.mesh.rotation.y += dt * b.spin;
     }
+    // Low sun, more glow in the air.
+    const sunDir = _v1.copy(this.sky.sun.position).sub(camera.position).normalize();
+    const warmth = THREE.MathUtils.clamp(1 - sunDir.y * 1.5, 0, 1);
+    this.atmosphere.update(dt, elapsed, camera.position, this.sky.sun.color, warmth);
     for (let i = this.effects.length - 1; i >= 0; i--) {
       if (this.effects[i]?.(dt)) this.effects.splice(i, 1);
     }
@@ -591,6 +599,7 @@ export class World {
     for (const mesh of this.monumentMeshes) mesh.geometry.dispose();
     for (const geo of this.personGeometries.values()) geo.dispose();
     this.personGeometries.clear();
+    this.atmosphere.dispose();
     this.vegetation.dispose();
     this.water.dispose();
     this.sky.dispose();

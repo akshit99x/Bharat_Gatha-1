@@ -28,6 +28,7 @@ import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
+import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
 import { validateMiniGames } from './minigames/validate';
 import { StoryEngine, EKARUPA, MAITRI, SABHA_MIN_PANELS, type Speaker } from './story/StoryEngine';
@@ -805,7 +806,7 @@ class Game {
     }
 
     if (!silent) {
-      this.hud.announceZone(zone);
+      this.hud.announceZone(zone, { storyTitle: getChapter(zone.id)?.title, first: firstVisit });
       if (firstVisit) {
         this.hud.toast('vidya', `Discovered ${zone.name}`, zone.tagline, '🧭', 7000);
         audio.conch();
@@ -1449,6 +1450,8 @@ async function boot(): Promise<void> {
     if (progressBar) progressBar.style.width = `${Math.round(fraction * 100)}%`;
     if (progressLabel) progressLabel.textContent = label;
   };
+
+  document.getElementById('boot-skyline')?.appendChild(buildSkyline());
 
   const game = new Game(viewport);
   // Handy for debugging from the console; harmless in production.

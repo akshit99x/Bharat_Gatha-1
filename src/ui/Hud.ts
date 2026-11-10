@@ -9,6 +9,22 @@ import { bus, type ToastKind } from '../core/EventBus';
  * do per frame is write to a cached element's style.
  */
 
+function toRoman(n: number): string {
+  const table: Array<[number, string]> = [
+    [10, 'X'],
+    [9, 'IX'],
+    [5, 'V'],
+    [4, 'IV'],
+    [1, 'I'],
+  ];
+  let out = '';
+  for (const [v, sym] of table) while (n >= v) {
+    out += sym;
+    n -= v;
+  }
+  return out;
+}
+
 export type CrosshairMode = 'idle' | 'interact' | 'scan' | 'bow' | 'hidden';
 
 export interface CompassPoi {
@@ -29,6 +45,9 @@ export class Hud {
   private readonly compassStrip: HTMLElement;
   private readonly banner: HTMLElement;
   private readonly bannerEra: HTMLElement;
+  private readonly bannerChapter: HTMLElement;
+  private readonly bannerLocal: HTMLElement;
+  private readonly bannerStory: HTMLElement;
   private readonly bannerName: HTMLElement;
   private readonly bannerSub: HTMLElement;
   private readonly objectivePanel: HTMLElement;
@@ -58,6 +77,9 @@ export class Hud {
     this.compassStrip = must('compass-strip');
     this.banner = must('zone-banner');
     this.bannerEra = query(this.banner, '.zb-era');
+    this.bannerChapter = query(this.banner, '.zb-chapter');
+    this.bannerLocal = query(this.banner, '.zb-local');
+    this.bannerStory = query(this.banner, '.zb-story');
     this.bannerName = query(this.banner, '.zb-name');
     this.bannerSub = query(this.banner, '.zb-sub');
     this.objectivePanel = must('objective-panel');
@@ -165,13 +187,34 @@ export class Hud {
 
   // ------------------------------------------------------------ zone banner
 
-  announceZone(zone: Zone): void {
-    this.bannerEra.textContent = zone.era;
+  /**
+   * The chapter title card. The first time a region is discovered it is a small
+   * cinematic: letterbox bars slide in and the card holds longer. Coming back
+   * is a quieter, shorter card with no bars.
+   */
+  announceZone(zone: Zone, opts: { storyTitle?: string; first?: boolean } = {}): void {
+    this.bannerChapter.textContent = `Chapter ${toRoman(zone.chapter)}`;
     this.bannerName.textContent = zone.name;
-    this.bannerSub.textContent = zone.tagline;
+    this.bannerLocal.textContent = zone.nameLocal;
+    this.bannerStory.textContent = opts.storyTitle ? `“${opts.storyTitle}”` : '';
+    this.bannerStory.hidden = !opts.storyTitle;
+    this.bannerEra.textContent = zone.era;
+    this.bannerSub.textContent = opts.first ? zone.tagline : '';
+    this.bannerSub.hidden = !opts.first;
+
+    // Restart the entrance animation each time.
+    this.banner.classList.remove('show', 'first');
+    void this.banner.offsetWidth;
     this.banner.classList.add('show');
+    this.banner.classList.toggle('first', opts.first === true);
+    document.body.classList.toggle('cinematic', opts.first === true);
+
+    const hold = opts.first ? 7200 : 4200;
     window.clearTimeout(this.bannerTimer);
-    this.bannerTimer = window.setTimeout(() => this.banner.classList.remove('show'), 5200);
+    this.bannerTimer = window.setTimeout(() => {
+      this.banner.classList.remove('show');
+      document.body.classList.remove('cinematic');
+    }, hold);
   }
 
   // ------------------------------------------------------------- objectives

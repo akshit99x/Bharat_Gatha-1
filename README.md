@@ -10,18 +10,24 @@ based on our civilisation, history and culture).
 
 ## Run it
 
+You need **Node 18 or newer** (check with `node -v`) and a browser with **WebGL 2** — any current Chrome, Edge, Firefox or Safari. Chrome or Edge give the best voices.
+
 ```bash
+git clone https://github.com/meharraviarora-lab/Bharat_Gatha.git
+cd Bharat_Gatha
 npm install
 npm run dev
 ```
 
-Then open the printed URL. It needs a browser with WebGL 2 — any current Chrome, Edge, Firefox or
-Safari.
+Then open the address it prints, normally **http://localhost:5173**. Click **Board the Pushpaka Vimana**. Use headphones if you can, and click the page once so the browser allows sound and voices.
 
 ```bash
 npm run build      # static bundle in dist/, deployable to any static host
+npm run preview    # serve the built bundle at http://localhost:4173
 npm run typecheck  # strict TypeScript, no emit
 ```
+
+If it runs slowly, open the pause menu (`Esc`) and switch off **Shadows**. If you hear no voices, the pause menu says which voice your device is using and how to install an English (India) one. To start again from nothing, clear this site's data in your browser (the save lives in `localStorage` under `bharat-gatha/profile/v1`).
 
 There are **no asset files**. Every monument, tree, boulder and person is generated from code at
 load time, and all the audio is synthesised with the Web Audio API. The whole thing is about

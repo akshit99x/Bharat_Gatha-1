@@ -23,6 +23,8 @@ import { Minimap, type MinimapMarker } from './ui/Minimap';
 import { QuizModal } from './ui/QuizModal';
 import { DialogueBox } from './ui/DialogueBox';
 import { Narration, type NarrationLine } from './ui/Narration';
+import { NpcLabels, type NpcMark } from './ui/NpcLabels';
+import { JourneyScreen } from './ui/JourneyScreen';
 import { PlaqueModal } from './ui/PlaqueModal';
 import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
@@ -72,6 +74,10 @@ class Game {
   private readonly story = new StoryEngine(save);
   private readonly minigames = new MiniGames();
   private readonly narration = new Narration();
+  private readonly labels = new NpcLabels();
+  private readonly journey: JourneyScreen;
+  /** Who the player is talking to right now, so they keep facing us. */
+  private talkingTo: string | null = null;
   private readonly plaqueModal = new PlaqueModal(this.story);
   private readonly sabhaModal = new SabhaModal(this.story);
   private readonly twelfthModal = new TwelfthModal(this.story, () => save.profile.playerName);
@@ -128,6 +134,20 @@ class Game {
     this.quiz = new QuizEngine(this.bank, save);
     this.quizModal = new QuizModal(this.quiz);
 
+    this.journey = new JourneyScreen({
+      profile: () => save.profile,
+      island: () => this.minimap.island(),
+      player: () => ({ x: this.player.position.x, z: this.player.position.z, yaw: this.player.yaw }),
+      pads: () =>
+        this.world.interactables
+          .filter((i) => i.kind === 'pad' && i.padZone)
+          .map((i) => ({ zoneId: i.padZone as string, x: i.position.x, z: i.position.z })),
+      controls: CONTROLS,
+      travel: (zoneId) => this.travelTo(zoneId),
+      seal: (zoneId) => void this.runSeal(zoneId),
+      gatha: () => this.scrollModal.present(),
+    });
+
     this.scrollModal = new ScrollModal(this.story, {
       restore: (zoneId) => void this.runRestoration(zoneId),
       sabha: () => void this.runSabha(),
@@ -147,6 +167,14 @@ class Game {
 
     window.addEventListener('resize', () => this.resize());
     this.resize();
+
+    // Captions wait while a conversation or a puzzle is up: one voice at a time. The close event fires
+    // before the overlay's state clears, so look again a tick later.
+    const syncNarration = (): void => queueMicrotask(() => (overlayOpen() || this.dialogue.isOpen ? this.narration.pause() : this.narration.resume()));
+    bus.on('dialogue:open', syncNarration);
+    bus.on('dialogue:close', syncNarration);
+    bus.on('ui:open', syncNarration);
+    bus.on('ui:close', syncNarration);
 
     // Overlays suspend gameplay input and release the pointer.
     bus.on('ui:open', () => {
@@ -201,6 +229,9 @@ class Game {
 
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
+
+    // Remarks and greetings from the people of the world appear as speech bubbles.
+    this.world.onNpcSay = (npc, text) => this.labels.bark(npc.id, text);
 
     onProgress(0.72, 'Placing the monuments…');
     await nextFrame();
@@ -393,7 +424,9 @@ class Game {
       if (this.input.justPressed('pause') && !overlayOpen() && !this.dialogue.isOpen) this.togglePause();
     }
 
-    this.world.update(dt, this.camera, this.elapsed);
+    this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
+    this.labels.setVisible(!blocked || this.dialogue.isOpen);
+    this.labels.update(this.world.npcView, this.camera, (id) => this.npcMark(id), this.viewport.clientWidth, this.viewport.clientHeight);
     this.updateVimana();
     this.updateMinimap();
     this.updateHud(blocked);
@@ -555,6 +588,9 @@ class Game {
     this.hooked.add(zone.id);
     const lines = this.story.onZoneEnter(zone.id);
     if (lines) void this.narration.say(lines.map((l) => this.narrationLine(l)));
+    if (this.story.once('tip:journey')) {
+      this.hud.toast('info', 'Lost? Press M', 'Your map, your roadmap and your next step. F1 explains how to play.', '🗺️', 10000);
+    }
   }
 
   private completeScan(codexId: string, landmarkName: string): void {
@@ -603,6 +639,7 @@ class Game {
 
     const spoken = this.spokenTo.has(npc.id);
     this.spokenTo.add(npc.id);
+    this.talkingTo = npc.id;
 
     // Start at a different line each time, so a second visit is not a rerun.
     const start = spoken ? Math.floor(Math.random() * npc.lines.length) : 0;
@@ -614,6 +651,7 @@ class Game {
     }));
 
     await this.dialogue.run({ name: npc.name, role: npc.role, icon: npc.icon }, nodes);
+    this.talkingTo = null;
 
     if (!spoken) {
       save.addVidya(15);
@@ -635,6 +673,20 @@ class Game {
   }
 
   // ------------------------------------------------------------------ story
+
+  /** What a person matters for, for the mark on their nameplate. */
+  private npcMark(id: string): NpcMark {
+    const met = save.profile.story.met.includes(id);
+    const zone = this.currentZone;
+    const chapter = zone ? getChapter(zone.id) : undefined;
+    if (chapter) {
+      const trail = chapter.trail;
+      const at = this.story.trailProgress(trail.id);
+      if (at < trail.stops.length && trail.stops[at]?.npcId === id) return 'trail';
+      if (chapter.anchorNpcId === id && !met) return 'anchor';
+    }
+    return met ? 'met' : 'new';
+  }
 
   private narrationLine(line: StoryLine): NarrationLine {
     const speaker = line.who === 'ekarupa' ? EKARUPA : MAITRI;
@@ -1182,63 +1234,28 @@ class Game {
     renderZone(this.currentZone?.id ?? (ZONES[0] as Zone).id);
   }
 
+  /** The Journey: map, roadmap and how to play. */
   private openMap(): void {
-    const { panel, body, foot } = buildPanel({
-      title: 'The Island',
-      subtitle: 'Eleven eras on one landmass. Discovered terraces can be travelled to directly.',
-      closable: true,
-    });
+    this.journey.present('map');
+  }
 
-    const list = el('div');
-    list.style.cssText = 'display:grid;gap:0.5rem;';
-    for (const zone of ZONES) {
-      const progress = save.zone(zone.id);
-      const row = el('button', 'quiz-opt') as HTMLButtonElement;
-      row.type = 'button';
-      row.style.gridTemplateColumns = 'auto 1fr auto';
-      const chapter = el('span', 'qo-key', String(zone.chapter));
-      const label = el('span');
-      label.innerHTML = `<b>${escapeHtml(zone.name)}</b> <span style="opacity:0.6">${escapeHtml(zone.era)}</span><br><span style="opacity:0.7;font-size:0.82rem">${escapeHtml(
-        zone.tagline,
-      )}</span>`;
-      const state = el('span', 'qo-mark', progress.sealed ? '🔔' : progress.discovered ? '◆' : '·');
-      state.style.opacity = '1';
-      row.append(chapter, label, state);
-      if (!progress.discovered) row.disabled = true;
-      row.addEventListener('click', () => {
-        audio.click();
-        closeOverlay();
-        this.paused = false;
-        const pad = this.world.padFor(zone.id);
-        const target = pad ? pad.position : new THREE.Vector3(zone.center[0], 0, zone.center[1]);
-        this.player.teleportTo(target.x, target.z + 14);
-        this.enterZone(zone, false);
-        this.input.requestLock();
-      });
-      list.appendChild(row);
-    }
-    body.appendChild(list);
+  /** Move the player to a region's landing terrace. */
+  private travelTo(zoneId: string): void {
+    const zone = getZone(zoneId);
+    if (!zone) return;
+    const pad = this.world.padFor(zone.id);
+    const target = pad ? pad.position : new THREE.Vector3(zone.center[0], 0, zone.center[1]);
+    this.player.teleportTo(target.x, target.z + 14);
+    this.enterZone(zone, false);
+    this.input.requestLock();
+  }
 
-    const sealable = this.currentZone ? save.zone(this.currentZone.id) : null;
-    if (this.currentZone && sealable && sealable.challenges.length >= this.currentZone.sealRequires) {
-      const seal = button(sealable.sealed ? 'Retake chapter assessment' : 'Take the chapter assessment', 'btn btn-primary');
-      const zone = this.currentZone;
-      seal.addEventListener('click', async () => {
-        closeOverlay();
-        this.paused = false;
-        await this.runQuiz(zone.id, 'seal', 8, `${zone.name} — chapter assessment`);
-        this.refreshObjectives();
-      });
-      foot.appendChild(seal);
-    } else {
-      foot.appendChild(el('span', undefined, 'Complete more challenges here to unlock the chapter assessment.'));
-    }
-
-    const close = button('Close', 'btn btn-ghost');
-    close.addEventListener('click', () => this.resume());
-    foot.appendChild(close);
-
-    mountOverlay('map', panel, { onEscape: () => this.resume() });
+  /** The chapter assessment for a region. */
+  private async runSeal(zoneId: string): Promise<void> {
+    const zone = getZone(zoneId);
+    if (!zone) return;
+    await this.runQuiz(zone.id, 'seal', 8, `${zone.name} — chapter assessment`);
+    this.refreshObjectives();
   }
 
   private openFastTravel(pad: Interactable): void {
@@ -1246,30 +1263,7 @@ class Game {
   }
 
   private openHelp(): void {
-    const { panel, body, foot } = buildPanel({
-      title: 'How to play',
-      subtitle: 'Keyboard and mouse',
-      closable: true,
-    });
-    const grid = el('div', 'key-grid');
-    for (const [action, keys] of CONTROLS) {
-      const row = el('div', 'key-row');
-      row.appendChild(el('span', undefined, action));
-      const wrap = el('span', 'keys');
-      for (const k of keys) {
-        const kbd = document.createElement('kbd');
-        kbd.textContent = k;
-        wrap.appendChild(kbd);
-      }
-      row.appendChild(wrap);
-      grid.appendChild(row);
-    }
-    body.appendChild(grid);
-    const close = button('Got it', 'btn btn-primary');
-    close.addEventListener('click', () => this.resume());
-    foot.appendChild(close);
-    mountOverlay('help', panel, { onEscape: () => this.resume() });
-    close.focus();
+    this.journey.present('guide');
   }
 
   private exportReport(): void {
@@ -1402,11 +1396,6 @@ function approachAngle(current: number, target: number, maxDelta: number): numbe
   return current + Math.sign(diff) * step;
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 /** Keep a flight waypoint inside the island's bounds. */
 function clampToWorld(v: THREE.Vector3): THREE.Vector3 {

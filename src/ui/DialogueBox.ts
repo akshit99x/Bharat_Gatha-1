@@ -1,6 +1,7 @@
 import type { DialogueNode } from '../content/types';
 import { audio } from '../core/Audio';
 import { voice, type SpeechHandle } from '../core/Voice';
+import { bus } from '../core/EventBus';
 import { el } from './overlay';
 
 /**
@@ -52,6 +53,7 @@ export class DialogueBox {
       document.body.appendChild(box);
       this.root = box;
       audio.focus(true);
+      bus.emit('dialogue:open', {});
 
       const head = el('div', 'dl-head');
       const avatar = el('div', 'dl-avatar', speaker.icon);
@@ -242,5 +244,6 @@ export class DialogueBox {
     }
     this.root?.remove();
     this.root = null;
+    bus.emit('dialogue:close', {});
   }
 }

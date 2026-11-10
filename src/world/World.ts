@@ -11,6 +11,7 @@ import { stoneMaterial, glowMaterial, shade } from './Materials';
 import { Rng } from '../core/Rng';
 import { Chariot } from '../vehicles/Chariot';
 import { Atmosphere } from './Atmosphere';
+import { NpcActor, type ActorEnv } from './NpcActor';
 import { ZONES, zoneAt, worldPos } from '../content/zones';
 import type { Landmark, Zone, ChallengeSpec, NpcSpec } from '../content/types';
 import type { Plaque } from '../content/story';
@@ -56,6 +57,28 @@ export interface Interactable {
   padZone?: string;
 }
 
+/** What the HUD needs to label a person: who, where, and how far. */
+export interface NpcView {
+  npc: NpcSpec;
+  zoneId: string;
+  /** World position of the top of their head. */
+  head: THREE.Vector3;
+  distance: number;
+}
+
+interface NpcEntry {
+  spec: NpcSpec;
+  zoneId: string;
+  interactable: Interactable;
+  staticMesh: THREE.Mesh;
+  ring: THREE.Mesh;
+  ringBobber: Bobber;
+  yaw: number;
+  robe: number;
+  pos: THREE.Vector3;
+  actor: NpcActor | null;
+}
+
 export interface WorldOptions {
   seed: string;
   shadows: boolean;
@@ -86,6 +109,11 @@ export class World {
   readonly chariots: Chariot[] = [];
 
   private readonly bobbers: Bobber[] = [];
+  private readonly npcEntries: NpcEntry[] = [];
+  /** The people near the player this frame, for nameplates. */
+  npcView: NpcView[] = [];
+  /** Called when someone speaks aloud: a greeting, or a remark to nobody. */
+  onNpcSay: ((npc: NpcSpec, text: string, greeting: boolean) => void) | null = null;
   /** One-shot effects, advanced each frame; return true when finished. */
   private readonly effects: Array<(dt: number) => boolean> = [];
   /** The Dhundh clinging to each uncorrected plaque, so it can be lifted. */
@@ -251,9 +279,25 @@ export class World {
     });
   }
 
-  /** A simple standing figure. NPCs exist to be talked to, not admired. */
+  /**
+   * A person. Far away they are one merged mesh; close up the director swaps in
+   * an articulated NpcActor (see `updateNpcs`). Either way they are somebody you
+   * can talk to, so the interactable follows them around if they wander.
+   */
   private placeNpc(zone: Zone, npc: NpcSpec, seed: string): void {
-    const [wx, wz] = worldPos(zone, npc.offset);
+    let [wx, wz] = worldPos(zone, npc.offset);
+    // Never stand a person on top of a challenge post: E would not know which you meant.
+    for (const it of this.interactables) {
+      if (it.kind !== 'challenge') continue;
+      const dx = wx - it.position.x;
+      const dz = wz - it.position.z;
+      const d = Math.hypot(dx, dz);
+      if (d < 3) {
+        const k = d < 0.01 ? 1 : 3.4 / d;
+        wx = it.position.x + (d < 0.01 ? 3.4 : dx * k);
+        wz = it.position.z + (d < 0.01 ? 0 : dz * k);
+      }
+    }
     const ground = this.terrain.findGround(wx, wz, 60);
     const color = npc.color ?? 0xb08a5a;
 
@@ -263,22 +307,27 @@ export class World {
       this.personGeometries.set(color, geo);
     }
 
+    const rng = new Rng(`${seed}:npc:${npc.id}`);
+    const yaw = rng.range(0, Math.PI * 2);
     const mesh = new THREE.Mesh(geo, stoneMaterial());
     mesh.name = `npc:${npc.id}`;
     mesh.position.set(ground.x, ground.y, ground.z);
-    mesh.rotation.y = Math.random() * Math.PI * 2;
+    mesh.rotation.y = yaw;
     mesh.castShadow = true;
     this.group.add(mesh);
-    // A thin collider so you cannot walk through people.
-    this.collision.add(ground.x - 0.4, ground.y, ground.z - 0.4, ground.x + 0.4, ground.y + 1.8, ground.z + 0.4);
+
+    // People who stay at their post are solid. Walkers are not: a wall that does not move cannot follow them.
+    const stays = !WALKERS.test(`${npc.role} ${npc.name}`);
+    if (stays) this.collision.add(ground.x - 0.4, ground.y, ground.z - 0.4, ground.x + 0.4, ground.y + 1.8, ground.z + 0.4);
 
     const glow = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 6, 18), glowMaterial(0x7fd4c8, 0.55));
     glow.rotation.x = Math.PI / 2;
     glow.position.set(ground.x, ground.y + 2.45, ground.z);
     this.group.add(glow);
-    this.bobbers.push({ mesh: glow, baseY: glow.position.y, speed: 1.0, phase: Math.random() * 6.28, spin: 0.5 });
+    const ringBobber: Bobber = { mesh: glow, baseY: glow.position.y, speed: 1.0, phase: rng.range(0, 6.28), spin: 0.5 };
+    this.bobbers.push(ringBobber);
 
-    this.interactables.push({
+    const interactable: Interactable = {
       id: `npc:${npc.id}`,
       kind: 'npc',
       zoneId: zone.id,
@@ -286,7 +335,84 @@ export class World {
       position: new THREE.Vector3(ground.x, ground.y + 1.2, ground.z),
       reach: 4.5,
       npc,
+    };
+    this.interactables.push(interactable);
+    this.npcEntries.push({
+      spec: npc,
+      zoneId: zone.id,
+      interactable,
+      staticMesh: mesh,
+      ring: glow,
+      ringBobber,
+      yaw,
+      robe: color,
+      pos: new THREE.Vector3(ground.x, ground.y, ground.z),
+      actor: null,
     });
+  }
+
+  /**
+   * Bring the people to life.
+   *
+   * Everyone within sixty metres of the player is an animated actor; further out
+   * they are a frozen mesh. Actors turn to face the player, wave when first met,
+   * do the work their role implies, and — for the few who walk — wander near
+   * their post. Whoever is in conversation (`talking`) keeps facing the player.
+   */
+  private updateNpcs(dt: number, focus: THREE.Vector3, talking: string | null): void {
+    const env = this.actorEnv();
+    const view: NpcView[] = [];
+    for (const e of this.npcEntries) {
+      const dx = e.pos.x - focus.x;
+      const dz = e.pos.z - focus.z;
+      const dist = Math.hypot(dx, dz);
+
+      if (!e.actor && dist < 60) {
+        const actor = new NpcActor(e.spec, e.pos.x, e.pos.y, e.pos.z, e.yaw, e.robe);
+        this.group.add(actor.root);
+        e.staticMesh.visible = false;
+        e.actor = actor;
+      } else if (e.actor && dist > 82) {
+        // Hand back to the cheap mesh, wherever they have wandered to.
+        e.pos.copy(e.actor.position);
+        e.yaw = e.actor.yaw;
+        e.staticMesh.position.copy(e.pos);
+        e.staticMesh.rotation.y = e.yaw;
+        e.staticMesh.visible = true;
+        this.group.remove(e.actor.root);
+        e.actor.dispose();
+        e.actor = null;
+      }
+
+      if (e.actor) {
+        const said = e.actor.update(dt, env, focus, talking === e.spec.id);
+        e.pos.copy(e.actor.position);
+        e.yaw = e.actor.yaw;
+        if (said && this.onNpcSay) this.onNpcSay(e.spec, said, !e.actor.hasGreeted || said.length < 30);
+        e.interactable.position.set(e.pos.x, e.pos.y + 1.2, e.pos.z);
+        // The glow ring floats over whoever it belongs to.
+        e.ring.position.x = e.pos.x;
+        e.ring.position.z = e.pos.z;
+        e.ringBobber.baseY = e.pos.y + 2.45;
+      }
+      if (dist < 24) view.push({ npc: e.spec, zoneId: e.zoneId, head: new THREE.Vector3(e.pos.x, e.pos.y + 2.25, e.pos.z), distance: dist });
+    }
+    view.sort((a, b) => a.distance - b.distance);
+    this.npcView = view;
+  }
+
+  private actorEnvCache: ActorEnv | null = null;
+
+  private actorEnv(): ActorEnv {
+    this.actorEnvCache ??= {
+      groundAt: (x, z) => this.terrain.heightAt(x, z),
+      resolve: (x, y, z) => {
+        const r = this.collision.resolve(x, y, z, 0.35, 1.7);
+        return { x: r.x, z: r.z };
+      },
+      seaLevel: SEA_LEVEL,
+    };
+    return this.actorEnvCache;
   }
 
   /**
@@ -298,9 +424,19 @@ export class World {
     const near = this.landmarks.find((l) => l.id === plaque.near);
     if (!near) return;
     const rng = new Rng(`${seed}:plaque:${plaque.id}`);
-    const angle = rng.range(0, Math.PI * 2);
-    const dist = near.radius + rng.range(9, 15);
-    const ground = this.terrain.findGround(near.position.x + Math.cos(angle) * dist, near.position.z + Math.sin(angle) * dist, 60);
+    // Pick a spot on dry ground that is clear of everything else we have placed: some monuments stand
+    // on a shore, and a stele in the sea (or on top of a person) is no use to anybody.
+    let angle = rng.range(0, Math.PI * 2);
+    let dist = near.radius + rng.range(9, 15);
+    let ground = this.terrain.findGround(near.position.x + Math.cos(angle) * dist, near.position.z + Math.sin(angle) * dist, 60);
+    for (let tries = 0; tries < 24; tries++) {
+      const dry = ground.y > SEA_LEVEL + 0.8;
+      const clear = this.interactables.every((it) => Math.hypot(it.position.x - ground.x, it.position.z - ground.z) > 3);
+      if (dry && clear) break;
+      angle += 2.4; // the golden angle, so successive tries spread round the monument
+      dist = near.radius + 9 + (tries % 6) * 2.5;
+      ground = this.terrain.findGround(near.position.x + Math.cos(angle) * dist, near.position.z + Math.sin(angle) * dist, 60);
+    }
     const stone = zone.palette.stone;
 
     const kit = new Kit();
@@ -563,13 +699,15 @@ export class World {
 
   // ------------------------------------------------------------------- update
 
-  update(dt: number, camera: THREE.Camera, elapsed: number): void {
+  update(dt: number, camera: THREE.Camera, elapsed: number, focus?: THREE.Vector3, talking: string | null = null): void {
     this.sky.update(dt, camera.position, elapsed);
     this.water.update(elapsed, this.sky.sun.position.clone().sub(camera.position).normalize(), this.sky.sun.color, this.sky.fog.color);
     for (const b of this.bobbers) {
       b.mesh.position.y = b.baseY + Math.sin(elapsed * b.speed + b.phase) * 0.3;
       b.mesh.rotation.y += dt * b.spin;
     }
+    this.updateNpcs(dt, focus ?? camera.position, talking);
+
     // Low sun, more glow in the air.
     const sunDir = _v1.copy(this.sky.sun.position).sub(camera.position).normalize();
     const warmth = THREE.MathUtils.clamp(1 - sunDir.y * 1.5, 0, 1);
@@ -612,6 +750,9 @@ export class World {
 const _v1 = new THREE.Vector3();
 
 /** A low-poly standing person: robe, torso, head, arms. */
+/** Roles that wander rather than stand at a post. Kept in step with the wander table in NpcActor. */
+const WALKERS = /child|water.?carrier/i;
+
 function buildPerson(color: number, rng: Rng): THREE.BufferGeometry {
   const kit = new Kit();
   const skin = 0x8a5f3c;

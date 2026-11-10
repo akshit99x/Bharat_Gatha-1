@@ -68,6 +68,8 @@ export interface GameEvents {
   'ui:open': { screen: string };
   'ui:close': { screen: string };
   'player:landed': Record<string, never>;
+  'dialogue:open': Record<string, never>;
+  'dialogue:close': Record<string, never>;
   'save:dirty': Record<string, never>;
 }
 

@@ -74,6 +74,11 @@ export class Minimap {
     this.canvas.height = Math.round(this.size * this.dpr);
   }
 
+  /** The whole island, rendered once, for the full map. */
+  island(): HTMLCanvasElement {
+    return this.base;
+  }
+
   /** Markers that do not move: monuments, challenge posts, NPCs, terraces. */
   setStaticMarkers(markers: MinimapMarker[]): void {
     this.statics = markers;
@@ -260,7 +265,7 @@ export class Minimap {
  * Draw the whole island once: water depth, beaches, biome colour, hill shading.
  * Costs a few hundred milliseconds at load and nothing afterwards.
  */
-function renderIsland(terrain: Terrain): HTMLCanvasElement {
+export function renderIsland(terrain: Terrain): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = BASE_RES;
   canvas.height = BASE_RES;

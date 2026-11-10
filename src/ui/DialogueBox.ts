@@ -1,5 +1,6 @@
 import type { DialogueNode } from '../content/types';
 import { audio } from '../core/Audio';
+import { voice, type SpeechHandle } from '../core/Voice';
 import { el } from './overlay';
 
 /**
@@ -34,6 +35,7 @@ export interface Speaker {
 export class DialogueBox {
   private root: HTMLElement | null = null;
   private keyHandler: ((e: KeyboardEvent) => void) | null = null;
+  private speech: SpeechHandle | null = null;
 
   get isOpen(): boolean {
     return this.root !== null;
@@ -71,6 +73,12 @@ export class DialogueBox {
         resolve(outcome);
       };
 
+      const profile = voice.profileForSpeaker(speaker.name);
+      const say = (line: string): void => {
+        this.speech?.cancel();
+        this.speech = voice.speak(line, profile);
+      };
+
       const show = (node: DialogueNode): void => {
         current = node;
         pendingAdvance = null;
@@ -79,6 +87,7 @@ export class DialogueBox {
         for (const id of node.unlocks ?? []) if (!outcome.unlocks.includes(id)) outcome.unlocks.push(id);
 
         text.textContent = node.text;
+        say(node.text);
         choicesWrap.replaceChildren();
         nextHint.textContent = '';
 
@@ -102,6 +111,7 @@ export class DialogueBox {
               if (choice.note) parts.push(`— ${choice.note}`);
               if (parts.length > 0) {
                 text.textContent = parts.join('  ');
+                if (choice.reply) say(choice.reply);
                 choicesWrap.replaceChildren();
                 nextHint.textContent = 'Press Enter to continue';
                 pendingAdvance = () => goTo(choice.goto ?? node.goto ?? node.next ?? null);
@@ -172,6 +182,8 @@ export class DialogueBox {
   }
 
   private close(): void {
+    this.speech?.cancel();
+    this.speech = null;
     if (this.keyHandler) {
       window.removeEventListener('keydown', this.keyHandler, true);
       this.keyHandler = null;

@@ -260,6 +260,7 @@ export class QuizEngine {
           body: `${percent}% on the chapter assessment.`,
           ttl: 7000,
         });
+        bus.emit('chapter:sealed', { zoneId: s.zoneId, percent });
       }
       this.save.markDirty();
     }

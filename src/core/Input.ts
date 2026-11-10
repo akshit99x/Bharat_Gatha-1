@@ -22,6 +22,7 @@ export type Action =
   | 'ability'
   | 'map'
   | 'codex'
+  | 'scroll'
   | 'pause'
   | 'help'
   | 'slot1'
@@ -51,6 +52,7 @@ const KEY_BINDINGS: Record<string, Action> = {
   KeyM: 'map',
   Tab: 'map',
   KeyJ: 'codex',
+  KeyK: 'scroll',
   Escape: 'pause',
   F1: 'help',
   Slash: 'help',

@@ -66,9 +66,40 @@ actually requires.
 | Scan a monument (Pramana lens) | hold **right mouse** |
 | Map and fast travel | `M` |
 | Codex | `J` |
+| The Gatha — panels, plaques, the story | `K` |
 | Pause, settings, export record | `Esc` |
 | Help | `F1` |
 | Answer a question | `1` `2` `3` `4` |
+
+---
+
+## The story — *The Unfinished Scroll* (अधूरा पट)
+
+The island holds **the Gatha**, a scroll of eleven painted panels in the style of the *pat* and *phad*
+storytelling scrolls, and a haze called **the Dhundh** is smudging it. The Dhundh does one of two things
+to a story: it **gilds** it into a flattering fairy-tale, or it **erases** it into a shrug. The only thing
+it cannot survive is the question *"how do we know that?"* — which is the evidence-tag system the game was
+already built on, so the story and the learning rules are the same thing.
+
+You are the *Gathak*. **Maitri**, the scroll's Keeper, speaks to you from the vimana log. **Ekarupa** ("of
+one form") is the Dhundh's voice: *"There is one story. Pick the nicest one."*
+
+| Piece | What it is |
+|---|---|
+| **Prologue** | Captions over the opening flight — non-blocking, so the crossing never freezes for a conversation |
+| **Region hooks** | The first time you stand in a region, Maitri frames it and Ekarupa tries its line. Works from any landing point; the vimana lets you drop anywhere |
+| **Distortion plaques** (33) | A weathered stele beside a monument states a popular claim under a wrong or missing label. Read the codex evidence it asks for, then say where the honest version belongs: *archaeology · written source · epic tradition · debated · overstated · no evidence*. A wrong answer is never punished; it is counted quietly so the finale can lean on it |
+| **Anchor beats and trails** | Each region's people react to what you complete, and one three-person trail per region makes you meet the cast |
+| **Panel restoration** | Passing a chapter assessment restores its panel. Maitri asks one question where the comfortable answer and the open-minded answer differ |
+| **The Gatha (`K`)** | The eleven panels, painted at runtime from each region's own palette; the people each panel remembers; trail and plaque progress |
+| **The Sabha of Sources** | After three panels, Ekarupa presses one claim per restored chapter — the ones *you* found hardest — and each chapter's anchor is called as a witness |
+| **The Twelfth Panel** | The last panel is blank and you write it: three things you are sure of, one you hold on tradition, one you still do not know, one name you want remembered. It is saved into the learning-record export |
+
+Three motifs run through every region and are braided in the finale: **💧 water**, **✍️ writing**, **⚖️ measure**.
+
+Nothing here is a score. The two counters behind the ending (comfortable picks, open-minded picks) only choose
+its wording, and nothing is ever deducted. The full design, cast and chapter-by-chapter beats are in
+[`docs/STORYLINE.md`](docs/STORYLINE.md).
 
 ---
 
@@ -105,12 +136,17 @@ src/
   core/          Engine services: event bus, seeded RNG, value noise, input,
                  save profile, procedural raga-based audio
   content/       ALL history and culture data — zones, codex, questions, timeline
+  content/story/ The narrative: prologue, eleven chapters (hooks, plaques, trails, panels),
+                 the Sabha and the endings — pure data, validated at startup
+  story/         StoryEngine: every story rule (what counts as a corrected plaque, when a
+                 panel can be restored, which ending is heard) with no DOM and no three.js
   world/         Terrain, sky, sea, vegetation, collision
   world/architecture/   The procedural building kit and 33 monument builders
   player/        Character controller, third-person camera rig, avatar animation
   vehicles/      Rideable chariots
   quiz/          Question bank, spaced repetition, question generators, round engine
-  ui/            HUD, overlays, quiz screen, dialogue box
+  ui/            HUD, overlays, quiz screen, dialogue box, captions, the Gatha scroll,
+                 plaque reader, Sabha, Twelfth Panel, and the procedural panel painter
 ```
 
 The hard rule is that **`content/` never imports from `world/`, `player/` or `ui/`**. Adding a new
@@ -178,12 +214,22 @@ dimmed.
 
 - **Seeded world.** Terrain, scatter and question order all derive from one seed, so a teacher can
   hand out a seed and every student gets the same map and the same round.
+- **Spoken voices.** Every conversation, caption and Sabha line is spoken through the browser's own speech
+  engine, so there are still no audio files. It asks for **English (India)** voices first, then Hindi, then any
+  English voice, and the pause menu says which one your device is using. Nobody is assigned a gender: each
+  person gets a stable voice from a hash of their name, with a small pitch and pace shift, so the same person
+  always sounds the same. Maitri is warm and unhurried; Ekarupa is lower, slower and a little too smooth. Indian
+  names and terms are respelled for the voice only (Dhundh → "Dhoondh"), never on screen. The music ducks
+  under speech. Best results on Edge or Chrome with an English (India) voice installed; on Windows that is
+  Settings → Time & language → Speech.
 - **Procedural score.** Each zone carries a raga; the drone and the sparse plucked phrases are
   generated from its swaras. No audio files, and the music never loops identically.
 - **Learning record.** The save profile doubles as an exportable JSON record — per-question history,
   per-objective accuracy, time per zone, weakest skills. `Esc → Export learning record`.
 - **Content validation** runs at startup and prints any unresolved codex id, dead dialogue node,
-  unmatched script pair, mis-indexed answer or unsolvable weight puzzle to the console.
+  unmatched script pair, mis-indexed answer or unsolvable weight puzzle to the console. The story
+  adds its own: every plaque's evidence and landmark, every trail stop's NPC, every restoration graph,
+  and the rule that each chapter offers both a comfortable and an open-minded answer.
 - **Accessibility:** gentle descent (on by default), dyslexia-friendly text, head-movement toggle,
   full keyboard play for the quiz, `prefers-reduced-motion` respected.
 
@@ -198,6 +244,10 @@ the codex; the region list with fast travel; 69 people to talk to; the full quiz
 generated questions, spaced repetition and the results breakdown; the dialogue challenges (all 11
 of them, including the Gita, Ashoka after Kalinga, Vibhishana and Akbar's Ibadat Khana); pause,
 settings and the learning-record export.
+
+**Also working now:** the whole story layer described above — prologue, region hooks, 33 plaques with
+in-world haze that dissolves when a claim is corrected, eleven trails, panel restoration with a
+haze-lifting reveal, the Gatha scroll, the Sabha of Sources, the Twelfth Panel and three endings.
 
 **Not built yet:** the interactive runtimes for the other six challenge kinds — archery, assembly,
 pattern, script-matching, trade/weights and sequencing. All 42 challenges have their full data

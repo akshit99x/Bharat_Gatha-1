@@ -29,6 +29,8 @@ export interface Box {
   obb?: { cx: number; cz: number; hx: number; hz: number; c: number; s: number };
   /** Set for round things: the footprint is this circle. */
   circle?: { cx: number; cz: number; r: number };
+  /** The top is curved: solid, but nothing should be stood on it by the placement code. */
+  curved?: boolean;
 }
 
 export interface ResolveResult {
@@ -103,6 +105,7 @@ export class CollisionWorld {
       // `add` rejects degenerate boxes; only decorate the one it actually stored. A quarter-turn keeps
       // a box axis-aligned, so its enclosing bounds are already exact and no oriented footprint is needed.
       if (this.boxes.length > index) {
+        if (box.curved) (this.boxes[index] as Box).curved = true;
         if (box.round) (this.boxes[index] as Box).circle = { cx, cz, r: Math.min(hx, hz) };
         else if (Math.abs(s * c) > 0.002) (this.boxes[index] as Box).obb = { cx, cz, hx, hz, c, s };
       }
@@ -243,7 +246,8 @@ export class CollisionWorld {
     for (const i of ids) {
       const b = this.boxes[i] as Box;
       if (!overlapsBox(x, z, 0, b)) continue;
-      const span = b.circle ? b.circle.r * 2 : b.obb ? Math.min(b.obb.hx, b.obb.hz) * 2 : Math.min(b.maxX - b.minX, b.maxZ - b.minZ);
+      // A curved top is no platform, whatever its size.
+      const span = b.curved ? 0 : b.circle ? b.circle.r * 2 : b.obb ? Math.min(b.obb.hx, b.obb.hz) * 2 : Math.min(b.maxX - b.minX, b.maxZ - b.minZ);
       out.push({ minY: b.minY, maxY: b.maxY, span });
     }
     return out;

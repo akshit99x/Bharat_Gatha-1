@@ -9,6 +9,18 @@ import * as THREE from 'three';
  * still giving each part its own stone colour.
  */
 
+/**
+ * Holes in the ground. A stepwell or a sunken bath is dug below ground level, so the terrain has to be
+ * cut away over it or the ground simply covers it. Each is a rectangle (centre x/z, half extents) with a
+ * yaw; the terrain shader discards inside them, and Terrain.heightAt drops to the pit's floor.
+ */
+export const MAX_PITS = 24;
+export const terrainPits = {
+  rect: { value: Array.from({ length: MAX_PITS }, () => new THREE.Vector4(0, 0, 0, 0)) },
+  rot: { value: Array.from({ length: MAX_PITS }, () => new THREE.Vector2(1, 0)) },
+  count: { value: 0 },
+};
+
 /** Shared clock for the foliage's wind. World.update advances it each frame. */
 export const shaderTime = { value: 0 };
 
@@ -43,6 +55,11 @@ float bgNoise(vec3 x) {
 function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): void {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = shaderTime;
+    if (kind === 'terrain') {
+      shader.uniforms.uPit = terrainPits.rect;
+      shader.uniforms.uPitRot = terrainPits.rot;
+      shader.uniforms.uPitCount = terrainPits.count;
+    }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
@@ -85,11 +102,21 @@ function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): vo
         `#include <common>
          varying vec3 vWPos;
          varying float vObjY;
+         ${kind === 'terrain' ? `uniform vec4 uPit[${MAX_PITS}];
+         uniform vec2 uPitRot[${MAX_PITS}];
+         uniform int uPitCount;` : ''}
          ${NOISE_GLSL}`,
       )
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
+         ${kind === 'terrain' ? `
+         for (int i = 0; i < ${MAX_PITS}; i++) {
+           if (i >= uPitCount) break;
+           vec2 d = vWPos.xz - uPit[i].xy;
+           vec2 q = vec2(d.x * uPitRot[i].x - d.y * uPitRot[i].y, d.x * uPitRot[i].y + d.y * uPitRot[i].x);
+           if (abs(q.x) < uPit[i].z && abs(q.y) < uPit[i].w) discard;
+         }` : ''}
          {
            float n1 = bgNoise(vWPos * ${kind === 'terrain' ? '0.045' : '0.55'});
            float n2 = bgNoise(vWPos * ${kind === 'terrain' ? '0.31' : '2.6'});

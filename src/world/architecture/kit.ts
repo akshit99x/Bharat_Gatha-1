@@ -22,6 +22,8 @@ export interface Collider {
   rotY?: number;
   /** The footprint is the circle inscribed in the box (columns, drums, domes, round platforms). */
   round?: boolean;
+  /** Its top is curved (a dome, a boulder): solid, but not a place to stand a person or a post. */
+  curved?: boolean;
 }
 
 /** Which way a flight of steps climbs. */
@@ -32,10 +34,18 @@ export interface Marker {
   pos: [number, number, number];
 }
 
+/** A rectangle of ground to cut away because the structure goes below it (x/z bounds, and the floor's y). */
+export interface Pit {
+  min: [number, number];
+  max: [number, number];
+  floor: number;
+}
+
 export interface BuildResult {
   geometry: THREE.BufferGeometry;
   colliders: Collider[];
   markers: Marker[];
+  pits: Pit[];
   /** Approximate overall height, used for labels and scan ranging. */
   height: number;
   /** Approximate horizontal radius, used for culling and map pins. */
@@ -66,6 +76,7 @@ export class Kit {
   private readonly parts: THREE.BufferGeometry[] = [];
   private readonly boxes: Collider[] = [];
   readonly markers: Marker[] = [];
+  readonly pits: Pit[] = [];
 
   private maxY = 0;
   private maxR = 0;
@@ -119,7 +130,7 @@ export class Kit {
   sphere(radius: number, at: readonly [number, number, number], color: number, place: Placement & { segments?: number } = {}): this {
     const seg = place.segments ?? 12;
     const geo = new THREE.SphereGeometry(radius, seg, Math.max(6, seg >> 1));
-    this.push(geo, at, color, place, place.collide ?? false, [radius * 2, radius * 2, radius * 2], true);
+    this.push(geo, at, color, place, place.collide ?? false, [radius * 2, radius * 2, radius * 2], true, true);
     return this;
   }
 
@@ -129,7 +140,7 @@ export class Kit {
     const geo = new THREE.SphereGeometry(radius, seg, Math.max(5, seg >> 1), 0, Math.PI * 2, 0, Math.PI / 2);
     if (place.squash && place.squash !== 1) geo.scale(1, place.squash, 1);
     const h = radius * (place.squash ?? 1);
-    this.push(geo, at, color, place, place.collide ?? true, [radius * 2, h, radius * 2], true);
+    this.push(geo, at, color, place, place.collide ?? true, [radius * 2, h, radius * 2], true, true);
     return this;
   }
 
@@ -165,11 +176,9 @@ export class Kit {
     // collider must be built around that, not around the centre.
     this.pushRaw(geo, at, color, place);
     if (place.collide ?? true) {
-      this.addBoxCollider(
-        [at[0] - maxR, at[1] + minY, at[2] - maxR],
-        [at[0] + maxR, at[1] + maxY, at[2] + maxR],
-        place.inset ?? 0,
-      );
+      // Turned on a lathe, so round; and its top is a finial or a curve, not a floor.
+      const r = maxR - Math.max(0, place.inset ?? 0);
+      this.boxes.push({ min: [at[0] - r, at[1] + minY, at[2] - r], max: [at[0] + r, at[1] + maxY, at[2] + r], round: true, curved: true });
     }
     this.track(at[1] + maxY, Math.hypot(at[0], at[2]) + maxR);
     return this;
@@ -539,6 +548,12 @@ export class Kit {
 
   // ----------------------------------------------------------------- extras
 
+  /** Cut the ground away over a rectangle: for tanks, wells and baths that go below ground level. */
+  pit(min: readonly [number, number], max: readonly [number, number], floor: number): this {
+    this.pits.push({ min: [min[0], min[1]], max: [max[0], max[1]], floor });
+    return this;
+  }
+
   marker(name: string, pos: readonly [number, number, number]): this {
     this.markers.push({ name, pos: [pos[0], pos[1], pos[2]] });
     return this;
@@ -560,6 +575,7 @@ export class Kit {
     collide: boolean,
     size: readonly [number, number, number],
     round = false,
+    curved = false,
   ): void {
     this.pushRaw(geo, at, color, place);
     if (collide) {
@@ -569,7 +585,9 @@ export class Kit {
       if (round && size[0] >= 2) {
         // Something round collides as a circle, not as its bounding square: no invisible corners.
         const h = size[0] / 2 - inset;
-        this.boxes.push({ min: [at[0] - h, at[1] - hy, at[2] - h], max: [at[0] + h, at[1] + hy, at[2] + h], round: true });
+        const c: Collider = { min: [at[0] - h, at[1] - hy, at[2] - h], max: [at[0] + h, at[1] + hy, at[2] + h], round: true };
+        if (curved) c.curved = true;
+        this.boxes.push(c);
       } else {
         // The box as it stands, with its own yaw: the world collides against the turned rectangle.
         const hx = size[0] / 2 - inset;
@@ -623,7 +641,7 @@ export class Kit {
 
   build(): BuildResult {
     if (this.parts.length === 0) {
-      return { geometry: new THREE.BufferGeometry(), colliders: [], markers: this.markers, height: 0, radius: 0 };
+      return { geometry: new THREE.BufferGeometry(), colliders: [], markers: this.markers, pits: this.pits, height: 0, radius: 0 };
     }
     // mergeGeometries needs every input to agree on indexed-ness.
     const normalised = this.parts.map((g) => (g.index ? g.toNonIndexed() : g));
@@ -636,6 +654,7 @@ export class Kit {
       geometry,
       colliders: this.boxes,
       markers: this.markers,
+      pits: this.pits,
       height: this.maxY,
       radius: this.maxR,
     };

@@ -66,13 +66,20 @@ export function palaceCity(ctx: BuildContext): void {
   // Ranges of halls around three sides.
   const rangeDepth = 22;
   for (let w = 0; w < wings; w++) {
-    const angle = (w / Math.max(3, wings)) * Math.PI * 2 + Math.PI / 2;
+    // Spread round the three sides away from the gate (+Z). They used to start *at* the gate, so with
+    // five wings the first range of halls was built straight across the entrance.
+    const angle = Math.PI / 2 + ((w + 1) / (wings + 1)) * Math.PI * 2;
     const cx = Math.cos(angle) * (half - rangeDepth / 2);
     const cz = Math.sin(angle) * (half - rangeDepth / 2);
     const long = court * 0.62;
     const rot = -angle + Math.PI / 2;
 
     kit.slab([long, rangeDepth], [cx, 1.2, cz], 2.4, shade(stone, 0.96), { rotY: rot });
+    // Three courses of steps all round the platform, each low enough to walk up.
+    for (let k = 1; k <= 3; k++) {
+      const top = 2.4 - k * 0.6;
+      kit.slab([long + k * 1.9, rangeDepth + k * 1.9], [cx, top / 2, cz], top, shade(stone, 0.96 - k * 0.025), { rotY: rot });
+    }
     if (pillared) {
       // A hypostyle hall: rows of columns under a flat roof. Mauryan Kumrahar
       // and Vijayanagara's halls both work this way.
@@ -418,7 +425,8 @@ export function hillFort(ctx: BuildContext): void {
   // (It used to be a few decorative slabs, and the fort could not be entered at all.)
   {
     const count = Math.ceil(crest / 0.45);
-    const run = 1.15;
+    // Gentle enough to pass over the corner of every terrace on the way (each steps in 0.14 R for 4.6 m).
+    const run = ((R * 0.14) / 4.6) * (crest / count) * 1.04;
     const topEdge = R * (1.06 - 3 * 0.14);
     kit.steps([topEdge + count * run - run / 2, 0, 0], count, crest / count, run, 7, shade(palette.rock, 1.04), {}, 'x-');
     // The gatehouse stands in the wall, astride the stair.
@@ -435,7 +443,7 @@ export function hillFort(ctx: BuildContext): void {
 
   // The citadel on the summit, with its own flight up from the terrace.
   kit.cylinder(R * 0.3, R * 0.33, 8.0, [0, crest + 4, 0], shade(stone, 1.0), { segments: 18 });
-  kit.steps([R * 0.3 + 18 * 1.0 - 0.5 - 0.6, crest, 0], 18, 8 / 18, 1.0, 6, shade(stone, 1.02), {}, 'x-');
+  kit.steps([R * 0.33 + 18 * 1.0 - 0.5, crest, 0], 18, 8 / 18, 1.0, 6, shade(stone, 1.02), {}, 'x-');
   // Turned so no tower stands at the head of the stair.
   kit.ring(6, R * 0.26, (px, pz) => {
     kit.box([7, 10, 7], [px, crest + 13, pz], shade(stone, 1.02));
@@ -489,16 +497,25 @@ export function lankaFort(ctx: BuildContext): void {
   }
   const baseY = sea ? 4.0 : 0;
 
-  // Curtain wall with projecting towers.
+  // Curtain wall with projecting towers. The ring is turned half a step so a wall, not a tower, faces
+  // east, and that wall has the gateway in it. (The wall used to be a closed ring: nobody could get in.)
   const pts: Array<[number, number]> = [];
   for (let i = 0; i < towers; i++) {
-    const a = (i / towers) * Math.PI * 2;
+    const a = ((i + 0.5) / towers) * Math.PI * 2;
     pts.push([Math.cos(a) * R, Math.sin(a) * R]);
   }
+  const gateX = R * Math.cos(Math.PI / towers);
+  const gateGap = 13.5;
   for (let i = 0; i < towers; i++) {
     const a = pts[i] as [number, number];
     const b = pts[(i + 1) % towers] as [number, number];
-    kit.wall(a, b, wallH, 4.4, shade(stone, 0.96), baseY);
+    if (i === towers - 1) {
+      kit.wall(a, [gateX, -gateGap / 2], wallH, 4.4, shade(stone, 0.96), baseY);
+      kit.wall([gateX, gateGap / 2], b, wallH, 4.4, shade(stone, 0.96), baseY);
+      kit.box([4.4, wallH - 17, gateGap], [gateX, baseY + 17 + (wallH - 17) / 2, 0], shade(stone, 0.98), { collide: false });
+    } else {
+      kit.wall(a, b, wallH, 4.4, shade(stone, 0.96), baseY);
+    }
     addCrenellations(kit, a, b, baseY + wallH, shade(stone, 1.04), 1.5);
   }
   for (const [bx, bz] of pts) {
@@ -508,9 +525,16 @@ export function lankaFort(ctx: BuildContext): void {
     addChhatri(kit, [bx, baseY + wallH * 1.2, bz], 5.0, 9, shade(stone, 1.04), 4);
   }
 
-  // Gate facing the causeway.
-  const g = pts[0] as [number, number];
-  kit.corbelGate([g[0], baseY, g[1]], 11, 15, 8.0, shade(stone, 1.04), { rotY: -Math.atan2(g[1], g[0]) });
+  // The gate, in the east wall, facing the causeway.
+  const g: [number, number] = [gateX, 0];
+  kit.corbelGate([gateX, baseY, 0], 11, 15, 8.0, shade(stone, 1.04), { rotY: Math.PI / 2 });
+  if (sea) {
+    // A sea fort stands on a rock: a flight up from the shore to the gate.
+    const count = Math.ceil(baseY / 0.45);
+    kit.steps([R * 1.1 + count * 1.0 - 0.5, 0, 0], count, baseY / count, 1.0, 9, shade(palette.rock, 1.04), {}, 'x-');
+  }
+  // And a flight from the gate court up to the palace terrace.
+  kit.steps([R * 0.55 + 9 * 1.0 - 0.5, baseY, 0], 9, 4 / 9, 1.0, 9, shade(stone, 1.02), {}, 'x-');
 
   // Palace within: terraces, pillared halls, a tower.
   kit.cylinder(R * 0.52, R * 0.55, 4.0, [0, baseY + 2.0, 0], shade(stone, 1.0), { segments: 20 });
@@ -656,21 +680,30 @@ export function stepwell(ctx: BuildContext): void {
   const depth = large ? 12 : 9;
   const stepCount = Math.round(depth / 0.9);
 
-  // Descending terraces on all four sides — the pushkarani form.
+  // The well is dug below ground: cut the ground away over it, or the ground simply covers it.
+  kit.pit([-W / 2, -D / 2], [W / 2, D / 2], -depth - 0.2);
+
+  // Descending terraces on all four sides — the pushkarani form. Each is a solid ring you can stand on,
+  // wide enough to meet the next, so the tank is a real stepped funnel with no gaps into the void.
+  const stepX = (W / 2 - 6) / stepCount;
+  const stepZ = (D / 2 - 6) / stepCount;
+  const drop = depth / stepCount;
   for (let s = 0; s < stepCount; s++) {
-    const inset = s * ((W / 2 - 4) / stepCount);
-    const w = W - inset * 2;
-    const d = D - inset * 2;
-    const y = -s * (depth / stepCount);
+    const w = W - s * stepX * 2;
+    const d = D - s * stepZ * 2;
+    const y = -s * drop;
+    const tone = shade(stone, 1.0 + (s % 3) * 0.03);
+    // Solid from this terrace down to the floor, so no one sees under it.
+    const h = depth + y;
+    const tx = stepX + 0.1;
+    const tz = stepZ + 0.1;
     for (const [bx, bz, bw, bd] of [
-      [0, -d / 2, w, 1.2],
-      [0, d / 2, w, 1.2],
-      [-w / 2, 0, 1.2, d],
-      [w / 2, 0, 1.2, d],
+      [0, -(d / 2 - tz / 2), w, tz],
+      [0, d / 2 - tz / 2, w, tz],
+      [-(w / 2 - tx / 2), 0, tx, d],
+      [w / 2 - tx / 2, 0, tx, d],
     ] as Array<[number, number, number, number]>) {
-      kit.box([bw, depth / stepCount + 0.3, bd], [bx, y - (depth / stepCount) / 2, bz], shade(stone, 1.0 + (s % 3) * 0.03), {
-        collide: false,
-      });
+      kit.box([bw, h, bd], [bx, y - h / 2, bz], tone);
     }
     // Numbered blocks — Hampi's stepped tank was assembled from a kit of parts.
     if (stepped && s % 3 === 0) {
@@ -678,21 +711,22 @@ export function stepwell(ctx: BuildContext): void {
     }
   }
 
-  // Water at the bottom, and a collider so you can walk the terraces.
+  // The floor and the water over it.
   const floorY = -depth;
-  kit.slab([W - (W / 2 - 4) * 2 + 4, D - (W / 2 - 4) * 2 + 4], [0, floorY, 0], 0.6, 0x24343a);
-  addWaterPlane(kit, [W * 0.3, D * 0.3], [0, floorY + 1.2, 0]);
-  // Ring of invisible blockers forming a walkable funnel.
-  for (let s = 0; s < stepCount; s++) {
-    const inset = s * ((W / 2 - 4) / stepCount);
-    const y = -s * (depth / stepCount);
-    kit.blocker([-(W / 2 - inset), y - 0.4, -(D / 2 - inset)], [W / 2 - inset, y, D / 2 - inset]);
+  kit.slab([14, 14], [0, floorY - 0.3, 0], 0.6, 0x24343a);
+  addWaterPlane(kit, [11.6, 11.6], [0, floorY + 1.0, 0]);
+
+  // One proper flight down the middle of the front, so the terraces need not be hopped one by one.
+  {
+    const count = stepCount * 2;
+    kit.steps([0, 0, D / 2 - stepZ / 4], count, -depth / count, stepZ / 2, 6, shade(stone, 1.06), {}, 'z-');
   }
 
-  // Coping and, unless this is a bare cistern, side pavilions.
+  // Coping round the rim, open at the head of the flight.
   for (const [bx, bz, bw, bd] of [
     [0, -D / 2 - 1.2, W + 4, 2.4],
-    [0, D / 2 + 1.2, W + 4, 2.4],
+    [-(W / 4 + 3.5), D / 2 + 1.2, W / 2 - 3, 2.4],
+    [W / 4 + 3.5, D / 2 + 1.2, W / 2 - 3, 2.4],
     [-W / 2 - 1.2, 0, 2.4, D + 4],
     [W / 2 + 1.2, 0, 2.4, D + 4],
   ] as Array<[number, number, number, number]>) {

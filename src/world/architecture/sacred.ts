@@ -333,7 +333,17 @@ export function dravidaTemple(ctx: BuildContext): void {
       const t = i / steps;
       const w = gw * (1 - t * 0.42);
       const d = 14 * (1 - t * 0.3);
-      kit.slab([w, d], [0, (gh / steps) * (i + 0.5), half], gh / steps, shade(stone, 0.96 + i * 0.012));
+      if ((gh / steps) * i < 13) {
+        // The storeys the gateway passes through are two piers, not a solid block: the tower used to
+        // fill its own doorway, and nobody could enter the temple.
+        const pass = 9.4;
+        const pier = (w - pass) / 2;
+        for (const side of [-1, 1]) {
+          kit.slab([pier, d], [side * (pass / 2 + pier / 2), (gh / steps) * (i + 0.5), half], gh / steps, shade(stone, 0.96 + i * 0.012));
+        }
+      } else {
+        kit.slab([w, d], [0, (gh / steps) * (i + 0.5), half], gh / steps, shade(stone, 0.96 + i * 0.012));
+      }
       // Each storey carries a row of small shrine niches.
       const niches = Math.max(3, Math.round(w / 5));
       for (let n = 0; n < niches; n++) {

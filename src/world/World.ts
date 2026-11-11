@@ -98,6 +98,9 @@ interface Bobber {
   spin: number;
 }
 
+/** Structures that belong at the water's edge: never moved inland, never given levelled ground. */
+const WATER_KINDS = new Set<string>(['lothalDock', 'harbour', 'ramSetu', 'dhow']);
+
 export class World {
   readonly terrain: Terrain;
   readonly sky: Sky;
@@ -111,6 +114,7 @@ export class World {
   readonly group = new THREE.Group();
 
   readonly landmarks: PlacedLandmark[] = [];
+  private readonly prebuilt = new Map<string, ReturnType<typeof buildLandmark>>();
   /** Which colliders belong to which landmark (for checking that monuments do not sit inside each other). */
   readonly colliderRanges: Array<{ landmarkId: string; from: number; to: number }> = [];
   /** Every staircase's top step and the point just past it. */
@@ -138,6 +142,22 @@ export class World {
     this.terrain = new Terrain(opts.seed);
     this.group.add(this.terrain.mesh);
 
+    // Build every monument first (their size is only known once built), then level the ground each will
+    // stand on, before anything reads the terrain: the sea, the placements, the trees.
+    {
+      const pads: Array<{ x: number; z: number; radius: number }> = [];
+      for (const zone of ZONES) {
+        for (const landmark of zone.landmarks) {
+          const built = buildLandmark(landmark.kind, landmark.opts, zone.palette, `${opts.seed}:${landmark.id}`);
+          this.prebuilt.set(landmark.id, built);
+          if (WATER_KINDS.has(landmark.kind) || landmark.kind === 'boulderField' || landmark.stack) continue;
+          const [wx, wz] = worldPos(zone, landmark.offset);
+          pads.push({ x: wx, z: wz, radius: Math.min(150, built.radius * (landmark.scale ?? 1)) });
+        }
+      }
+      this.terrain.level(pads);
+    }
+
     this.sky = new Sky(opts.shadows);
     this.sky.addTo(scene);
 
@@ -161,6 +181,9 @@ export class World {
 
     this.spawnChariots(opts.seed);
 
+    // Nothing grows in a tank.
+    exclusions.push(...this.terrain.pitCircles());
+
     const floraOpts = defaultVegetationOptions(opts.seed);
     const scale = opts.floraScale ?? 1;
     floraOpts.trees = Math.round(floraOpts.trees * scale);
@@ -179,12 +202,13 @@ export class World {
 
   private placeLandmark(zone: Zone, landmark: Landmark, seed: string): PlacedLandmark | null {
     const [wx, wz] = worldPos(zone, landmark.offset);
-    const built = buildLandmark(landmark.kind, landmark.opts, zone.palette, `${seed}:${landmark.id}`);
+    const built = this.prebuilt.get(landmark.id) ?? buildLandmark(landmark.kind, landmark.opts, zone.palette, `${seed}:${landmark.id}`);
+    this.prebuilt.delete(landmark.id);
     if (!built.geometry.getAttribute('position')) return null;
 
     // Sit the monument on the ground. Shoreline structures are allowed to go
     // below sea level — a dock basin is supposed to hold water.
-    const waterTolerant = landmark.kind === 'lothalDock' || landmark.kind === 'harbour' || landmark.kind === 'ramSetu' || landmark.kind === 'dhow';
+    const waterTolerant = WATER_KINDS.has(landmark.kind);
     let y = this.terrain.heightAt(wx, wz);
     let x = wx;
     let z = wz;
@@ -219,6 +243,23 @@ export class World {
     const firstCollider = this.collision.count;
     this.collision.addPlaced(built.colliders, x, y, z, rotY, scale);
     this.colliderRanges.push({ landmarkId: landmark.id, from: firstCollider, to: this.collision.count });
+
+    // Anything dug below ground level needs the ground cut away over it.
+    for (const pit of built.pits) {
+      const c = Math.cos(rotY);
+      const s = Math.sin(rotY);
+      const mx = ((pit.min[0] + pit.max[0]) / 2) * scale;
+      const mz = ((pit.min[1] + pit.max[1]) / 2) * scale;
+      this.terrain.addPit({
+        cx: x + mx * c + mz * s,
+        cz: z - mx * s + mz * c,
+        hx: (Math.abs(pit.max[0] - pit.min[0]) / 2) * scale,
+        hz: (Math.abs(pit.max[1] - pit.min[1]) / 2) * scale,
+        c,
+        s,
+        floor: y + pit.floor * scale,
+      });
+    }
 
     // Staircases, in world space: the top step and the spot just beyond it (used to verify they connect).
     {
@@ -275,13 +316,14 @@ export class World {
    */
   private standPoint(wx: number, wz: number, search: number): { x: number; y: number; z: number } {
     const ground = this.terrain.findGround(wx, wz, search);
+    const base = this.terrain.heightAt(ground.x, ground.z);
+    /** The lowest place to stand in the column at a point: clear ground, else a broad platform with headroom. */
     const tryAt = (x: number, z: number): number | null => {
       const y0 = this.terrain.heightAt(x, z);
       if (y0 < SEA_LEVEL + 0.4) return null;
       const column = this.collision.columnAt(x, z);
       const clear = (y: number): boolean => !column.some((b) => b.minY < y + 1.9 && b.maxY > y + 0.12);
       if (clear(y0)) return y0;
-      // The lowest broad platform with headroom: its terrace, not the roof of the keep above it.
       const tops = column
         .filter((b) => b.span >= 10 && b.maxY > y0)
         .map((b) => b.maxY)
@@ -289,18 +331,27 @@ export class World {
       for (const t of tops) if (clear(t)) return t;
       return null;
     };
-    const here = tryAt(ground.x, ground.z);
-    if (here !== null) return { x: ground.x, y: here, z: ground.z };
-    for (let r = 2; r <= 24; r += 2) {
-      for (let k = 0; k < 10; k++) {
-        const a = (k / 10) * Math.PI * 2 + r * 0.7;
-        const x = ground.x + Math.cos(a) * r;
-        const z = ground.z + Math.sin(a) * r;
-        const y = tryAt(x, z);
-        if (y !== null) return { x, y, z };
+    // Look at the spot and around it, and take the best: close by, and not needlessly high. (The spot
+    // itself may only offer a roof forty metres up, when a terrace is ten metres to the side.)
+    let best: { x: number; y: number; z: number } | null = null;
+    let bestCost = Infinity;
+    const consider = (x: number, z: number, dist: number): void => {
+      const y = tryAt(x, z);
+      if (y === null) return;
+      const cost = dist + 0.6 * Math.max(0, y - base);
+      if (cost < bestCost) {
+        bestCost = cost;
+        best = { x, y, z };
+      }
+    };
+    consider(ground.x, ground.z, 0);
+    for (let r = 2; r <= 26 && r < bestCost; r += 2) {
+      for (let k = 0; k < 12; k++) {
+        const a = (k / 12) * Math.PI * 2 + r * 0.7;
+        consider(ground.x + Math.cos(a) * r, ground.z + Math.sin(a) * r, r);
       }
     }
-    return ground;
+    return best ?? ground;
   }
 
   private placeChallengeMarker(zone: Zone, challenge: ChallengeSpec): void {
@@ -507,7 +558,9 @@ export class World {
     for (let tries = 0; tries < 24; tries++) {
       const dry = ground.y > SEA_LEVEL + 0.8;
       const clear = this.interactables.every((it) => Math.hypot(it.position.x - ground.x, it.position.z - ground.z) > 3);
-      if (dry && clear) break;
+      // And not inside anything built: a monument's own footprint can reach further than its radius.
+      const open = this.collision.columnAt(ground.x, ground.z).length === 0;
+      if (dry && clear && open) break;
       angle += 2.4; // the golden angle, so successive tries spread round the monument
       dist = near.radius + 9 + (tries % 6) * 2.5;
       ground = this.terrain.findGround(near.position.x + Math.cos(angle) * dist, near.position.z + Math.sin(angle) * dist, 60);

@@ -110,18 +110,18 @@ export function greatBath(ctx: BuildContext): void {
   }
   addWaterPlane(kit, [tankW - 1.2, tankD - 1.2], [0, -0.9, 0]);
 
-  // Steps at both ends, descending into the water.
+  // The tank is below ground level: cut the ground away over it.
+  kit.pit([-tankW / 2, -tankD / 2], [tankW / 2, tankD / 2], -tankDepth - 0.3);
+
+  // A flight of steps down into the water at one end, and the matching flight at the other shown in
+  // relief. (Both ends had steps at Mohenjo-daro.)
+  kit.steps([0, platform, tankD / 2 - 0.25], 8, -(platform + tankDepth - 0.25) / 8, 0.5, 5.5, shade(brick, 1.0), {}, 'z-');
+  for (let i = 0; i < 5; i++) {
+    kit.box([5.5, 0.55, 0.9], [0, platform - 0.3 - i * 0.55, -(tankD / 2 - 0.9 - i * 0.9)], shade(brick, 1.0), { collide: false });
+  }
+  // And steps up onto the platform from the ground, front and back.
   for (const side of [-1, 1]) {
-    for (let i = 0; i < 5; i++) {
-      const w = 5.5;
-      kit.box(
-        [w, 0.55, 0.9],
-        [0, platform - 0.3 - i * 0.55, side * (tankD / 2 - 0.9 - i * 0.9)],
-        shade(brick, 1.0),
-        { collide: false },
-      );
-    }
-    kit.blocker([-3, -tankDepth, side * (tankD / 2 - 5)], [3, platform - 1.4, side * (tankD / 2 - 0.4)]);
+    kit.steps([0, 0, side * (outerD / 2 + 4 * 0.8 - 0.4)], 4, platform / 4, 0.8, 6, shade(brick, 0.98), {}, side > 0 ? 'z-' : 'z+');
   }
 
   // Surrounding corridor of small rooms, and the well that fed the tank.

@@ -151,6 +151,8 @@ export interface Settings {
   voiceSource: 'auto' | 'indian' | 'neutral' | 'device';
   /** The gold marker and Next step card pointing at what to do next. */
   guide: boolean;
+  /** Haze shades to fight in the open country. */
+  combat: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -171,6 +173,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceVolume: 0.9,
   voiceSource: 'auto',
   guide: true,
+  combat: true,
 };
 
 function emptyProfile(): Profile {

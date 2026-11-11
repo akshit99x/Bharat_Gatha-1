@@ -31,6 +31,8 @@ export interface Box {
   circle?: { cx: number; cz: number; r: number };
   /** The top is curved: solid, but nothing should be stood on it by the placement code. */
   curved?: boolean;
+  /** What this is, when something needs to know (a person: `npc:<id>`). */
+  tag?: string;
 }
 
 export interface ResolveResult {
@@ -52,11 +54,11 @@ export class CollisionWorld {
   }
 
   /** Add a world-space box. */
-  add(minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number): void {
+  add(minX: number, minY: number, minZ: number, maxX: number, maxY: number, maxZ: number, tag?: string): void {
     // Reject degenerate boxes — they only cost time.
     if (maxX - minX < 0.02 || maxY - minY < 0.02 || maxZ - minZ < 0.02) return;
     const index = this.boxes.length;
-    this.boxes.push({ minX, minY, minZ, maxX, maxY, maxZ });
+    this.boxes.push(tag ? { minX, minY, minZ, maxX, maxY, maxZ, tag } : { minX, minY, minZ, maxX, maxY, maxZ });
     const x0 = Math.floor(minX / CELL);
     const x1 = Math.floor(maxX / CELL);
     const z0 = Math.floor(minZ / CELL);

@@ -54,6 +54,7 @@ export class Hud {
   private readonly objectiveChapter: HTMLElement;
   private readonly objectiveProgress: HTMLElement;
   private readonly objectiveList: HTMLElement;
+  private heartsBox: HTMLElement | null = null;
   private readonly nextCard: HTMLElement;
   private readonly nextTitle: HTMLElement;
   private readonly nextHow: HTMLElement;
@@ -294,6 +295,33 @@ export class Hud {
   }
 
   // ----------------------------------------------------------------- status
+
+  /** Hearts, shown beside the Vidya counter while fighting or hurt. */
+  setHearts(hearts: number, max: number, show: boolean): void {
+    if (!this.heartsBox) {
+      this.heartsBox = document.createElement('div');
+      this.heartsBox.className = 'sb-hearts';
+      this.heartsBox.setAttribute('aria-label', 'Strength');
+      this.vidyaBox.after(this.heartsBox);
+    }
+    this.heartsBox.hidden = !show;
+    const key = `${hearts}/${max}`;
+    if (this.heartsBox.dataset.v === key) return;
+    const lost = this.heartsBox.dataset.v ? Number(this.heartsBox.dataset.v.split('/')[0]) > hearts : false;
+    this.heartsBox.dataset.v = key;
+    this.heartsBox.replaceChildren(
+      ...Array.from({ length: max }, (_, i) => {
+        const h = document.createElement('i');
+        if (i >= hearts) h.className = 'empty';
+        return h;
+      }),
+    );
+    if (lost) {
+      this.heartsBox.classList.remove('hit');
+      void this.heartsBox.offsetWidth;
+      this.heartsBox.classList.add('hit');
+    }
+  }
 
   setVidya(value: number): void {
     const rounded = Math.round(value);

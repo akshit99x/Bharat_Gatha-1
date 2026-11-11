@@ -227,7 +227,6 @@ export const THEMES: Record<string, Theme> = {
     ambience: [
       { kind: 'wind', level: 0.32 },
       { kind: 'crows', level: 0.1 },
-      { kind: 'horn', level: 0.1 },
     ],
   },
 
@@ -372,7 +371,6 @@ export const THEMES: Record<string, Theme> = {
     ambience: [
       { kind: 'wind', level: 0.32 },
       { kind: 'crowd', level: 0.05 },
-      { kind: 'horn', level: 0.07 },
     ],
   },
 };

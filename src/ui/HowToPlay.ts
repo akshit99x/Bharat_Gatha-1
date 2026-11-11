@@ -144,6 +144,9 @@ function pages(): Page[] {
             'Do things',
             [
               ['Talk, read, start a challenge, press a button', keys('E')],
+              ['Choose the bow, the hammer or the lens', keys('1', '2', '3')],
+              ['Shoot an arrow (bow in hand)', keys('Left click')],
+              ['Strike close up', keys('Q')],
               ['Scan a monument', keys('Right mouse (hold)')],
               ['Get on or off a chariot', keys('R')],
               ['Drive a chariot', keys('W', 'S', 'A', 'D')],
@@ -218,6 +221,7 @@ function pages(): Page[] {
           stepCard('💾', 'It saves itself', 'Your progress is stored in this browser as you play. “Continue journey” on the title screen picks up where you stopped.'),
           stepCard('🔊', 'Headphones help', 'Every region has its own music and its own sounds of place: water at stepwells, bells at temples, surf at harbours. People speak their lines aloud; Settings lets you change the voice, the volume, or turn speech off.'),
           stepCard('♿', 'Comfort and access', 'Press Esc for the menu and settings: dyslexia-friendly text, high contrast, head movement, mouse sensitivity, shadows and more. If the game runs slowly, turn off Cinematic lighting.'),
+          stepCard('🌫️', 'Haze shades', 'Out in the open country, grey columns of haze hold shades of the Dhundh. Come near and they come for you: shoot them with the bow (press 1, then left click) or strike with Q, and step back when one leans in to swing. Beaten, you are set down at the landing terrace with nothing lost. Settings can turn them off.'),
           stepCard('🎓', 'Wrong answers teach', 'Every answer is explained. A claim you judge wrongly comes back once with the evidence set out.'),
         );
         body.append(list);

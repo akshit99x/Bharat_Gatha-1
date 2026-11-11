@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Post } from './render/Post';
 import { Waypoint } from './ui/Waypoint';
 import { Coach } from './ui/Coach';
+import { Combat, PLAYER_HEARTS } from './combat/Combat';
 import { chapterProgress, journeyAction, nextAction, type NextAction, type NextTarget } from './story/Progress';
 import { hasSeenIntro, presentHowToPlay } from './ui/HowToPlay';
 import { VOICE_SAMPLE } from './content/story/sabha';
@@ -67,6 +68,10 @@ const _fwd = new THREE.Vector3();
 const _sunDir = new THREE.Vector3();
 const _look = new THREE.Vector3();
 const _guide = new THREE.Vector3();
+const _aim = new THREE.Vector3();
+const _from = new THREE.Vector3();
+const _up = new THREE.Vector3();
+const _side = new THREE.Vector3();
 
 class Game {
   private readonly renderer: THREE.WebGLRenderer;
@@ -123,6 +128,9 @@ class Game {
   private guideDistance: number | null = null;
   private coach!: Coach;
   private hasFlown = false;
+  private combat!: Combat;
+  /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
+  private tool = 2;
 
   constructor(private readonly viewport: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -154,6 +162,8 @@ class Game {
     this.waypoint.setEnabled(save.settings.guide);
     this.coach = new Coach(document.getElementById('hud') ?? document.body);
     bus.on('codex:unlock', () => this.coach.notify('scan'));
+    // The conch's second (and only other) moment: a chapter's panel restored to the Gatha.
+    bus.on('story:panel', () => window.setTimeout(() => audio.conch(), 600));
     bus.on('ui:open', ({ screen }) => {
       if (screen === 'journey') this.coach.notify('map');
     });
@@ -260,6 +270,23 @@ class Game {
     audio.setEmitters(
       this.world.landmarks.map((l) => ({ id: l.id, kind: l.kind, x: l.position.x, y: l.position.y, z: l.position.z, radius: l.radius })),
     );
+
+    // The Dhundh's shades, out in the open country.
+    this.combat = new Combat(this.world, save.profile.worldSeed, {
+      onDefeat: (_zoneId, cleared) => {
+        save.addVidya(10);
+        bus.emit('vidya:gain', { amount: 10, reason: 'A shade dispersed' });
+        if (cleared) this.hud.toast('good', 'The haze lifts here', 'Every shade at this column is gone. It will gather again, in time.', '🌬️', 4500);
+      },
+      onHealth: (hearts, max) => this.hud.setHearts(hearts, max, hearts < max || this.combat.engaged),
+      onOverwhelmed: () => this.overwhelmed(),
+      onNpcStruck: (npcId) => {
+        const lines = ['Mind your aim!', 'Not at me, Gathak!', 'Careful with that bow.', 'Shoot the haze, not the people.'];
+        this.labels.bark(npcId, lines[Math.floor(Math.random() * lines.length)] as string);
+      },
+    });
+    this.combat.setEnabled(save.settings.combat);
+    this.scene.add(this.combat.group);
 
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
@@ -423,14 +450,7 @@ class Game {
     this.sessionStart = Date.now();
     this.hud.show();
     this.hud.setVidya(save.profile.vidya);
-    this.hud.setToolbelt(
-      [
-        { key: '1', icon: '🏹', name: 'Gandiva — the bow' },
-        { key: '2', icon: '🔨', name: 'Shilpa tools — build and repair' },
-        { key: '3', icon: '🔍', name: 'Pramana lens — scan a monument (hold right mouse)' },
-      ],
-      2,
-    );
+    this.showToolbelt();
     this.refreshObjectives();
     audio.startScore();
     this.input.requestLock();
@@ -462,6 +482,11 @@ class Game {
     this.camera.getWorldDirection(_look);
     audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
     this.updateGuide(dt, blocked);
+    {
+      const flying = this.player.state !== 'ground' && this.player.state !== 'climb' && this.player.state !== 'swim';
+      this.combat.update(dt, this.elapsed, this.player.position, blocked || this.dialogue.isOpen || flying);
+      this.hud.setHearts(this.combat.hearts, PLAYER_HEARTS, this.combat.enabled && (this.combat.engaged || this.combat.hearts < PLAYER_HEARTS));
+    }
     this.labels.setVisible(!blocked || this.dialogue.isOpen);
     this.labels.update(this.world.npcView, this.camera, (id) => this.npcMark(id), this.viewport.clientWidth, this.viewport.clientHeight);
     this.updateVimana();
@@ -501,6 +526,25 @@ class Game {
     if (this.input.justPressed('help')) {
       this.openHelp();
       return;
+    }
+    for (const [action, index] of [['slot1', 0], ['slot2', 1], ['slot3', 2]] as const) {
+      if (this.input.justPressed(action) && this.tool !== index) {
+        this.tool = index;
+        this.showToolbelt();
+        audio.click();
+      }
+    }
+    if (this.player.state === 'ground' && !this.ridingChariot) {
+      const left = this.input.mouse.leftEdge;
+      if (this.tool === 0 && left) {
+        // From the chest, a little to the right, toward the crosshair.
+        this.player.getForward(_aim);
+        _from.copy(this.player.position).add(_up.set(0, 1.45, 0)).addScaledVector(_side.set(Math.cos(this.player.yaw), 0, -Math.sin(this.player.yaw)), 0.3);
+        this.combat.shoot(_from, this.camera.position, _aim);
+      } else if ((this.tool === 1 && left) || this.input.justPressed('ability')) {
+        this.player.getForward(_aim);
+        this.combat.strike(this.player.position, _aim);
+      }
     }
     if (this.input.justPressed('track')) {
       const on = !save.settings.guide;
@@ -929,7 +973,7 @@ class Game {
       this.hud.announceZone(zone, { storyTitle: getChapter(zone.id)?.title, first: firstVisit });
       if (firstVisit) {
         this.hud.toast('vidya', `Discovered ${zone.name}`, zone.tagline, '🧭', 7000);
-        audio.conch();
+        audio.bell();
       }
     }
     bus.emit('zone:enter', { zoneId: zone.id });
@@ -1141,6 +1185,7 @@ class Game {
 
     // Crosshair state.
     if (this.input.mouse.right) this.hud.setCrosshair('scan');
+    else if (this.tool === 0 && this.combat.enabled) this.hud.setCrosshair('bow');
     else if (this.world.nearestChariot(this.player.focusPosition, 5.5) || this.world.nearestInteractable(this.player.focusPosition))
       this.hud.setCrosshair('interact');
     else this.hud.setCrosshair('idle');
@@ -1345,6 +1390,10 @@ class Game {
           save.patchSettings({ cinematic: v });
           this.post.setEnabled(v);
         }),
+        toggleRow('Haze shades', 'Shades of the Dhundh to fight in the open country, with the bow (1) or a strike (Q). Off makes the island peaceful.', save.settings.combat, (v) => {
+          save.patchSettings({ combat: v });
+          this.combat.setEnabled(v);
+        }),
         toggleRow('Gentle descent', 'The glider opens automatically and falls never hurt.', save.settings.gentleMode, (v) =>
           save.patchSettings({ gentleMode: v }),
         ),
@@ -1379,6 +1428,27 @@ class Game {
     foot.append(practice, exportBtn, resume);
     mountOverlay('pause', panel, { onEscape: () => this.resume() });
     resume.focus();
+  }
+
+  private showToolbelt(): void {
+    this.hud.setToolbelt(
+      [
+        { key: '1', icon: '🏹', name: 'Gandiva — the bow: left click to shoot' },
+        { key: '2', icon: '🔨', name: 'Shilpa hammer: left click (or Q) to strike' },
+        { key: '3', icon: '🔍', name: 'Pramana lens — scan a monument (hold right mouse)' },
+      ],
+      this.tool,
+    );
+  }
+
+  /** Set down at the region's landing terrace, at full strength. Nothing is lost. */
+  private overwhelmed(): void {
+    const zone = this.currentZone ?? this.world.zoneAt(this.player.position.x, this.player.position.z);
+    const pad = zone ? this.world.padFor(zone.id) : undefined;
+    if (pad) this.player.teleportTo(pad.position.x + 6, pad.position.z + 6);
+    this.combat.restore();
+    this.hud.setHearts(PLAYER_HEARTS, PLAYER_HEARTS, false);
+    this.hud.toast('info', 'The haze overwhelmed you', 'It set you down at the landing terrace. Nothing is lost: try again, or keep your distance.', '🌫️', 6000);
   }
 
   private resume(): void {

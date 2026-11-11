@@ -6065,3 +6065,47 @@ body.high-contrast .coach {
   padding: 0.4rem 0.9rem;
   font-size: 0.82rem;
 }
+
+/* hearts, beside the Vidya counter, while fighting or hurt */
+
+.sb-hearts {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 99px;
+  background: rgb(14 12 20 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.sb-hearts[hidden] {
+  display: none;
+}
+
+.sb-hearts i {
+  width: 14px;
+  height: 14px;
+  rotate: 45deg;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #ff9a6b, #e05252);
+  box-shadow: 0 0 8px rgb(224 82 82 / 0.6);
+}
+
+.sb-hearts i.empty {
+  background: rgb(255 255 255 / 0.14);
+  box-shadow: none;
+}
+
+.sb-hearts.hit {
+  animation: heartsHit 0.4s ease;
+}
+
+@keyframes heartsHit {
+  25% {
+    translate: -4px 0;
+    background: rgb(224 82 82 / 0.4);
+  }
+  50% {
+    translate: 4px 0;
+  }
+}

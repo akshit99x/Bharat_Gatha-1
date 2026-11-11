@@ -444,7 +444,7 @@ export class World {
 
     // People who stay at their post are solid. Walkers are not: a wall that does not move cannot follow them.
     const stays = !WALKERS.test(`${npc.role} ${npc.name}`);
-    if (stays) this.collision.add(ground.x - 0.4, ground.y, ground.z - 0.4, ground.x + 0.4, ground.y + 1.8, ground.z + 0.4);
+    if (stays) this.collision.add(ground.x - 0.4, ground.y, ground.z - 0.4, ground.x + 0.4, ground.y + 1.8, ground.z + 0.4, `npc:${npc.id}`);
 
     const glow = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 6, 18), glowMaterial(0x7fd4c8, 0.55));
     glow.rotation.x = Math.PI / 2;
@@ -891,7 +891,7 @@ const _v1 = new THREE.Vector3();
 /** Roles that wander rather than stand at a post. Kept in step with the wander table in NpcActor. */
 const WALKERS = /child|water.?carrier/i;
 
-function buildPerson(color: number, rng: Rng): THREE.BufferGeometry {
+export function buildPerson(color: number, rng: Rng): THREE.BufferGeometry {
   const kit = new Kit();
   const skin = 0x8a5f3c;
   const robe = color;

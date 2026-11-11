@@ -8,6 +8,7 @@
 
 import { Emitters, type EmitterSource } from './music/Emitters';
 import { Conductor, buildRoom } from './music/Conductor';
+import { buildImpulse } from './music/reverb';
 import { RAGA_BOOK } from './music/theory';
 import { themeFor } from './music/themes';
 
@@ -45,6 +46,7 @@ export class AudioEngine {
   private musicFilter: BiquadFilterNode | null = null;
   private sfxBus: GainNode | null = null;
   private conductor: Conductor | null = null;
+  private conchHall: ConvolverNode | null = null;
   private emitters: Emitters | null = null;
   private pendingEmitters: readonly EmitterSource[] = [];
   /** The theme asked for before the audio context existed. */
@@ -335,32 +337,157 @@ export class AudioEngine {
     }
   }
 
-  /** Conch — the vimana launch and chapter openings. */
+  /**
+   * The shankh. Played rarely on purpose: once when a journey begins, and once for each chapter whose
+   * panel is restored. Heard every few minutes it stops meaning anything.
+   *
+   * A real conch is a bright, buzzy, nasal horn: a strong fundamental with a ladder of harmonics, two
+   * vocal-like resonances, breath at the lips, a scoop up into the note, a long held swell with a slow
+   * waver, and a lift in pitch as the breath runs out. It is built from exactly those pieces, into its
+   * own small hall, so it reads clearly over the music instead of as a muffled drone.
+   */
   conch(): void {
     const ctx = this.ctx;
     const dest = this.sfxBus;
     if (!ctx || !dest) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.linearRampToValueAtTime(186, now + 0.4);
-    osc.frequency.linearRampToValueAtTime(178, now + 1.6);
+    const now = ctx.currentTime + 0.02;
+    const f0 = 196; // G3, the usual pitch of a large shankh
+    const dur = 5.6;
 
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 1100;
-    lp.Q.value = 4;
+    // A short hall of its own, so the note blooms and hangs.
+    if (!this.conchHall) {
+      this.conchHall = ctx.createConvolver();
+      this.conchHall.buffer = buildImpulse(ctx, 3.4, 2.6);
+      const wet = ctx.createGain();
+      wet.gain.value = 0.32;
+      this.conchHall.connect(wet).connect(dest);
+    }
+    const out = ctx.createGain();
+    out.gain.value = 1;
+    out.connect(dest);
+    out.connect(this.conchHall);
 
-    const env = ctx.createGain();
-    env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(0.26, now + 0.25);
-    env.gain.setValueAtTime(0.26, now + 1.3);
-    env.gain.exponentialRampToValueAtTime(0.0008, now + 2.1);
+    // Pitch: scoop up from below into the note, waver while held, lift as the breath ends.
+    const pitch = (o: OscillatorNode, mult: number): void => {
+      const f = o.frequency;
+      f.setValueAtTime(f0 * mult * 0.86, now);
+      f.exponentialRampToValueAtTime(f0 * mult, now + 0.42);
+      f.setValueAtTime(f0 * mult, now + dur - 1.1);
+      f.exponentialRampToValueAtTime(f0 * mult * 1.045, now + dur - 0.15);
+    };
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 4.6;
+    const vibDepth = ctx.createGain();
+    vibDepth.gain.setValueAtTime(0, now);
+    vibDepth.gain.linearRampToValueAtTime(2.2, now + 1.6);
+    vib.connect(vibDepth);
 
-    osc.connect(lp).connect(env).connect(dest);
-    osc.start(now);
-    osc.stop(now + 2.2);
+    // The body: a buzzy source through two resonances, plus a clean fundamental underneath.
+    const body = ctx.createGain();
+    const env = body.gain;
+    env.setValueAtTime(0.0001, now);
+    env.exponentialRampToValueAtTime(0.16, now + 0.35);
+    env.linearRampToValueAtTime(0.24, now + 2.4); // the long swell
+    env.linearRampToValueAtTime(0.2, now + dur - 0.9);
+    env.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    const oscs: OscillatorNode[] = [];
+    for (const [type, mult, level] of [
+      ['sawtooth', 1, 0.55],
+      ['square', 2, 0.18],
+      ['sine', 1, 0.6],
+      ['sawtooth', 1.003, 0.3], // a second reed, slightly apart: the conch's beating buzz
+    ] as Array<[OscillatorType, number, number]>) {
+      const o = ctx.createOscillator();
+      o.type = type;
+      pitch(o, mult);
+      vibDepth.connect(o.frequency);
+      const g = ctx.createGain();
+      g.gain.value = level;
+      o.connect(g).connect(body);
+      oscs.push(o);
+    }
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 110;
+    const f1 = ctx.createBiquadFilter();
+    f1.type = 'peaking';
+    f1.frequency.value = 700;
+    f1.Q.value = 2.2;
+    f1.gain.value = 7;
+    const f2 = ctx.createBiquadFilter();
+    f2.type = 'peaking';
+    f2.frequency.value = 1750;
+    f2.Q.value = 3;
+    f2.gain.value = 5;
+    const top = ctx.createBiquadFilter();
+    top.type = 'lowpass';
+    top.frequency.setValueAtTime(1600, now);
+    top.frequency.linearRampToValueAtTime(4200, now + 1.8); // brightens as it is blown harder
+    body.connect(hp).connect(f1).connect(f2).connect(top).connect(out);
+
+    // Breath at the lips, strongest at the start.
+    const frames = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) ch[i] = Math.random() * 2 - 1;
+    const breath = ctx.createBufferSource();
+    breath.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 2400;
+    bp.Q.value = 0.9;
+    const bg = ctx.createGain();
+    bg.gain.setValueAtTime(0.0001, now);
+    bg.gain.exponentialRampToValueAtTime(0.05, now + 0.08);
+    bg.gain.exponentialRampToValueAtTime(0.012, now + 0.6);
+    bg.gain.linearRampToValueAtTime(0.008, now + dur - 0.5);
+    bg.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    breath.connect(bp).connect(bg).connect(out);
+
+    for (const o of oscs) {
+      o.start(now);
+      o.stop(now + dur + 0.05);
+    }
+    vib.start(now);
+    vib.stop(now + dur + 0.05);
+    breath.start(now);
+    breath.stop(now + dur + 0.05);
+    // Keep the music out of its way while it sounds.
+    this.duckFor(dur);
+  }
+
+  /** Dip the score briefly under a sound that should be heard on its own. */
+  private duckFor(seconds: number): void {
+    if (!this.ctx || !this.musicBus) return;
+    const t = this.ctx.currentTime;
+    const g = this.musicBus.gain;
+    const full = this.musicVolume * 0.9;
+    g.cancelScheduledValues(t);
+    g.setTargetAtTime(full * 0.35, t, 0.15);
+    g.setTargetAtTime(full, t + seconds - 0.6, 0.6);
+  }
+
+  /** A swing through the air: the melee strike. */
+  swing(): void {
+    this.noise(0.18, 0.09, 'bandpass', 900, 1.1, 2600);
+  }
+
+  /** A shade struck: a dull thud with a hiss of haze. */
+  shadeHit(): void {
+    this.noise(0.12, 0.16, 'lowpass', 500, 1.2, 120);
+    this.noise(0.3, 0.05, 'highpass', 3000, 0.6);
+  }
+
+  /** A shade dispersed: a rising exhale and a soft bell. */
+  shadeGone(): void {
+    this.noise(0.7, 0.07, 'bandpass', 700, 0.8, 3200);
+    this.pluck(noteHz(this.tonic + 19, 0), 0.12);
+  }
+
+  /** The player is struck. */
+  hurt(): void {
+    this.noise(0.16, 0.2, 'lowpass', 340, 1.4, 90);
   }
 
   /** Entering water. */

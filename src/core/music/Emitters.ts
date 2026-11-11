@@ -44,7 +44,7 @@ const SOUNDS: Record<string, AmbienceLayer[]> = {
   lothalDock: [{ kind: 'waves', level: 0.7 }, { kind: 'gulls', level: 0.5 }],
   dhow: [{ kind: 'waves', level: 0.8 }],
   ramSetu: [{ kind: 'waves', level: 1 }, { kind: 'gulls', level: 0.6 }],
-  warCamp: [{ kind: 'crowd', level: 0.5 }, { kind: 'horn', level: 0.5 }],
+  warCamp: [{ kind: 'crowd', level: 0.5 }, { kind: 'forge', level: 0.35 }],
   hillFort: [{ kind: 'wind', level: 0.9 }, { kind: 'crows', level: 0.4 }],
   lankaFort: [{ kind: 'wind', level: 0.7 }, { kind: 'crows', level: 0.5 }],
   cityGate: [{ kind: 'crowd', level: 0.45 }],

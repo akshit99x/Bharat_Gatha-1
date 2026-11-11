@@ -63,6 +63,8 @@ export interface VimanaRide {
   to: THREE.Vector3;
   /** Seconds for the full crossing. */
   duration: number;
+  /** Sound the conch as it sets off. Default true. */
+  announce?: boolean;
 }
 
 export class PlayerController {
@@ -187,7 +189,8 @@ export class PlayerController {
     const dir = ride.to.clone().sub(ride.from).normalize();
     this.yaw = PlayerController.yawTowards(dir.x, dir.z);
     this.pitch = -0.35;
-    audio.conch();
+    // The conch sounds once, when a journey begins; not on every return to the vimana.
+    if (ride.announce !== false) audio.conch();
     this.syncCamera(0);
   }
 

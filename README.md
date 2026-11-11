@@ -120,6 +120,15 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
+**Haze shades (combat).** Out in each region's open country stand two grey columns of haze, the Dhundh given
+form. Come near and its shades come at you: press `1` for the bow and left-click to shoot (arrows fly and stick),
+or `Q` to strike close up; step back when one leans in to swing. Five hearts, which come back out of the fight;
+beaten, you are set down at the landing terrace with nothing lost. The island's people are never targets: an
+arrow that reaches one glances off. Settings → Haze shades turns combat off.
+
+**The conch** sounds twice in the game's life, not every few minutes: when a journey begins and when a chapter's
+panel is restored. It is a long, bright, buzzing shankh with its own small hall, and the music dips under it.
+
 **Getting started, and never being lost.** The title screen has a **How to play** guide (what the game is, what
 you do, the controls, a first-ten-minutes path, how to find your way); first-timers get a "New here? Start
 here" badge. Once you land, a gold **marker** floats over the next thing to do, with its distance (an arrow

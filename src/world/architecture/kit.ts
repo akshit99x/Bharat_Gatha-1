@@ -321,12 +321,22 @@ export class Kit {
         { ...place, collide: false },
       );
     }
-    // One ramp collider instead of per-step boxes, so the player walks up smoothly.
-    this.addBoxCollider(
-      [at[0] - run / 2, at[1], at[2] - width / 2],
-      [at[0] + count * run, at[1] + rise * 0.6, at[2] + width / 2],
-      0,
-    );
+    // The collider has to be something the player can actually climb. Each visible step becomes a
+    // solid block whose top matches it; a step taller than the player's step-up (about 0.68 m) is
+    // sliced into low risers inside its own footprint, so a tall stair still reads as a stair to the
+    // eye but walks like a ramp. (This used to be one slab only 0.6 of a step high, which let people
+    // walk straight through the stairs and then stopped them dead at the wall above.)
+    if (rise > 0) {
+      const slices = Math.max(1, Math.ceil(rise / 0.55));
+      for (let i = 0; i < count; i++) {
+        for (let j = 0; j < slices; j++) {
+          const x0 = at[0] + (i - 0.5) * run + (j * run) / slices;
+          const x1 = x0 + run / slices;
+          const top = at[1] + rise * i + (rise * (j + 1)) / slices;
+          this.addBoxCollider([x0, at[1], at[2] - width / 2], [x1, top, at[2] + width / 2], 0);
+        }
+      }
+    }
     return this;
   }
 

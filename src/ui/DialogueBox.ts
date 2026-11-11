@@ -1,6 +1,7 @@
 import type { DialogueNode } from '../content/types';
 import { audio } from '../core/Audio';
 import { voice, type SpeechHandle } from '../core/Voice';
+import { bus } from '../core/EventBus';
 import { el } from './overlay';
 
 /**
@@ -51,6 +52,8 @@ export class DialogueBox {
       box.setAttribute('aria-live', 'polite');
       document.body.appendChild(box);
       this.root = box;
+      audio.focus(true);
+      bus.emit('dialogue:open', {});
 
       const head = el('div', 'dl-head');
       const avatar = el('div', 'dl-avatar', speaker.icon);
@@ -66,6 +69,45 @@ export class DialogueBox {
 
       let current: DialogueNode | null = nodes[0] ?? null;
       let pendingAdvance: (() => void) | null = null;
+      /** Completes the line that is still being typed. Null once it is fully shown. */
+      let skipTyping: (() => void) | null = null;
+      let raf = 0;
+
+      /**
+       * Type a line out, then run `then`. Paced to the voice when there is one
+       * (about 14 characters a second at normal pace), otherwise a brisk read.
+       */
+      const reveal = (full: string, rate: number, audible: boolean, then: () => void, clip?: SpeechHandle | null): void => {
+        cancelAnimationFrame(raf);
+        const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        if (reduce) {
+          text.textContent = full;
+          skipTyping = null;
+          then();
+          return;
+        }
+        const cps = audible ? 14 * rate : 68;
+        const started = performance.now();
+        text.classList.add('typing');
+        text.textContent = '';
+        const complete = (): void => {
+          cancelAnimationFrame(raf);
+          skipTyping = null;
+          text.classList.remove('typing');
+          text.textContent = full;
+          then();
+        };
+        skipTyping = complete;
+        const tick = (now: number): void => {
+          if (skipTyping !== complete) return;
+          const live = clip?.recorded && clip.seconds ? full.length / (clip.seconds * 0.94) : cps;
+          const shown = Math.min(full.length, Math.floor(((now - started) / 1000) * live));
+          text.textContent = full.slice(0, shown);
+          if (shown < full.length) raf = requestAnimationFrame(tick);
+          else complete();
+        };
+        raf = requestAnimationFrame(tick);
+      };
 
       const finish = (completed: boolean): void => {
         outcome.completed = completed;
@@ -86,11 +128,14 @@ export class DialogueBox {
         if (node.vidya) outcome.vidya += node.vidya;
         for (const id of node.unlocks ?? []) if (!outcome.unlocks.includes(id)) outcome.unlocks.push(id);
 
-        text.textContent = node.text;
         say(node.text);
         choicesWrap.replaceChildren();
         nextHint.textContent = '';
+        reveal(node.text, profile.rate, this.speech?.audible === true, () => controls(node), this.speech);
+      };
 
+      /** The choices, or the continue prompt, once the line has finished arriving. */
+      const controls = (node: DialogueNode): void => {
         if (node.choices && node.choices.length > 0) {
           node.choices.forEach((choice, i) => {
             const b = el('button', 'dl-choice') as HTMLButtonElement;
@@ -110,11 +155,13 @@ export class DialogueBox {
               if (choice.reply) parts.push(choice.reply);
               if (choice.note) parts.push(`— ${choice.note}`);
               if (parts.length > 0) {
-                text.textContent = parts.join('  ');
                 if (choice.reply) say(choice.reply);
                 choicesWrap.replaceChildren();
-                nextHint.textContent = 'Press Enter to continue';
-                pendingAdvance = () => goTo(choice.goto ?? node.goto ?? node.next ?? null);
+                nextHint.textContent = '';
+                reveal(parts.join('  '), profile.rate, choice.reply ? this.speech?.audible === true : false, () => {
+                  nextHint.textContent = '▼  Enter to continue';
+                  pendingAdvance = () => goTo(choice.goto ?? node.goto ?? node.next ?? null);
+                });
               } else {
                 goTo(choice.goto ?? node.goto ?? node.next ?? null);
               }
@@ -125,13 +172,13 @@ export class DialogueBox {
         }
 
         if (node.end) {
-          nextHint.textContent = 'Press Enter to close';
+          nextHint.textContent = '▼  Enter to close';
           pendingAdvance = () => finish(true);
           return;
         }
 
         const next = node.goto ?? node.next ?? null;
-        nextHint.textContent = 'Press Enter to continue';
+        nextHint.textContent = '▼  Enter to continue';
         pendingAdvance = () => goTo(next);
       };
 
@@ -159,6 +206,13 @@ export class DialogueBox {
           return;
         }
         if (event.key === 'Enter' || event.key === ' ') {
+          // First press finishes a line that is still typing; the next one moves on.
+          if (skipTyping) {
+            event.preventDefault();
+            event.stopPropagation();
+            skipTyping();
+            return;
+          }
           if (pendingAdvance) {
             event.preventDefault();
             event.stopPropagation();
@@ -184,11 +238,13 @@ export class DialogueBox {
   private close(): void {
     this.speech?.cancel();
     this.speech = null;
+    audio.focus(false);
     if (this.keyHandler) {
       window.removeEventListener('keydown', this.keyHandler, true);
       this.keyHandler = null;
     }
     this.root?.remove();
     this.root = null;
+    bus.emit('dialogue:close', {});
   }
 }

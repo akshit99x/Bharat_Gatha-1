@@ -128,6 +128,21 @@ export class CameraRig {
     );
     if (hit) allowed = Math.max(MIN_DISTANCE, hit.distance - CAMERA_RADIUS);
 
+    // The ground blocks the camera too: march back along the boom and stop short of any hillside, so
+    // climbing a slope never puts the lens inside the hill.
+    const samples = 12;
+    for (let i = 1; i <= samples; i++) {
+      const d = (allowed * i) / samples;
+      const sx = origin.x - this.forward.x * d;
+      const sz = origin.z - this.forward.z * d;
+      const sy = origin.y - this.forward.y * d;
+      const floor = Math.max(this.terrain.heightAt(sx, sz), SEA_LEVEL - 1.5) + 0.35;
+      if (sy < floor && d > MIN_DISTANCE) {
+        allowed = Math.max(MIN_DISTANCE, (allowed * (i - 1)) / samples);
+        break;
+      }
+    }
+
     // Snap in immediately, ease out slowly.
     if (allowed < this.boom) this.boom = allowed;
     else this.boom = THREE.MathUtils.lerp(this.boom, allowed, Math.min(1, dt * 4.5));

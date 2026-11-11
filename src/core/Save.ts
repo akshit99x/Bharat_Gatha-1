@@ -136,6 +136,8 @@ export interface Settings {
   sfxVolume: number;
   renderScale: number;
   shadows: boolean;
+  /** Bloom, sun shafts, colour grade. Steps itself down automatically on slow machines. */
+  cinematic: boolean;
   motionBlurFree: boolean;
   dyslexiaFont: boolean;
   highContrast: boolean;
@@ -145,16 +147,19 @@ export interface Settings {
   /** Spoken lines, using the device's Indian-English voices where it has them. */
   voices: boolean;
   voiceVolume: number;
+  /** Where lines without a human recording come from. Auto: the game's Indian-English voice, unless the device has a natural Indian-English one. */
+  voiceSource: 'auto' | 'indian' | 'neutral' | 'device';
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   lang: 'en',
   mouseSensitivity: 1,
   invertY: false,
-  musicVolume: 0.5,
+  musicVolume: 0.65,
   sfxVolume: 0.75,
   renderScale: 1,
   shadows: true,
+  cinematic: true,
   motionBlurFree: true,
   dyslexiaFont: false,
   highContrast: false,
@@ -162,6 +167,7 @@ export const DEFAULT_SETTINGS: Settings = {
   gentleMode: true,
   voices: true,
   voiceVolume: 0.9,
+  voiceSource: 'auto',
 };
 
 function emptyProfile(): Profile {

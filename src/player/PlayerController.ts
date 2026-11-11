@@ -5,6 +5,7 @@ import type { Settings } from '../core/Save';
 import { SEA_LEVEL, WORLD_HALF } from '../world/Terrain';
 import { audio } from '../core/Audio';
 import { clamp } from '../core/Noise';
+import { zoneAt } from '../content/zones';
 import { PlayerAvatar, type AvatarPose } from './PlayerAvatar';
 import { CameraRig, type CameraMode } from './CameraRig';
 
@@ -37,6 +38,8 @@ const FRICTION = 11;
 const GRAVITY = -22;
 const JUMP_SPEED = 7.4;
 const STEP_HEIGHT = 0.68;
+/** The tallest ledge the player will hop onto by themselves when walking at it. */
+const VAULT_HEIGHT = 1.12;
 
 const FREEFALL_GRAVITY = -36;
 const FREEFALL_TERMINAL = -62;
@@ -46,6 +49,9 @@ const FREEFALL_MAX_HORIZONTAL = 30;
 const GLIDE_DESCENT = -7.0;
 const GLIDE_SPEED = 25;
 const GLIDE_TURN = 1.5;
+
+/** Regions where the ground underfoot is bare earth rather than grass. */
+const DRY_BIOMES = new Set<string>(['desertFringe', 'dryPlains', 'mesopotamianDelta', 'deccanBoulder', 'coastalDune']);
 
 const PITCH_LIMIT = Math.PI / 2 - 0.02;
 
@@ -94,6 +100,9 @@ export class PlayerController {
   private fovTarget: number;
   private landingShake = 0;
   private windCooldown = 0;
+  /** What the camera and avatar show: the real height, eased, so stepping up a stair is not a jolt. */
+  private visualY = 0;
+  private vaultCooldown = 0;
 
   private ride: VimanaRide | null = null;
   private rideTime = 0;
@@ -438,6 +447,28 @@ export class PlayerController {
       audio.footstep(true);
     }
 
+    // Walking into a low wall or plinth: hop onto it, as any person would, rather than stopping dead.
+    this.vaultCooldown = Math.max(0, this.vaultCooldown - dt);
+    if (this.grounded && moving && !this.crouching && this.vaultCooldown <= 0 && this.velocity.y <= 0) {
+      const reach = RADIUS + 0.45;
+      const top = this.world.collision.supportAt(
+        this.position.x + this.wish.x * reach,
+        this.position.z + this.wish.z * reach,
+        this.position.y + VAULT_HEIGHT,
+        0.18,
+      );
+      if (top !== null) {
+        const lift = top - this.position.y;
+        if (lift > STEP_HEIGHT + 0.02 && lift <= VAULT_HEIGHT) {
+          // Just enough speed to clear the edge with a hand's breadth to spare.
+          this.velocity.y = Math.sqrt(2 * -GRAVITY * (lift + 0.22));
+          this.grounded = false;
+          this.coyote = 0;
+          this.vaultCooldown = 0.5;
+        }
+      }
+    }
+
     this.velocity.y += GRAVITY * dt;
 
     const before = _tmpA.copy(this.position);
@@ -544,7 +575,10 @@ export class PlayerController {
     this.position.z = r.z;
 
     const terrainY = this.world.terrain.heightAt(this.position.x, this.position.z);
-    const surface = r.supportY !== null && r.supportY > terrainY ? r.supportY : terrainY;
+    const onBuilt = r.supportY !== null && r.supportY > terrainY + 0.05;
+    const surface = onBuilt ? (r.supportY as number) : terrainY;
+    // What is underfoot, for the sound of walking on it.
+    audio.surface = onBuilt ? 'stone' : terrainY < SEA_LEVEL + 2.2 ? 'sand' : DRY_BIOMES.has(zoneAt(this.position.x, this.position.z)?.biome ?? '') ? 'earth' : 'grass';
 
     if (this.position.y <= surface + 0.02) {
       // Landed, or walked up a step.
@@ -604,13 +638,20 @@ export class PlayerController {
       this.bodyYaw = approachAngle(this.bodyYaw, this.yaw, dt * 2.2);
     }
 
-    _feet.set(this.position.x, this.position.y + bob, this.position.z);
+    // Ease the shown height toward the real one on the ground, so steps and ledges glide. Anything big
+    // (a teleport, a fall, a vehicle) snaps.
+    const gap = this.position.y - this.visualY;
+    if (dt <= 0 || Math.abs(gap) > 1.4 || this.state !== 'ground' || this.vehicle) this.visualY = this.position.y;
+    else this.visualY += gap * Math.min(1, dt * 16);
+    const shownY = this.visualY;
+
+    _feet.set(this.position.x, shownY + bob, this.position.z);
     this.rig.extraHeight = this.vehicle ? 0.95 : 0;
     this.rig.extraDistance = this.vehicle ? 3.6 : 0;
     this.rig.update(dt, _feet, eye, this.yaw, this.pitch, this.roll + bobRoll, this.input.mouse.right);
 
     // The avatar stands on the ground, not at the camera.
-    this.avatar.group.position.set(this.position.x, this.position.y, this.position.z);
+    this.avatar.group.position.set(this.position.x, shownY, this.position.z);
     this.avatar.update(dt, this.pose(horizontal), horizontal, this.bodyYaw, this.pitch);
     this.avatar.setVisible(this.rig.mode === 'third' && this.state !== 'vimana');
 

@@ -1,5 +1,6 @@
 import { audio } from '../core/Audio';
 import { voice } from '../core/Voice';
+import { SABHA_CLOSING as CLOSING, SABHA_OPENING as OPENING } from '../content/story/sabha';
 import { MOTIF_LABEL, VERDICT_GLOSS, VERDICT_LABEL, VERDICT_ORDER, type Plaque } from '../content/story';
 import type { StoryEngine } from '../story/StoryEngine';
 import { EKARUPA, MAITRI } from '../story/StoryEngine';
@@ -17,14 +18,6 @@ import { buildPanel, button, closeOverlay, el, mountOverlay } from './overlay';
  * missed is explained by the chapter's own witness and comes back once; nothing
  * is deducted, and every claim is settled by the end.
  */
-
-const OPENING = [
-  'Let me finish the scroll. One story, one voice, no more work for you. You have been so careful. Aren’t you tired?',
-  'I will make my claims. You may answer them, or you may simply agree. Agreeing is so much easier.',
-];
-
-const CLOSING =
-  'It was never a villain, you know. It is the part of every listener that wants it simple, and that includes me, and that includes you. We do not beat it. We check it, every time. Look at the cords now.';
 
 interface QueueItem {
   plaque: Plaque;

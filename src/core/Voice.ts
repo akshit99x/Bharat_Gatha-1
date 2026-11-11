@@ -13,9 +13,25 @@
  * pitch and pace shift so a device with two voices still sounds like a crowd.
  * Maitri and Ekarupa are fixed: Maitri warm and unhurried, Ekarupa lower,
  * slower and a little too smooth.
+ *
+ * Voices, in order of preference: a human recording (public/voices); then, unless the device has a
+ * natural Indian-English voice of its own, one of the game's two pre-rendered neural voice sets
+ * (public/voices/indian: Indian-English speakers; public/voices/neutral: British English); then the
+ * device's synthesiser. The player chooses between them in Settings.
+ *
+ * Recorded voices come first. If `public/voices/manifest.json` lists a clip for a line (see
+ * docs/VOICE_RECORDING.md), a real person's recording plays; any line without one falls back to the
+ * synthesiser, so recordings can be added a few at a time, in any order, with nothing breaking.
  */
 
+import { voiceKey } from './voiceKey';
+import { pronounceable } from './pronounce';
+
+export { pronounceable };
+
 export interface VoiceProfile {
+  /** Who is speaking. Needed to find a recording of the line. */
+  speaker?: string;
   /** Which voice in the pool. Slots wrap, so any number is safe. */
   slot: number;
   pitch: number;
@@ -27,63 +43,19 @@ export interface SpeechHandle {
   done: Promise<void>;
   /** True if something is actually being said (false when voices are off or unavailable). */
   audible: boolean;
+  /** True when this is a human recording rather than the synthesiser. */
+  recorded: boolean;
+  /** Length of a recording once known, so captions can be paced to it. Null for synthesised speech. */
+  readonly seconds: number | null;
   cancel(): void;
 }
 
+/** Where spoken lines come from when there is no human recording. */
+export type VoiceSource = 'auto' | 'indian' | 'neutral' | 'device';
+
 export type VoiceQuality = 'indian-english' | 'hindi' | 'other-english' | 'none';
 
-const SILENT: SpeechHandle = { done: Promise.resolve(), audible: false, cancel: () => undefined };
-
-/**
- * How Indian names and terms should be *heard*, not seen. English voices read
- * "Dhundh" and "Gathak" as English words; these respellings steer them to
- * something close to the real sound. Only the spoken text is changed.
- */
-const SAY_AS: Array<[RegExp, string]> = [
-  [/\bDhundh\b/g, 'Dhoondh'],
-  [/\bEkarupa\b/g, 'Ekaroopa'],
-  [/\bMaitri\b/g, 'Maitree'],
-  [/\bGathak\b/g, 'Gaathak'],
-  [/\bGatha\b/g, 'Gaatha'],
-  [/\bSabha\b/g, 'Sabhaa'],
-  [/\bVimana\b/g, 'Vimaana'],
-  [/\bPramana\b/g, 'Pramaana'],
-  [/\bVidya\b/g, 'Vidyaa'],
-  [/\bdhamma\b/gi, 'dhamma'],
-  [/\bSulh-i-kul\b/g, 'Sulh-e-kul'],
-  [/\bChakravyuha\b/g, 'Chakravyooha'],
-  [/\bVibhishana\b/g, 'Vibheeshana'],
-  [/\bRavana\b/g, 'Raavana'],
-  [/\bRama\b/g, 'Raama'],
-  [/\bSita\b/g, 'Seetaa'],
-  [/\bAshoka\b/g, 'Ashoka'],
-  [/\bKalinga\b/g, 'Kalinga'],
-  [/\bMahabharata\b/g, 'Mahaabhaarata'],
-  [/\bRamayana\b/g, 'Raamaayana'],
-  [/\bUttaramerur\b/g, 'Uttaramerur'],
-  [/\bKunjaramallan\b/g, 'Kunjaramallan'],
-  [/\bBrahmi\b/g, 'Braahmi'],
-  [/\bKharosthi\b/g, 'Kharoshthi'],
-  [/\bsulh\b/gi, 'sulh'],
-  [/\bjizya\b/g, 'jizya'],
-  [/\bStupa\b/gi, 'stoopa'],
-  [/\bMeluhha\b/g, 'Meluhha'],
-  [/\bShilpa\b/g, 'Shilpa'],
-  [/\bBhadra\b/g, 'Bhadraa'],
-  [/\bMaratha\b/g, 'Maraathaa'],
-  [/\bHampi\b/g, 'Hampee'],
-  [/\bKonark\b/g, 'Konaark'],
-  [/\bChola\b/g, 'Chola'],
-  [/\bVijayanagara\b/g, 'Vijayanagara'],
-  [/\bIbadat Khana\b/g, 'Ibaadat Khaana'],
-  [/\bTaj\b/g, 'Taaj'],
-];
-
-export function pronounceable(text: string): string {
-  let out = text.replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/\s*—\s*/g, ', ').replace(/…/g, '...');
-  for (const [pattern, spoken] of SAY_AS) out = out.replace(pattern, spoken);
-  return out;
-}
+const SILENT: SpeechHandle = { done: Promise.resolve(), audible: false, recorded: false, seconds: null, cancel: () => undefined };
 
 /** Split into sentences of a safe length. Several engines silently stop on long utterances. */
 function chunks(text: string): string[] {
@@ -116,6 +88,11 @@ function rank(v: SpeechSynthesisVoice): number {
   return 3;
 }
 
+/** Neural and network voices already carry natural prosody; bending their pitch only makes them sound processed. */
+function isNatural(v: SpeechSynthesisVoice | null): boolean {
+  return !!v && /natural|neural|online|enhanced|premium|siri|wavenet/i.test(v.name);
+}
+
 const langOf = (v: SpeechSynthesisVoice): string => v.lang.replace('_', '-').toLowerCase();
 
 export class VoiceEngine {
@@ -126,6 +103,14 @@ export class VoiceEngine {
   private volume = 0.9;
   private generation = 0;
   private onSpeaking: ((speaking: boolean) => void) | null = null;
+  /** Recorded lines: key -> file. Empty until (and unless) a manifest is found. */
+  private clips = new Map<string, string>();
+  private clipBase = '';
+  /** Pre-rendered neural lines, per set: key -> file. */
+  private indian = new Map<string, string>();
+  private neutral = new Map<string, string>();
+  private source: VoiceSource = 'auto';
+  private playing: HTMLAudioElement | null = null;
 
   constructor() {
     this.synth = typeof window !== 'undefined' && 'speechSynthesis' in window ? window.speechSynthesis : null;
@@ -133,6 +118,46 @@ export class VoiceEngine {
     this.refresh();
     // Voices load asynchronously in most browsers.
     this.synth.addEventListener?.('voiceschanged', () => this.refresh());
+  }
+
+  /** Look for recorded voices. Safe to call whenever; a missing manifest simply means "none yet". */
+  async loadRecordings(base = import.meta.env.BASE_URL ?? '/'): Promise<number> {
+    this.clipBase = `${base}voices/`;
+    const load = async (path: string): Promise<Map<string, string>> => {
+      try {
+        const res = await fetch(`${base}${path}`, { cache: 'no-cache' });
+        if (!res.ok) return new Map();
+        const data = (await res.json()) as { clips?: Record<string, string> };
+        return new Map(Object.entries(data.clips ?? {}));
+      } catch {
+        return new Map();
+      }
+    };
+    [this.clips, this.indian, this.neutral] = await Promise.all([
+      load('voices/manifest.json'),
+      load('voices/indian/manifest.json'),
+      load('voices/neutral/manifest.json'),
+    ]);
+    return this.clips.size + Math.max(this.indian.size, this.neutral.size);
+  }
+
+  setSource(source: VoiceSource): void {
+    this.source = source;
+  }
+
+  /** How many lines have a human recording. */
+  get recordedCount(): number {
+    return this.clips.size;
+  }
+
+  /** How many lines have a pre-rendered neural voice (in the larger set). */
+  get renderedCount(): number {
+    return Math.max(this.indian.size, this.neutral.size);
+  }
+
+  /** True when the device itself offers a natural-sounding Indian-English voice. */
+  get deviceHasNaturalVoice(): boolean {
+    return this.quality === 'indian-english' && isNatural(this.pool[0] ?? null);
   }
 
   get supported(): boolean {
@@ -160,6 +185,20 @@ export class VoiceEngine {
   /** Called with true when speech starts and false when it ends, so music can duck under it. */
   watch(fn: (speaking: boolean) => void): void {
     this.onSpeaking = fn;
+  }
+
+  /** The pre-rendered file for this line under the player's choice, as [folder, file], or null. */
+  private renderedFor(key: string): [string, string] | null {
+    if (this.source === 'device') return null;
+    // Auto trusts the device when it has a natural Indian-English voice of its own.
+    if (this.source === 'auto' && this.deviceHasNaturalVoice) return null;
+    const order: Array<['indian' | 'neutral', Map<string, string>]> =
+      this.source === 'neutral' ? [['neutral', this.neutral], ['indian', this.indian]] : [['indian', this.indian], ['neutral', this.neutral]];
+    for (const [folder, map] of order) {
+      const file = map.get(key);
+      if (file) return [folder, file];
+    }
+    return null;
   }
 
   private refresh(): void {
@@ -202,9 +241,8 @@ export class VoiceEngine {
 
   /** Profile for whoever is speaking, by name: Maitri and Ekarupa are fixed, everyone else is hashed. */
   profileForSpeaker(name: string): VoiceProfile {
-    if (name === 'Maitri') return this.profileFor(name, 'maitri');
-    if (name === 'Ekarupa') return this.profileFor(name, 'ekarupa');
-    return this.profileFor(name, 'npc');
+    const base = name === 'Maitri' ? this.profileFor(name, 'maitri') : name === 'Ekarupa' ? this.profileFor(name, 'ekarupa') : this.profileFor(name, 'npc');
+    return { ...base, speaker: name };
   }
 
   private voiceFor(profile: VoiceProfile): SpeechSynthesisVoice | null {
@@ -213,11 +251,29 @@ export class VoiceEngine {
   }
 
   speak(text: string, profile: VoiceProfile): SpeechHandle {
+    if (!this.enabled || this.volume <= 0) return SILENT;
+    const key = profile.speaker ? voiceKey(profile.speaker, text) : undefined;
+    const file = key ? this.clips.get(key) : undefined;
+    if (file) {
+      const clip = this.playClip(`${this.clipBase}${file}`);
+      if (clip) return clip;
+    }
+    const made = key ? this.renderedFor(key) : null;
+    if (made) {
+      const clip = this.playClip(`${this.clipBase}${made[0]}/${made[1]}`);
+      if (clip) return clip;
+    }
     const synth = this.synth;
-    if (!synth || !this.enabled || this.volume <= 0) return SILENT;
+    if (!synth) return SILENT;
     if (this.pool.length === 0) this.refresh();
     const voice = this.voiceFor(profile);
     if (!voice) return SILENT;
+    // A neural voice keeps its own pitch (within a hair) and pace; only the older engines are bent
+    // to make one voice into several people.
+    const natural = isNatural(voice);
+    const pitch = natural ? 1 + (profile.pitch - 1) * 0.18 : profile.pitch;
+    // Learners: a touch slower than the engine's default, whichever kind of voice it is.
+    const rate = (natural ? 0.97 + (profile.rate - 0.95) * 0.35 : profile.rate) * 0.9;
 
     this.cancel();
     const mine = ++this.generation;
@@ -227,7 +283,7 @@ export class VoiceEngine {
     const done = new Promise<void>((resolve) => (finish = resolve));
 
     // Some engines never fire `end`; a generous estimate keeps a caption from hanging.
-    const estimateMs = (text.length / (14 * profile.rate)) * 1000;
+    const estimateMs = (text.length / (14 * rate)) * 1000;
     const watchdog = window.setTimeout(() => end(), estimateMs * 2.4 + 2500);
 
     const end = (): void => {
@@ -243,8 +299,8 @@ export class VoiceEngine {
       const u = new SpeechSynthesisUtterance(part);
       u.voice = voice;
       u.lang = voice.lang;
-      u.pitch = profile.pitch;
-      u.rate = profile.rate;
+      u.pitch = pitch;
+      u.rate = rate;
       u.volume = this.volume;
       u.onend = () => next(i + 1);
       u.onerror = () => end();
@@ -257,6 +313,8 @@ export class VoiceEngine {
     return {
       done,
       audible: true,
+      recorded: false,
+      seconds: null,
       cancel: () => {
         cancelled = true;
         if (this.generation === mine) synth.cancel();
@@ -265,10 +323,55 @@ export class VoiceEngine {
     };
   }
 
+  /** Play one recorded clip. Returns null if it cannot be started, so the caller can fall back. */
+  private playClip(url: string): SpeechHandle | null {
+    if (typeof Audio === 'undefined') return null;
+    this.cancel();
+    const mine = ++this.generation;
+    const el = new Audio(url);
+    el.volume = this.volume;
+    this.playing = el;
+    let seconds: number | null = null;
+    let settled = false;
+    let finish: () => void = () => undefined;
+    const done = new Promise<void>((resolve) => (finish = resolve));
+    const end = (): void => {
+      if (settled) return;
+      settled = true;
+      if (this.playing === el) this.playing = null;
+      if (this.generation === mine) this.onSpeaking?.(false);
+      finish();
+    };
+    el.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(el.duration)) seconds = el.duration;
+    });
+    el.addEventListener('ended', end);
+    // A clip that fails to load must never leave the game waiting in silence.
+    el.addEventListener('error', end);
+    this.onSpeaking?.(true);
+    void el.play().catch(end);
+    return {
+      done,
+      audible: true,
+      recorded: true,
+      get seconds() {
+        return seconds;
+      },
+      cancel: () => {
+        el.pause();
+        end();
+      },
+    };
+  }
+
   /** Stop whatever is being said. */
   cancel(): void {
-    if (!this.synth) return;
     this.generation++;
+    if (this.playing) {
+      this.playing.pause();
+      this.playing = null;
+    }
+    if (!this.synth) return;
     this.synth.cancel();
     this.onSpeaking?.(false);
   }

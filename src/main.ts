@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { Post } from './render/Post';
+import { VOICE_SAMPLE } from './content/story/sabha';
 import './styles/main.css';
 
 import { Input } from './core/Input';
 import { bus } from './core/EventBus';
-import { save } from './core/Save';
+import { save, type Settings } from './core/Save';
 import { audio } from './core/Audio';
 import { voice } from './core/Voice';
 import { Rng } from './core/Rng';
@@ -23,11 +25,14 @@ import { Minimap, type MinimapMarker } from './ui/Minimap';
 import { QuizModal } from './ui/QuizModal';
 import { DialogueBox } from './ui/DialogueBox';
 import { Narration, type NarrationLine } from './ui/Narration';
+import { NpcLabels, type NpcMark } from './ui/NpcLabels';
+import { JourneyScreen } from './ui/JourneyScreen';
 import { PlaqueModal } from './ui/PlaqueModal';
 import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
+import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
 import { validateMiniGames } from './minigames/validate';
 import { StoryEngine, EKARUPA, MAITRI, SABHA_MIN_PANELS, type Speaker } from './story/StoryEngine';
@@ -55,11 +60,14 @@ const SCAN_RANGE = 150;
 
 /** Reused each frame so the scan probe allocates nothing. */
 const _fwd = new THREE.Vector3();
+const _sunDir = new THREE.Vector3();
+const _look = new THREE.Vector3();
 
 class Game {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly camera: THREE.PerspectiveCamera;
+  private readonly post: Post;
   private readonly clock = new THREE.Clock();
 
   private readonly input: Input;
@@ -71,6 +79,10 @@ class Game {
   private readonly story = new StoryEngine(save);
   private readonly minigames = new MiniGames();
   private readonly narration = new Narration();
+  private readonly labels = new NpcLabels();
+  private readonly journey: JourneyScreen;
+  /** Who the player is talking to right now, so they keep facing us. */
+  private talkingTo: string | null = null;
   private readonly plaqueModal = new PlaqueModal(this.story);
   private readonly sabhaModal = new SabhaModal(this.story);
   private readonly twelfthModal = new TwelfthModal(this.story, () => save.profile.playerName);
@@ -78,6 +90,8 @@ class Game {
   private readonly veil: HTMLElement;
   /** Regions whose story hook has been checked this session — one cheap lookup per frame. */
   private readonly hooked = new Set<string>();
+  /** The theme waiting for the player to land. */
+  private pendingTheme: string | null = null;
 
   private world!: World;
   private player!: PlayerController;
@@ -97,6 +111,7 @@ class Game {
   private elapsed = 0;
   private sessionStart = Date.now();
   private statsTimer = 0;
+  private lastTier: 'full' | 'lite' | 'off' = 'full';
 
   constructor(private readonly viewport: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -110,10 +125,13 @@ class Game {
     this.renderer.shadowMap.enabled = save.settings.shadows;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     viewport.appendChild(this.renderer.domElement);
+    document.body.classList.toggle('post-on', save.settings.cinematic);
 
     // A little wider than first person: the point of the over-the-shoulder view
     // is seeing more of where you are heading.
     this.camera = new THREE.PerspectiveCamera(78, 1, 0.1, WORLD_HALF * 3.4);
+    this.post = new Post(this.renderer, this.scene, this.camera);
+    this.post.setEnabled(save.settings.cinematic);
     this.scene.add(this.camera);
 
     this.input = new Input(this.renderer.domElement);
@@ -124,6 +142,20 @@ class Game {
     this.bank = new QuestionBank(save);
     this.quiz = new QuizEngine(this.bank, save);
     this.quizModal = new QuizModal(this.quiz);
+
+    this.journey = new JourneyScreen({
+      profile: () => save.profile,
+      island: () => this.minimap.island(),
+      player: () => ({ x: this.player.position.x, z: this.player.position.z, yaw: this.player.yaw }),
+      pads: () =>
+        this.world.interactables
+          .filter((i) => i.kind === 'pad' && i.padZone)
+          .map((i) => ({ zoneId: i.padZone as string, x: i.position.x, z: i.position.z })),
+      controls: CONTROLS,
+      travel: (zoneId) => this.travelTo(zoneId),
+      seal: (zoneId) => void this.runSeal(zoneId),
+      gatha: () => this.scrollModal.present(),
+    });
 
     this.scrollModal = new ScrollModal(this.story, {
       restore: (zoneId) => void this.runRestoration(zoneId),
@@ -137,6 +169,8 @@ class Game {
 
     audio.setVolumes(save.settings.musicVolume, save.settings.sfxVolume);
     voice.setEnabled(save.settings.voices);
+    voice.setSource(save.settings.voiceSource);
+    void voice.loadRecordings();
     voice.setVolume(save.settings.voiceVolume);
     // The score ducks while anybody is speaking.
     voice.watch((speaking) => audio.duck(speaking));
@@ -145,13 +179,23 @@ class Game {
     window.addEventListener('resize', () => this.resize());
     this.resize();
 
+    // Captions wait while a conversation or a puzzle is up: one voice at a time. The close event fires
+    // before the overlay's state clears, so look again a tick later.
+    const syncNarration = (): void => queueMicrotask(() => (overlayOpen() || this.dialogue.isOpen ? this.narration.pause() : this.narration.resume()));
+    bus.on('dialogue:open', syncNarration);
+    bus.on('dialogue:close', syncNarration);
+    bus.on('ui:open', syncNarration);
+    bus.on('ui:close', syncNarration);
+
     // Overlays suspend gameplay input and release the pointer.
     bus.on('ui:open', () => {
+      audio.focus(true);
       this.input.setSuspended(true);
       this.input.releaseLock();
       this.hud.dimObjectives(true);
     });
     bus.on('ui:close', () => {
+      audio.focus(false);
       this.input.setSuspended(false);
       this.hud.dimObjectives(false);
       if (this.running && !this.paused) this.input.requestLock();
@@ -194,8 +238,16 @@ class Game {
       floraScale: save.settings.renderScale < 1 ? 0.6 : 1,
     });
 
+    // Places with a sound of their own: water at the stepwells, bells at the temples, surf at the harbours.
+    audio.setEmitters(
+      this.world.landmarks.map((l) => ({ id: l.id, kind: l.kind, x: l.position.x, y: l.position.y, z: l.position.z, radius: l.radius })),
+    );
+
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
+
+    // Remarks and greetings from the people of the world appear as speech bubbles.
+    this.world.onNpcSay = (npc, text) => this.labels.bark(npc.id, text);
 
     onProgress(0.72, 'Placing the monuments…');
     await nextFrame();
@@ -326,6 +378,7 @@ class Game {
     this.beginPlay();
     this.player.startRide({ from, to, duration: 52 });
     this.hud.toast('info', 'Press Space to drop', 'Steer with WASD. The canopy opens automatically.', '🪂', 9000);
+    audio.setTheme('flight');
     // Narrated as captions, never as a dialogue, so the crossing keeps moving.
     if (!this.story.prologueSeen()) {
       this.story.markPrologueSeen();
@@ -387,13 +440,23 @@ class Game {
       if (this.input.justPressed('pause') && !overlayOpen() && !this.dialogue.isOpen) this.togglePause();
     }
 
-    this.world.update(dt, this.camera, this.elapsed);
+    this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
+    this.camera.getWorldDirection(_look);
+    audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
+    this.labels.setVisible(!blocked || this.dialogue.isOpen);
+    this.labels.update(this.world.npcView, this.camera, (id) => this.npcMark(id), this.viewport.clientWidth, this.viewport.clientHeight);
     this.updateVimana();
     this.updateMinimap();
     this.updateHud(blocked);
     this.trackStats(dt);
 
-    this.renderer.render(this.scene, this.camera);
+    const sunDir = _sunDir.copy(this.world.sky.sun.position).sub(this.camera.position).normalize();
+    this.post.render(dt, this.elapsed, sunDir, this.world.sky.sun.color);
+    // If the post chain has had to step down, the machine is struggling: thin the grass too.
+    if (this.post.currentTier !== this.lastTier) {
+      this.lastTier = this.post.currentTier;
+      this.world.setDetail(this.lastTier === 'full' ? 1 : this.lastTier === 'lite' ? 0.6 : 0.35);
+    }
     this.input.endFrame();
   };
 
@@ -529,6 +592,13 @@ class Game {
     if (zone && zone.id !== this.currentZone?.id) this.enterZone(zone, false);
 
     this.maybeRunZoneHook();
+    if (this.pendingTheme && this.player.state === 'ground') this.applyTheme();
+  }
+
+  private applyTheme(): void {
+    if (!this.pendingTheme) return;
+    audio.setTheme(this.pendingTheme);
+    this.pendingTheme = null;
   }
 
   /**
@@ -542,6 +612,9 @@ class Game {
     this.hooked.add(zone.id);
     const lines = this.story.onZoneEnter(zone.id);
     if (lines) void this.narration.say(lines.map((l) => this.narrationLine(l)));
+    if (this.story.once('tip:journey')) {
+      this.hud.toast('info', 'Lost? Press M', 'Your map, your roadmap and your next step. F1 explains how to play.', '🗺️', 10000);
+    }
   }
 
   private completeScan(codexId: string, landmarkName: string): void {
@@ -590,6 +663,7 @@ class Game {
 
     const spoken = this.spokenTo.has(npc.id);
     this.spokenTo.add(npc.id);
+    this.talkingTo = npc.id;
 
     // Start at a different line each time, so a second visit is not a rerun.
     const start = spoken ? Math.floor(Math.random() * npc.lines.length) : 0;
@@ -601,6 +675,7 @@ class Game {
     }));
 
     await this.dialogue.run({ name: npc.name, role: npc.role, icon: npc.icon }, nodes);
+    this.talkingTo = null;
 
     if (!spoken) {
       save.addVidya(15);
@@ -622,6 +697,20 @@ class Game {
   }
 
   // ------------------------------------------------------------------ story
+
+  /** What a person matters for, for the mark on their nameplate. */
+  private npcMark(id: string): NpcMark {
+    const met = save.profile.story.met.includes(id);
+    const zone = this.currentZone;
+    const chapter = zone ? getChapter(zone.id) : undefined;
+    if (chapter) {
+      const trail = chapter.trail;
+      const at = this.story.trailProgress(trail.id);
+      if (at < trail.stops.length && trail.stops[at]?.npcId === id) return 'trail';
+      if (chapter.anchorNpcId === id && !met) return 'anchor';
+    }
+    return met ? 'met' : 'new';
+  }
 
   private narrationLine(line: StoryLine): NarrationLine {
     const speaker = line.who === 'ekarupa' ? EKARUPA : MAITRI;
@@ -794,7 +883,9 @@ class Game {
 
     this.world.sky.setPalette(zone.palette);
     if (silent) this.world.sky.applyImmediately(zone.palette);
-    audio.setRaga(zone.raga, zone.tonic ?? 50);
+    // The region's theme starts once the player is on the ground (see maybeRunZoneHook's caller).
+    this.pendingTheme = zone.id;
+    if (this.player.state === 'ground' || this.player.state === 'swim') this.applyTheme();
 
     const progress = save.zone(zone.id);
     const firstVisit = !progress.discovered;
@@ -805,7 +896,7 @@ class Game {
     }
 
     if (!silent) {
-      this.hud.announceZone(zone);
+      this.hud.announceZone(zone, { storyTitle: getChapter(zone.id)?.title, first: firstVisit });
       if (firstVisit) {
         this.hud.toast('vidya', `Discovered ${zone.name}`, zone.tagline, '🧭', 7000);
         audio.conch();
@@ -1031,6 +1122,10 @@ class Game {
         this.renderer.shadowMap.enabled = v;
         this.world.sky.setShadows(v);
       }),
+      toggleRow('Cinematic lighting', 'Bloom, sun shafts and colour grading. Steps down by itself if the game runs slowly.', save.settings.cinematic, (v) => {
+        save.patchSettings({ cinematic: v });
+        this.post.setEnabled(v);
+      }),
       toggleRow('Gentle descent', 'The glider opens automatically and falls never hurt.', save.settings.gentleMode, (v) =>
         save.patchSettings({ gentleMode: v }),
       ),
@@ -1057,6 +1152,21 @@ class Game {
         save.patchSettings({ voices: v });
         voice.setEnabled(v);
       }),
+      choiceRow(
+        'Voice style',
+        'Indian: Indian-English speakers. Neutral: British English. Device: your computer’s own voice. Auto picks Indian, unless your device has a natural Indian-English voice of its own.',
+        [
+          ['auto', 'Auto'],
+          ['indian', 'Indian'],
+          ['neutral', 'Neutral'],
+          ['device', 'Device'],
+        ],
+        save.settings.voiceSource,
+        (v) => {
+          save.patchSettings({ voiceSource: v as Settings['voiceSource'] });
+          voice.setSource(v as Settings['voiceSource']);
+        },
+      ),
       sliderRow('Voice volume', save.settings.voiceVolume, 0, 1, (v) => {
         save.patchSettings({ voiceVolume: v });
         voice.setVolume(v);
@@ -1073,10 +1183,7 @@ class Game {
 
     const sample = button('Hear a voice', 'btn btn-ghost');
     sample.addEventListener('click', () => {
-      voice.speak(
-        'Namaste, Gathak. I am Maitri, keeper of the Gatha. If you can hear this, the voices are working.',
-        voice.profileForSpeaker('Maitri'),
-      );
+      voice.speak(VOICE_SAMPLE, voice.profileForSpeaker('Maitri'));
     });
 
     const exportBtn = button('Export learning record', 'btn btn-ghost');
@@ -1167,63 +1274,28 @@ class Game {
     renderZone(this.currentZone?.id ?? (ZONES[0] as Zone).id);
   }
 
+  /** The Journey: map, roadmap and how to play. */
   private openMap(): void {
-    const { panel, body, foot } = buildPanel({
-      title: 'The Island',
-      subtitle: 'Eleven eras on one landmass. Discovered terraces can be travelled to directly.',
-      closable: true,
-    });
+    this.journey.present('map');
+  }
 
-    const list = el('div');
-    list.style.cssText = 'display:grid;gap:0.5rem;';
-    for (const zone of ZONES) {
-      const progress = save.zone(zone.id);
-      const row = el('button', 'quiz-opt') as HTMLButtonElement;
-      row.type = 'button';
-      row.style.gridTemplateColumns = 'auto 1fr auto';
-      const chapter = el('span', 'qo-key', String(zone.chapter));
-      const label = el('span');
-      label.innerHTML = `<b>${escapeHtml(zone.name)}</b> <span style="opacity:0.6">${escapeHtml(zone.era)}</span><br><span style="opacity:0.7;font-size:0.82rem">${escapeHtml(
-        zone.tagline,
-      )}</span>`;
-      const state = el('span', 'qo-mark', progress.sealed ? '🔔' : progress.discovered ? '◆' : '·');
-      state.style.opacity = '1';
-      row.append(chapter, label, state);
-      if (!progress.discovered) row.disabled = true;
-      row.addEventListener('click', () => {
-        audio.click();
-        closeOverlay();
-        this.paused = false;
-        const pad = this.world.padFor(zone.id);
-        const target = pad ? pad.position : new THREE.Vector3(zone.center[0], 0, zone.center[1]);
-        this.player.teleportTo(target.x, target.z + 14);
-        this.enterZone(zone, false);
-        this.input.requestLock();
-      });
-      list.appendChild(row);
-    }
-    body.appendChild(list);
+  /** Move the player to a region's landing terrace. */
+  private travelTo(zoneId: string): void {
+    const zone = getZone(zoneId);
+    if (!zone) return;
+    const pad = this.world.padFor(zone.id);
+    const target = pad ? pad.position : new THREE.Vector3(zone.center[0], 0, zone.center[1]);
+    this.player.teleportTo(target.x, target.z + 14);
+    this.enterZone(zone, false);
+    this.input.requestLock();
+  }
 
-    const sealable = this.currentZone ? save.zone(this.currentZone.id) : null;
-    if (this.currentZone && sealable && sealable.challenges.length >= this.currentZone.sealRequires) {
-      const seal = button(sealable.sealed ? 'Retake chapter assessment' : 'Take the chapter assessment', 'btn btn-primary');
-      const zone = this.currentZone;
-      seal.addEventListener('click', async () => {
-        closeOverlay();
-        this.paused = false;
-        await this.runQuiz(zone.id, 'seal', 8, `${zone.name} — chapter assessment`);
-        this.refreshObjectives();
-      });
-      foot.appendChild(seal);
-    } else {
-      foot.appendChild(el('span', undefined, 'Complete more challenges here to unlock the chapter assessment.'));
-    }
-
-    const close = button('Close', 'btn btn-ghost');
-    close.addEventListener('click', () => this.resume());
-    foot.appendChild(close);
-
-    mountOverlay('map', panel, { onEscape: () => this.resume() });
+  /** The chapter assessment for a region. */
+  private async runSeal(zoneId: string): Promise<void> {
+    const zone = getZone(zoneId);
+    if (!zone) return;
+    await this.runQuiz(zone.id, 'seal', 8, `${zone.name} — chapter assessment`);
+    this.refreshObjectives();
   }
 
   private openFastTravel(pad: Interactable): void {
@@ -1231,30 +1303,7 @@ class Game {
   }
 
   private openHelp(): void {
-    const { panel, body, foot } = buildPanel({
-      title: 'How to play',
-      subtitle: 'Keyboard and mouse',
-      closable: true,
-    });
-    const grid = el('div', 'key-grid');
-    for (const [action, keys] of CONTROLS) {
-      const row = el('div', 'key-row');
-      row.appendChild(el('span', undefined, action));
-      const wrap = el('span', 'keys');
-      for (const k of keys) {
-        const kbd = document.createElement('kbd');
-        kbd.textContent = k;
-        wrap.appendChild(kbd);
-      }
-      row.appendChild(wrap);
-      grid.appendChild(row);
-    }
-    body.appendChild(grid);
-    const close = button('Got it', 'btn btn-primary');
-    close.addEventListener('click', () => this.resume());
-    foot.appendChild(close);
-    mountOverlay('help', panel, { onEscape: () => this.resume() });
-    close.focus();
+    this.journey.present('guide');
   }
 
   private exportReport(): void {
@@ -1289,6 +1338,7 @@ class Game {
     const scale = Math.min(2, window.devicePixelRatio) * save.settings.renderScale;
     this.renderer.setPixelRatio(scale);
     this.renderer.setSize(width, height, false);
+    this.post.resize(width, height, scale);
     this.camera.aspect = width / Math.max(1, height);
     this.camera.updateProjectionMatrix();
   }
@@ -1331,6 +1381,13 @@ const CONTROLS: Array<[string, string[]]> = [
 
 /** Say honestly which voices this device is using, so a flat or foreign-sounding voice has an explanation. */
 function voiceHint(): string {
+  if (voice.renderedCount > 0) {
+    return `The game ships its own voices (${voice.renderedCount} lines). Your device: ${deviceVoiceHint()}`;
+  }
+  return deviceVoiceHint();
+}
+
+function deviceVoiceHint(): string {
   switch (voice.voiceQuality) {
     case 'indian-english': {
       const n = voice.voiceNames.length;
@@ -1364,6 +1421,29 @@ function toggleRow(label: string, hint: string, value: boolean, onChange: (v: bo
   return row;
 }
 
+function choiceRow(label: string, hint: string, options: Array<[string, string]>, value: string, onChange: (v: string) => void): HTMLElement {
+  const row = el('div', 'settings-row');
+  const text = el('div');
+  text.append(el('span', undefined, label), el('small', undefined, hint));
+  const group = el('div', 'choice-group');
+  group.setAttribute('role', 'radiogroup');
+  group.setAttribute('aria-label', label);
+  for (const [id, name] of options) {
+    const b = el('button', 'choice', name) as HTMLButtonElement;
+    b.type = 'button';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(id === value));
+    b.addEventListener('click', () => {
+      for (const other of group.children) other.setAttribute('aria-checked', String(other === b));
+      audio.click();
+      onChange(id);
+    });
+    group.appendChild(b);
+  }
+  row.append(text, group);
+  return row;
+}
+
 function sliderRow(label: string, value: number, min: number, max: number, onChange: (v: number) => void): HTMLElement {
   const row = el('div', 'settings-row');
   row.appendChild(el('span', undefined, label));
@@ -1387,11 +1467,6 @@ function approachAngle(current: number, target: number, maxDelta: number): numbe
   return current + Math.sign(diff) * step;
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
 
 /** Keep a flight waypoint inside the island's bounds. */
 function clampToWorld(v: THREE.Vector3): THREE.Vector3 {
@@ -1450,9 +1525,12 @@ async function boot(): Promise<void> {
     if (progressLabel) progressLabel.textContent = label;
   };
 
+  document.getElementById('boot-skyline')?.appendChild(buildSkyline());
+
   const game = new Game(viewport);
   // Handy for debugging from the console; harmless in production.
-  (window as unknown as { game?: Game }).game = game;
+  (window as unknown as { game?: Game; audio?: typeof audio }).game = game;
+  (window as unknown as { audio?: typeof audio }).audio = audio;
   try {
     await game.build(setProgress);
   } catch (err) {
@@ -1468,6 +1546,17 @@ async function boot(): Promise<void> {
   if (progressBlock) progressBlock.hidden = true;
   if (actions) actions.hidden = false;
   if (continueBtn && save.hasProgress) continueBtn.hidden = false;
+
+  // The title theme starts on the first touch of the page: browsers do not allow sound before one.
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      audio.unlock();
+      audio.setTheme('title', 1.5);
+      audio.startScore();
+    },
+    { once: true },
+  );
 
   const launch = (fresh: boolean): void => {
     audio.unlock();

@@ -9,6 +9,107 @@ import * as THREE from 'three';
  * still giving each part its own stone colour.
  */
 
+/** Shared clock for the foliage's wind. World.update advances it each frame. */
+export const shaderTime = { value: 0 };
+
+const NOISE_GLSL = /* glsl */ `
+float bgHash(vec3 p) {
+  p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419));
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+float bgNoise(vec3 x) {
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(bgHash(i + vec3(0, 0, 0)), bgHash(i + vec3(1, 0, 0)), f.x), mix(bgHash(i + vec3(0, 1, 0)), bgHash(i + vec3(1, 1, 0)), f.x), f.y),
+    mix(mix(bgHash(i + vec3(0, 0, 1)), bgHash(i + vec3(1, 0, 1)), f.x), mix(bgHash(i + vec3(0, 1, 1)), bgHash(i + vec3(1, 1, 1)), f.x), f.y),
+    f.z
+  );
+}
+`;
+
+/**
+ * Give a vertex-coloured material surface life.
+ *
+ * Everything in the world is one flat colour per vertex, which at a glance reads
+ * as plastic. These additions cost nothing in draw calls: world-space noise at
+ * three scales weathers the colour, the base of anything darkens and dirties
+ * where it meets the ground, and, for instanced foliage only, the wind bends
+ * things in proportion to how high they stand. Rocks are excluded from the sway
+ * by their grey: stone has no saturation, leaves and bark do.
+ */
+function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): void {
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = shaderTime;
+    shader.vertexShader = shader.vertexShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+         uniform float uTime;
+         varying vec3 vWPos;
+         varying float vObjY;`,
+      )
+      .replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+         vObjY = position.y;
+         #ifdef USE_INSTANCING
+           ${kind === 'stone' ? `
+           {
+             float sat = abs(color.r - color.g) + abs(color.g - color.b);
+             float foliage = smoothstep(0.05, 0.14, sat);
+             float h = max(position.y, 0.0);
+             vec3 iw = (instanceMatrix * vec4(position, 1.0)).xyz;
+             float gust = sin(uTime * 0.7 + iw.x * 0.02) * 0.5 + 0.5;
+             float ph = uTime * 1.5 + iw.x * 0.31 + iw.z * 0.23;
+             float amp = 0.014 * h * foliage * (0.55 + gust * 0.9);
+             transformed.x += sin(ph) * amp;
+             transformed.z += cos(ph * 0.83 + 1.3) * amp;
+           }` : ''}
+         #endif`,
+      )
+      .replace(
+        '#include <worldpos_vertex>',
+        `#include <worldpos_vertex>
+         vWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+         #ifdef USE_INSTANCING
+           vWPos = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+         #endif`,
+      );
+
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        '#include <common>',
+        `#include <common>
+         varying vec3 vWPos;
+         varying float vObjY;
+         ${NOISE_GLSL}`,
+      )
+      .replace(
+        '#include <color_fragment>',
+        `#include <color_fragment>
+         {
+           float n1 = bgNoise(vWPos * ${kind === 'terrain' ? '0.045' : '0.55'});
+           float n2 = bgNoise(vWPos * ${kind === 'terrain' ? '0.31' : '2.6'});
+           float n3 = bgNoise(vWPos * ${kind === 'terrain' ? '1.7' : '10.5'});
+           float w = (n1 - 0.5) * ${kind === 'terrain' ? '0.26' : '0.24'} + (n2 - 0.5) * 0.16 + (n3 - 0.5) * 0.09;
+           diffuseColor.rgb *= 1.0 + w;
+           // Variation in hue as well as value, so it does not read as one tone going lighter and darker.
+           diffuseColor.rgb += (vec3(n1 - 0.5, n2 - 0.5, 0.5 - n1) * 0.04);
+           ${kind === 'stone' ? `
+           // Where a thing meets the ground it is damper, dirtier and in shadow.
+           float base = 1.0 - smoothstep(0.0, 2.8, vObjY);
+           diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.66, 0.6, 0.52), base * 0.6);
+           diffuseColor.rgb *= mix(0.8, 1.0, smoothstep(0.0, 1.6, vObjY));
+           ` : ''}
+         }`,
+      );
+  };
+  mat.customProgramCacheKey = () => `weather-${kind}`;
+}
+
 let sharedOpaque: THREE.MeshStandardMaterial | null = null;
 let sharedUnlit: THREE.MeshBasicMaterial | null = null;
 const cache = new Map<string, THREE.Material>();
@@ -22,6 +123,7 @@ export function stoneMaterial(): THREE.MeshStandardMaterial {
       metalness: 0.02,
       flatShading: false,
     });
+    weather(sharedOpaque, 'stone');
   }
   return sharedOpaque;
 }
@@ -78,6 +180,7 @@ export function terrainMaterial(): THREE.MeshStandardMaterial {
     metalness: 0,
     flatShading: false,
   });
+  weather(mat, 'terrain');
   cache.set(key, mat);
   return mat;
 }

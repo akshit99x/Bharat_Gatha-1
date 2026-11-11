@@ -10,18 +10,24 @@ based on our civilisation, history and culture).
 
 ## Run it
 
+You need **Node 18 or newer** (check with `node -v`) and a browser with **WebGL 2** — any current Chrome, Edge, Firefox or Safari. Chrome or Edge give the best voices.
+
 ```bash
+git clone https://github.com/meharraviarora-lab/Bharat_Gatha.git
+cd Bharat_Gatha
 npm install
 npm run dev
 ```
 
-Then open the printed URL. It needs a browser with WebGL 2 — any current Chrome, Edge, Firefox or
-Safari.
+Then open the address it prints, normally **http://localhost:5173**. Click **Board the Pushpaka Vimana**. Use headphones if you can, and click the page once so the browser allows sound and voices.
 
 ```bash
 npm run build      # static bundle in dist/, deployable to any static host
+npm run preview    # serve the built bundle at http://localhost:4173
 npm run typecheck  # strict TypeScript, no emit
 ```
+
+If it runs slowly, open the pause menu (`Esc`) and switch off **Shadows**. If you hear no voices, the pause menu says which voice your device is using and how to install an English (India) one. To start again from nothing, clear this site's data in your browser (the save lives in `localStorage` under `bharat-gatha/profile/v1`).
 
 There are **no asset files**. Every monument, tree, boulder and person is generated from code at
 load time, and all the audio is synthesised with the Web Audio API. The whole thing is about
@@ -72,6 +78,54 @@ actually requires.
 | Answer a question | `1` `2` `3` `4` |
 
 ---
+
+## Sound, light and people
+
+**Music.** Every region has its own score, generated live in the browser — there are no audio files. Each
+theme is a raga with its own pakad phrases, a taal with real bols, instruments (bansuri, sitar, veena,
+sarangi, santoor, shehnai, pakhawaj, tabla, manjira, tanpura) and a room. The Composer opens a piece with
+an unmetered alap that settles on Sa, then moves into a metered gat in call-and-response. Crossing a
+region border crossfades to the next theme; the title screen and the vimana flight have their own.
+Pads and drones are checked against the raga's scale in code, and each theme's level is calibrated by
+rendering it offline and measuring it, so nothing is louder than anything else.
+
+**Ambience.** Beneath the music sits a bed of place: surf and gulls on the Setu, the river and koel in
+Kosala, wind over Kurukshetra, a forge in Chola country, a fountain and a bazaar crowd in Agra, crickets
+at dusk. Music has its own volume slider; `Esc` → Settings.
+
+**Places that sound like places.** Walk toward a stepwell and you hear water; toward a bronze foundry,
+the forge; toward a harbour, surf and gulls; toward a temple, its bells; through a bazaar, the crowd.
+These are positioned sources, so they come from the right direction and fade with distance. Footsteps
+change with the ground: stone, sand, grass, bare earth, water.
+
+**People.** NPCs are not statues. Each has a role-based routine (smiths hammer, scribes write, dancers
+rehearse, children and water-carriers wander), turns to face you when you speak, offers a short remark as
+you pass, and wears a nameplate that shows a mark when they have something to tell you. Spoken lines use
+the browser's Indian-English voices where the device has them.
+
+**Voices.** All 480 spoken lines ship pre-rendered with a neural voice (Piper), read slowly and clearly, in two
+sets: **Indian** (real Indian-English speakers from the CMU ARCTIC corpus, the default) and **Neutral** (British
+English), so every player hears the same voice on any device. Settings → "Voice style" switches between them or
+to the device's own voice; Auto keeps the device's voice when it has a natural Indian-English one. A human
+recording of a line, if one is ever added, takes priority (`npm run voices:script`, `voices:import`,
+`voices:check`). Licences, measurements and how to re-render: [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
+
+**Moving.** Staircases are climbable (their colliders are real stairs); rotated buildings collide as the
+rectangles they are, not as their bounding boxes; walking into a ledge up to about a metre high hops you
+onto it; the view eases over steps instead of jolting; the camera stops short of hillsides.
+
+**Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
+
+**The Journey screen (`M`).** One screen, three tabs: **Map** (the island, regions, fast travel, what is
+discovered and what is not), **Roadmap** (all eleven chapters, what each still needs, and the next step
+for the one you are in) and **Guide** (controls, and a checklist that tracks your first steps).
+
+**Graphics.** Stone and terrain carry world-space weathering that varies hue and wear so no two walls read
+as the same texture; foliage sways in a gust field, and a recycled field of grass and wildflowers grows
+out of the ground's own colour around the player. The sea knows its own depth — turquoise shallows,
+deep blue, lines of surf at the shore, and the sand showing through thin water. A post-processing chain
+adds bloom, sun shafts, a gentle warm/cool grade, vignette and grain over a multisampled HDR target.
+"Cinematic lighting" in Settings turns it off, and it steps itself down on slow machines.
 
 ## The story — *The Unfinished Scroll* (अधूरा पट)
 
@@ -163,6 +217,8 @@ src/
                  the Sabha and the endings — pure data, validated at startup
   story/         StoryEngine: every story rule (what counts as a corrected plaque, when a
                  panel can be restored, which ending is heard) with no DOM and no three.js
+  core/music/    Procedural score: ragas, taals, instruments, composer, ambience, conductor
+  render/        Post-processing chain (bloom, sun shafts, grade) with adaptive quality
   world/         Terrain, sky, sea, vegetation, collision
   world/architecture/   The procedural building kit and 33 monument builders
   player/        Character controller, third-person camera rig, avatar animation
@@ -290,3 +346,10 @@ worth checking if you are extending it: the Harappan weight series and brick rat
 inscriptions, Ashoka's Major Rock Edicts 12 and 13, the Thanjavur construction, Aryabhata's
 `asanna`, the Jantar Mantar instrument functions, and the Vijayanagara survey. The `debate`-tagged
 entries are the ones to read first — they are where the interesting history is.
+
+## Testing movement
+
+`scripts/tests/` holds three Playwright scripts that drive the real player controller (`npm i -D playwright`, run
+`npm run dev`, then `node scripts/tests/walk.mjs`): **walk** (walks 8 directions from every interactable and a
+grid of land, and reports trapped or popping spots), **climb** (approaches every landmark) and **vault**
+(ledges of several heights, rotated and not).

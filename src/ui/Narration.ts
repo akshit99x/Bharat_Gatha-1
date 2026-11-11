@@ -42,6 +42,8 @@ export class Narration {
   private finishTyping: (() => void) | null = null;
   private raf = 0;
   private speech: SpeechHandle | null = null;
+  private paused = false;
+  private showing: { line: NarrationLine; done: () => void } | null = null;
 
   constructor() {
     this.root = el('div', 'narration');
@@ -69,6 +71,33 @@ export class Narration {
     return !this.root.hidden;
   }
 
+  /**
+   * Hold the captions while a conversation or a puzzle is up. The voice engine
+   * speaks one line at a time, so a caption talking behind a dialogue would cut
+   * it off — and then move on without anybody having heard it.
+   */
+  pause(): void {
+    if (this.paused) return;
+    this.paused = true;
+    this.speech?.cancel();
+    this.speech = null;
+    cancelAnimationFrame(this.raf);
+    this.finishTyping = null;
+    if (this.timer !== null) window.clearTimeout(this.timer);
+    this.timer = null;
+    // Put the interrupted line back at the front so it is heard in full afterwards.
+    if (this.showing) this.queue.unshift(this.showing);
+    this.showing = null;
+    this.current = null;
+    this.root.hidden = true;
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    if (this.queue.length > 0 && this.timer === null && this.current === null) this.next();
+  }
+
   /** Say a run of lines in order. Resolves when the last one has finished. */
   say(lines: readonly NarrationLine[]): Promise<void> {
     if (lines.length === 0) return Promise.resolve();
@@ -76,7 +105,7 @@ export class Narration {
       lines.forEach((line, i) => {
         this.queue.push({ line, done: i === lines.length - 1 ? resolve : () => undefined });
       });
-      if (this.timer === null && this.current === null) this.next();
+      if (!this.paused && this.timer === null && this.current === null) this.next();
     });
   }
 
@@ -84,6 +113,7 @@ export class Narration {
   clear(): void {
     this.speech?.cancel();
     this.speech = null;
+    this.showing = null;
     cancelAnimationFrame(this.raf);
     this.finishTyping = null;
     this.text.classList.remove('typing');
@@ -114,11 +144,14 @@ export class Narration {
   }
 
   private next(): void {
+    if (this.paused) return;
     const item = this.queue.shift();
     if (!item) {
+      this.showing = null;
       this.root.hidden = true;
       return;
     }
+    this.showing = item;
     const { line } = item;
     this.root.hidden = false;
     this.root.dataset.voice = line.voice;
@@ -175,7 +208,9 @@ export class Narration {
     // Keep the caption in step with the voice: about 14 characters a second at normal pace.
     const typeCps = speech.audible ? 14 * voice.profileForSpeaker(line.name).rate : TYPE_CPS;
     const tick = (now: number): void => {
-      const shown = Math.min(line.text.length, Math.floor(((now - started) / 1000) * typeCps));
+      // A recording knows its own length: pace the words to it (finishing just before the voice does).
+      const cps = speech.recorded && speech.seconds ? line.text.length / (speech.seconds * 0.94) : typeCps;
+      const shown = Math.min(line.text.length, Math.floor(((now - started) / 1000) * cps));
       this.text.textContent = line.text.slice(0, shown);
       if (shown < line.text.length) this.raf = requestAnimationFrame(tick);
       else settle();

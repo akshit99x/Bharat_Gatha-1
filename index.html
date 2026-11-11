@@ -63,6 +63,12 @@
           <span class="op-chapter">Chapter</span>
           <span class="op-progress">0 / 0</span>
         </header>
+        <div class="op-next" id="op-next" hidden>
+          <span class="opn-tag">Next step</span>
+          <b class="opn-title"></b>
+          <span class="opn-how"></span>
+          <span class="opn-meta"><span class="opn-dist"></span><span class="opn-track"><kbd>T</kbd> marker</span></span>
+        </div>
         <ol class="op-list"></ol>
       </aside>
 
@@ -127,9 +133,11 @@
             Board the Pushpaka Vimana
           </button>
           <button id="btn-continue" class="btn" type="button" hidden>Continue journey</button>
+          <button id="btn-howto" class="btn btn-guide" type="button">
+            <span>How to play</span>
+            <span class="new-badge" id="howto-badge" hidden>New here? Start here</span>
+          </button>
           <div class="boot-meta">
-            <button id="btn-howto" class="link" type="button">How to play</button>
-            <span class="dot">·</span>
             <button id="btn-lang" class="link" type="button" data-lang="en">हिन्दी</button>
             <span class="dot">·</span>
             <button id="btn-credits" class="link" type="button">About this project</button>

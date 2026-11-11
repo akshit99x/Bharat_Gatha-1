@@ -149,6 +149,8 @@ export interface Settings {
   voiceVolume: number;
   /** Where lines without a human recording come from. Auto: the game's Indian-English voice, unless the device has a natural Indian-English one. */
   voiceSource: 'auto' | 'indian' | 'neutral' | 'device';
+  /** The gold marker and Next step card pointing at what to do next. */
+  guide: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -168,6 +170,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voices: true,
   voiceVolume: 0.9,
   voiceSource: 'auto',
+  guide: true,
 };
 
 function emptyProfile(): Profile {
@@ -216,7 +219,9 @@ export class SaveStore {
 
   /** True when there is meaningful progress worth a "Continue" button. */
   get hasProgress(): boolean {
-    return this.data.vidya > 0 || this.data.codex.length > 0 || Object.keys(this.data.zones).length > 0;
+    // An empty entry is created the moment anything *looks* at a region, so only count real play.
+    const played = Object.values(this.data.zones).some((z) => z.discovered || z.challenges.length > 0 || z.sealed || z.timeSpent > 0);
+    return this.data.vidya > 0 || this.data.codex.length > 0 || played;
   }
 
   zone(zoneId: string): ZoneProgress {

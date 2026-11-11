@@ -1125,6 +1125,11 @@ body.cinematic .cinema-bars i {
   display: none;
 }
 
+/* Panels opened from the title screen (the guide, About) must sit above it. */
+body.title-open .overlay-root {
+  z-index: 100;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -5340,4 +5345,690 @@ body.high-contrast .screen-fx {
   background: var(--gold, #e0b04a);
   color: #1a1426;
   font-weight: 600;
+}
+
+/* =========================================================================
+   How to play: the guide pager
+   ========================================================================= */
+
+.panel.htp {
+  max-width: 860px;
+  height: min(720px, 100%);
+}
+
+.htp .panel-body {
+  padding: 0;
+}
+
+.htp-stage {
+  padding: 1.5rem 1.7rem 1.7rem;
+}
+
+.htp-stage.htp-in {
+  animation: htpIn 0.28s ease both;
+}
+
+@keyframes htpIn {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+
+.htp-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.htp-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.4rem;
+  height: 3.4rem;
+  font-size: 1.7rem;
+  border-radius: 14px;
+  border: 1px solid rgb(232 180 75 / 0.35);
+  background: radial-gradient(circle at 30% 25%, rgb(232 180 75 / 0.25), rgb(232 180 75 / 0.05));
+}
+
+.htp-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  color: var(--gold-soft);
+}
+
+.htp-lead {
+  margin: 0.2rem 0 0;
+  color: var(--parchment-dim);
+  font-size: 1rem;
+}
+
+.htp-p {
+  margin: 0 0 0.9rem;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--parchment);
+}
+
+.htp-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.1rem 0;
+}
+
+.htp-stat {
+  flex: 1 1 110px;
+  padding: 0.7rem 0.8rem;
+  text-align: center;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.04);
+}
+
+.htp-stat b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--gold);
+}
+
+.htp-stat span {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--parchment-dim);
+}
+
+.htp-steps {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.htp-step {
+  display: flex;
+  gap: 0.95rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.035);
+}
+
+.htp-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-top: 0.1rem;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+}
+
+.htp-step b {
+  display: block;
+  font-size: 1.02rem;
+  color: var(--parchment);
+}
+
+.htp-step p {
+  margin: 0.2rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--parchment-dim);
+}
+
+.htp-step .htp-keys {
+  display: inline-flex;
+  margin-top: 0.5rem;
+}
+
+.htp-h {
+  margin: 1.2rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.htp-h:first-child {
+  margin-top: 0;
+}
+
+.htp-keyrows {
+  display: grid;
+  gap: 0.35rem 1.2rem;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 720px) {
+  .htp-keyrows {
+    grid-template-columns: 1fr;
+  }
+}
+
+.htp-keyrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.035);
+  font-size: 0.93rem;
+}
+
+.htp-keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  flex: none;
+}
+
+.htp-keys kbd {
+  font-size: 0.82rem;
+}
+
+.htp-plus {
+  color: var(--parchment-dim);
+}
+
+.htp-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.htp-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.22);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.htp-dot:hover {
+  background: rgb(255 255 255 / 0.5);
+}
+
+.htp-dot[aria-selected='true'] {
+  background: var(--gold);
+  transform: scale(1.3);
+}
+
+/* the title screen's guide button */
+
+.boot-guide {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-guide {
+  border-color: rgb(232 180 75 / 0.55);
+  color: var(--gold-soft);
+}
+
+.btn-guide .new-badge {
+  padding: 0.12em 0.55em;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--gold);
+  animation: guidePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes guidePulse {
+  50% {
+    box-shadow: 0 0 0 6px rgb(232 180 75 / 0);
+    transform: scale(1.06);
+  }
+  0% {
+    box-shadow: 0 0 0 0 rgb(232 180 75 / 0.5);
+  }
+}
+
+/* =========================================================================
+   Guidance: the gold marker and the Next step card
+   ========================================================================= */
+
+.waypoint {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.waypoint[hidden] {
+  display: none;
+}
+
+.wp-marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.wp-diamond {
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+  rotate: 45deg;
+  border-radius: 3px;
+  border: 2px solid #fff3c9;
+  background: linear-gradient(135deg, var(--gold-bright), var(--saffron));
+  box-shadow:
+    0 0 0 3px rgb(11 10 16 / 0.55),
+    0 0 18px 4px rgb(255 190 80 / 0.75);
+  animation: wpBob 1.6s ease-in-out infinite;
+}
+
+@keyframes wpBob {
+  50% {
+    translate: 0 -5px;
+    box-shadow:
+      0 0 0 3px rgb(11 10 16 / 0.55),
+      0 0 26px 8px rgb(255 190 80 / 0.9);
+  }
+}
+
+.wp-text {
+  position: absolute;
+  left: 50%;
+  top: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 0.28rem 0.7rem 0.3rem;
+  border-radius: 9px;
+  border: 1px solid rgb(232 180 75 / 0.55);
+  background: rgb(14 12 20 / 0.82);
+  text-align: center;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+.wp-label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--parchment);
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wp-dist {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--gold-bright);
+}
+
+/* close by: just the diamond, so it never covers the thing you are looking at */
+.wp-marker.near .wp-text {
+  opacity: 0;
+}
+
+.wp-arrow {
+  display: none;
+  position: absolute;
+  left: -15px;
+  top: -15px;
+  width: 30px;
+  height: 30px;
+}
+
+.wp-arrow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -17px;
+  translate: -50% 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 15px solid var(--gold-bright);
+  filter: drop-shadow(0 0 5px rgb(255 190 80 / 0.9));
+}
+
+.wp-marker.edge .wp-arrow {
+  display: block;
+}
+
+/* at the edge of the screen the words sit inward of the diamond */
+.wp-marker.edge .wp-text {
+  top: 22px;
+}
+
+.op-next {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0 0 0.55rem;
+  padding: 0.6rem 0.75rem 0.65rem;
+  border: 1px solid rgb(232 180 75 / 0.55);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgb(232 180 75 / 0.2), rgb(255 138 61 / 0.1));
+}
+
+.op-next[hidden] {
+  display: none;
+}
+
+.opn-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+
+.opn-title {
+  font-size: 1.02rem;
+  line-height: 1.25;
+  color: var(--parchment);
+}
+
+.opn-how {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--parchment-dim);
+}
+
+.opn-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.15rem;
+  font-size: 0.74rem;
+  color: var(--gold-soft);
+}
+
+.opn-dist {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.opn-track {
+  opacity: 0.75;
+}
+
+.opn-track kbd {
+  font-size: 0.7rem;
+}
+
+body.high-contrast .wp-text,
+body.high-contrast .op-next {
+  background: #000;
+  border-color: #fff;
+}
+
+/* the first-steps coach */
+
+.coach {
+  position: absolute;
+  left: var(--hud-pad);
+  top: 96px;
+  width: min(300px, 30vw);
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.8rem 0.95rem 0.75rem;
+  border: 1px solid rgb(232 180 75 / 0.5);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgb(24 20 34 / 0.92), rgb(14 12 20 / 0.86));
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-md);
+  transition:
+    opacity 0.35s,
+    border-color 0.3s,
+    translate 0.35s;
+  pointer-events: auto;
+}
+
+.coach[hidden] {
+  display: none;
+}
+
+.coach.away {
+  opacity: 0;
+  translate: -12px 0;
+  pointer-events: none;
+}
+
+.coach.ok {
+  border-color: var(--leaf);
+  border-left-color: var(--leaf);
+}
+
+.coach-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.coach-tag {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+}
+
+.coach.ok .coach-tag {
+  color: var(--leaf);
+}
+
+.coach-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.coach-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.2);
+}
+
+.coach-dots i.now {
+  background: var(--gold);
+}
+
+.coach-dots i.done {
+  background: var(--leaf);
+}
+
+.coach-title {
+  font-size: 1.12rem;
+  color: var(--parchment);
+}
+
+.coach.ok .coach-title::after {
+  content: ' ✓';
+  color: var(--leaf);
+}
+
+.coach-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--parchment-dim);
+}
+
+.coach-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.coach-keys kbd {
+  font-size: 0.84rem;
+}
+
+.coach-skip {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--parchment-dim);
+  font: inherit;
+  font-size: 0.74rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.coach-skip:hover {
+  color: var(--gold-soft);
+}
+
+body.high-contrast .coach {
+  background: #000;
+  border-color: #fff;
+}
+
+/* the pause menu: go somewhere, then settings in groups */
+
+.pause-go {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 1.1rem;
+}
+
+.pause-tile {
+  position: relative;
+  display: grid;
+  gap: 0.1rem;
+  justify-items: start;
+  padding: 0.75rem 0.9rem 0.8rem;
+  border: 1px solid rgb(232 180 75 / 0.3);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgb(232 180 75 / 0.12), rgb(255 255 255 / 0.03));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.pause-tile:hover,
+.pause-tile:focus-visible {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgb(232 180 75 / 0.22), rgb(255 255 255 / 0.05));
+  transform: translateY(-1px);
+}
+
+.pt-icon {
+  font-size: 1.35rem;
+}
+
+.pause-tile b {
+  font-size: 1rem;
+  color: var(--parchment);
+}
+
+.pause-tile small {
+  font-size: 0.78rem;
+  color: var(--parchment-dim);
+}
+
+.pause-tile kbd {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+}
+
+.set-groups {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.set-group {
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.03);
+}
+
+.set-group > summary {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.7rem 0.95rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.set-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.set-group > summary::after {
+  content: '▾';
+  position: absolute;
+  right: 1rem;
+  color: var(--parchment-dim);
+  transition: rotate 0.2s;
+}
+
+.set-group {
+  position: relative;
+}
+
+.set-group[open] > summary::after {
+  rotate: 180deg;
+}
+
+.set-group > summary b {
+  font-size: 0.95rem;
+  color: var(--gold-soft);
+}
+
+.set-group > summary small {
+  font-size: 0.78rem;
+  color: var(--parchment-dim);
+}
+
+.set-group > :not(summary) {
+  margin: 0 0.95rem;
+}
+
+.set-group > :last-child {
+  margin-bottom: 0.9rem;
+}
+
+.btn-small {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
 }

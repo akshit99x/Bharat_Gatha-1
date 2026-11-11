@@ -97,27 +97,108 @@ export function chapterProgress(zone: Zone, profile: Profile): ChapterProgress {
   return result;
 }
 
-/** The single most useful thing to do in this chapter right now. */
-export function nextStep(p: ChapterProgress, profile: Profile): string {
+/** What the next thing is, as something the world can point at. */
+export type NextTarget =
+  | { kind: 'landmark'; id: string }
+  | { kind: 'npc'; id: string }
+  | { kind: 'challenge'; id: string }
+  | { kind: 'plaque'; id: string }
+  | { kind: 'travel'; zoneId: string }
+  | { kind: 'map' }
+  | { kind: 'gatha' }
+  | { kind: 'none' };
+
+export interface NextAction {
+  /** A few words, for the card and the marker: "Scan the Great Bath". */
+  short: string;
+  /** How, in one plain sentence: the keys and what to look for. */
+  how: string;
+  /** The full sentence, for the roadmap. */
+  text: string;
+  target: NextTarget;
+}
+
+/** The single most useful thing to do in this chapter right now, and where it is. */
+export function nextAction(p: ChapterProgress, profile: Profile): NextAction {
   const z = p.zone;
-  if (!p.discovered) return `Travel to ${z.name}, or drop onto it from the vimana, to begin Chapter ${z.chapter}.`;
-  if (p.restored) return 'This chapter is complete. Its panel hangs on the Gatha.';
+  if (!p.discovered) {
+    return {
+      short: `Go to ${z.name}`,
+      how: 'Follow the marker, or press M and travel there from the map.',
+      text: `Travel to ${z.name}, or drop onto it from the vimana, to begin Chapter ${z.chapter}.`,
+      target: { kind: 'travel', zoneId: z.id },
+    };
+  }
+  if (p.restored) {
+    return { short: 'Chapter complete', how: 'Its panel hangs on the Gatha. Press M to choose another chapter.', text: 'This chapter is complete. Its panel hangs on the Gatha.', target: { kind: 'none' } };
+  }
 
   const chapter = getChapter(z.id);
-  if (p.sealed && !p.restored) return 'Open the Gatha (K) and restore this chapter’s panel.';
+  if (p.sealed && !p.restored) {
+    return { short: 'Restore the panel', how: 'Press K to open the Gatha and restore this chapter’s panel.', text: 'Open the Gatha (K) and restore this chapter’s panel.', target: { kind: 'gatha' } };
+  }
   if (p.scanned < p.scanTotal) {
     const left = z.landmarks.find((l) => l.codexId && !profile.codex.includes(l.codexId));
-    return left ? `Scan ${left.name} with the Pramana lens (hold the right mouse button).` : 'Scan the monuments.';
+    if (left) {
+      return {
+        short: `Scan ${left.name}`,
+        how: 'Walk close, look at it, and hold the right mouse button.',
+        text: `Scan ${left.name} with the Pramana lens (hold the right mouse button).`,
+        target: { kind: 'landmark', id: left.id },
+      };
+    }
+    return { short: 'Scan the monuments', how: 'Hold the right mouse button while looking at one.', text: 'Scan the monuments.', target: { kind: 'none' } };
   }
   const anchor = chapter ? z.npcs.find((n) => n.id === chapter.anchorNpcId) : undefined;
-  if (anchor && !profile.story.met.includes(anchor.id)) return `Hear ${anchor.name} out: ${anchor.role}. Look for the gold ★ nameplate.`;
+  if (anchor && !profile.story.met.includes(anchor.id)) {
+    return {
+      short: `Meet ${anchor.name}`,
+      how: 'Walk up to them and press E. Look for the gold ★ nameplate.',
+      text: `Hear ${anchor.name} out: ${anchor.role}. Look for the gold ★ nameplate.`,
+      target: { kind: 'npc', id: anchor.id },
+    };
+  }
   if (p.challenges < p.sealRequires) {
     const todo = z.challenges.find((c) => !profile.zones[z.id]?.challenges.includes(c.id));
-    return todo ? `Try “${todo.name}” at its glowing post: ${todo.brief}` : 'Play the challenges.';
+    if (todo) {
+      return {
+        short: `Try “${todo.name}”`,
+        how: `Stand at the glowing post and press E. ${todo.brief}`,
+        text: `Try “${todo.name}” at its glowing post: ${todo.brief}`,
+        target: { kind: 'challenge', id: todo.id },
+      };
+    }
+    return { short: 'Play a challenge', how: 'Find a glowing post and press E.', text: 'Play the challenges.', target: { kind: 'none' } };
   }
-  if (p.plaques < p.plaqueTotal) return `Correct the plaques (${p.plaques}/${p.plaqueTotal}). Read the codex evidence each one asks for, then judge the claim.`;
-  if (!p.sealed) return 'Take the chapter assessment (open the map and choose “Take the chapter assessment”) to seal this chapter.';
-  return 'Finish the remaining challenges and the trail for a full set.';
+  if (p.plaques < p.plaqueTotal) {
+    const todo = chapter?.plaques.find((pl) => !profile.story.plaques[pl.id]?.done);
+    return {
+      short: `Correct a plaque (${p.plaques}/${p.plaqueTotal})`,
+      how: 'Walk up to a hazy plaque and press E. Read the codex evidence it asks for, then judge the claim.',
+      text: `Correct the plaques (${p.plaques}/${p.plaqueTotal}). Read the codex evidence each one asks for, then judge the claim.`,
+      target: todo ? { kind: 'plaque', id: todo.id } : { kind: 'none' },
+    };
+  }
+  if (!p.sealed) {
+    return {
+      short: 'Take the chapter assessment',
+      how: 'Press M, then choose “Take the chapter assessment”.',
+      text: 'Take the chapter assessment (open the map and choose “Take the chapter assessment”) to seal this chapter.',
+      target: { kind: 'map' },
+    };
+  }
+  const left = z.challenges.find((c) => !profile.zones[z.id]?.challenges.includes(c.id));
+  return {
+    short: left ? `Try “${left.name}”` : 'Finish the chapter',
+    how: left ? `Stand at the glowing post and press E. ${left.brief}` : 'Finish the remaining trail for a full set.',
+    text: 'Finish the remaining challenges and the trail for a full set.',
+    target: left ? { kind: 'challenge', id: left.id } : { kind: 'none' },
+  };
+}
+
+/** The single most useful thing to do in this chapter right now, as a sentence. */
+export function nextStep(p: ChapterProgress, profile: Profile): string {
+  return nextAction(p, profile).text;
 }
 
 export function allProgress(profile: Profile): ChapterProgress[] {
@@ -142,6 +223,17 @@ export function journeyNext(profile: Profile): { text: string; zone: Zone | null
   }
   if (!active) return { text: 'Every panel is restored. The Gatha is yours to read, and to keep reading.', zone: null };
   return { text: active.next, zone: active.zone };
+}
+
+/** The same, as an action the HUD can show and point at. */
+export function journeyAction(profile: Profile): NextAction {
+  const j = journeyNext(profile);
+  if (j.zone) return nextAction(chapterProgress(j.zone, profile), profile);
+  const all = allProgress(profile);
+  if (!all.some((p) => p.discovered)) return { short: 'Choose where to land', how: 'Drop from the vimana onto any region. Space to jump.', text: j.text, target: { kind: 'none' } };
+  if (j.text.includes('Sabha')) return { short: 'Convene the Sabha of Sources', how: 'Press K to open the Gatha.', text: j.text, target: { kind: 'gatha' } };
+  if (j.text.includes('Twelfth')) return { short: 'Write the Twelfth Panel', how: 'Press K to open the Gatha.', text: j.text, target: { kind: 'gatha' } };
+  return { short: 'The Gatha is yours', how: j.text, text: j.text, target: { kind: 'none' } };
 }
 
 export const TOTAL_CHAPTERS = CHAPTERS.length;

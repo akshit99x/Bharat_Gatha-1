@@ -74,7 +74,8 @@ actually requires.
 | Codex | `J` |
 | The Gatha — panels, plaques, the story | `K` |
 | Pause, settings, export record | `Esc` |
-| Help | `F1` |
+| How to play (the guide) | `F1` |
+| Show or hide the gold marker | `T` |
 | Answer a question | `1` `2` `3` `4` |
 
 ---
@@ -115,6 +116,14 @@ rectangles they are, not as their bounding boxes; walking into a ledge up to abo
 onto it; the view eases over steps instead of jolting; the camera stops short of hillsides.
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
+
+**Getting started, and never being lost.** The title screen has a **How to play** guide (what the game is, what
+you do, the controls, a first-ten-minutes path, how to find your way); first-timers get a "New here? Start
+here" badge. Once you land, a gold **marker** floats over the next thing to do, with its distance (an arrow
+at the screen edge points the way when it is off screen), and a **Next step** card at the top right says
+what it is and how to do it. A short **First steps** coach ticks off look, walk, follow the marker, scan and
+open the map as you do them. `T` hides the marker; Settings has the rest. The pause menu leads with big
+buttons (Map & roadmap, How to play, The Gatha, Codex) and groups the settings.
 
 **The Journey screen (`M`).** One screen, three tabs: **Map** (the island, regions, fast travel, what is
 discovered and what is not), **Roadmap** (all eleven chapters, what each still needs, and the next step

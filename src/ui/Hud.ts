@@ -54,6 +54,10 @@ export class Hud {
   private readonly objectiveChapter: HTMLElement;
   private readonly objectiveProgress: HTMLElement;
   private readonly objectiveList: HTMLElement;
+  private readonly nextCard: HTMLElement;
+  private readonly nextTitle: HTMLElement;
+  private readonly nextHow: HTMLElement;
+  private readonly nextDist: HTMLElement;
   private readonly interactPrompt: HTMLElement;
   private readonly interactLabel: HTMLElement;
   private readonly scanReadout: HTMLElement;
@@ -86,6 +90,10 @@ export class Hud {
     this.objectiveChapter = query(this.objectivePanel, '.op-chapter');
     this.objectiveProgress = query(this.objectivePanel, '.op-progress');
     this.objectiveList = query(this.objectivePanel, '.op-list');
+    this.nextCard = query(this.objectivePanel, '.op-next');
+    this.nextTitle = query(this.objectivePanel, '.opn-title');
+    this.nextHow = query(this.objectivePanel, '.opn-how');
+    this.nextDist = query(this.objectivePanel, '.opn-dist');
     this.interactPrompt = must('interact-prompt');
     this.interactLabel = query(this.interactPrompt, '.ip-label');
     this.scanReadout = must('scan-readout');
@@ -232,6 +240,19 @@ export class Hud {
         return li;
       }),
     );
+  }
+
+  /** The "next step" card above the checklist. Pass null to hide it. */
+  setNext(next: { title: string; how: string } | null): void {
+    this.nextCard.hidden = next === null;
+    if (!next) return;
+    if (this.nextTitle.textContent !== next.title) this.nextTitle.textContent = next.title;
+    if (this.nextHow.textContent !== next.how) this.nextHow.textContent = next.how;
+  }
+
+  setNextDistance(metres: number | null): void {
+    const text = metres === null ? '' : metres >= 1000 ? `${(metres / 1000).toFixed(1)} km away` : `${Math.round(metres / 5) * 5 || Math.round(metres)} m away`;
+    if (this.nextDist.textContent !== text) this.nextDist.textContent = text;
   }
 
   dimObjectives(dim: boolean): void {

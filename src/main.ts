@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import { Post } from './render/Post';
+import { Waypoint } from './ui/Waypoint';
+import { Coach } from './ui/Coach';
+import { chapterProgress, journeyAction, nextAction, type NextAction, type NextTarget } from './story/Progress';
+import { hasSeenIntro, presentHowToPlay } from './ui/HowToPlay';
 import { VOICE_SAMPLE } from './content/story/sabha';
 import './styles/main.css';
 
@@ -62,6 +66,7 @@ const SCAN_RANGE = 150;
 const _fwd = new THREE.Vector3();
 const _sunDir = new THREE.Vector3();
 const _look = new THREE.Vector3();
+const _guide = new THREE.Vector3();
 
 class Game {
   private readonly renderer: THREE.WebGLRenderer;
@@ -112,6 +117,12 @@ class Game {
   private sessionStart = Date.now();
   private statsTimer = 0;
   private lastTier: 'full' | 'lite' | 'off' = 'full';
+  private waypoint!: Waypoint;
+  private guideAction: NextAction | null = null;
+  private guideTimer = 0;
+  private guideDistance: number | null = null;
+  private coach!: Coach;
+  private hasFlown = false;
 
   constructor(private readonly viewport: HTMLElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -139,6 +150,13 @@ class Game {
     this.input.invertY = save.settings.invertY;
 
     this.hud = new Hud();
+    this.waypoint = new Waypoint(document.getElementById('hud') ?? document.body);
+    this.waypoint.setEnabled(save.settings.guide);
+    this.coach = new Coach(document.getElementById('hud') ?? document.body);
+    bus.on('codex:unlock', () => this.coach.notify('scan'));
+    bus.on('ui:open', ({ screen }) => {
+      if (screen === 'journey') this.coach.notify('map');
+    });
     this.bank = new QuestionBank(save);
     this.quiz = new QuizEngine(this.bank, save);
     this.quizModal = new QuizModal(this.quiz);
@@ -443,6 +461,7 @@ class Game {
     this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
     this.camera.getWorldDirection(_look);
     audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
+    this.updateGuide(dt, blocked);
     this.labels.setVisible(!blocked || this.dialogue.isOpen);
     this.labels.update(this.world.npcView, this.camera, (id) => this.npcMark(id), this.viewport.clientWidth, this.viewport.clientHeight);
     this.updateVimana();
@@ -481,6 +500,14 @@ class Game {
     }
     if (this.input.justPressed('help')) {
       this.openHelp();
+      return;
+    }
+    if (this.input.justPressed('track')) {
+      const on = !save.settings.guide;
+      save.patchSettings({ guide: on });
+      this.waypoint.setEnabled(on);
+      this.guideTimer = 0; // refresh the card on the very next frame
+      this.hud.toast('info', on ? 'Marker on' : 'Marker off', on ? 'The gold marker points at your next step. Press T to hide it.' : 'Press T to show it again.', '◆', 3000);
       return;
     }
     if (this.input.justPressed('cameraToggle')) {
@@ -879,6 +906,7 @@ class Game {
   private enterZone(zone: Zone, silent: boolean): void {
     const previous = this.currentZone;
     this.currentZone = zone;
+    this.refreshGuide();
     if (previous) bus.emit('zone:exit', { zoneId: previous.id });
 
     this.world.sky.setPalette(zone.palette);
@@ -907,7 +935,95 @@ class Game {
     this.refreshObjectives();
   }
 
+  // --------------------------------------------------------------- guidance
+
+  /** Work out what the player should do next, from their save. Cheap; called when anything changes. */
+  private refreshGuide(): void {
+    if (!this.world) return;
+    const profile = save.profile;
+    const zone = this.currentZone;
+    let action: NextAction | null = null;
+    const here = zone ? chapterProgress(zone, profile) : null;
+    if (here && !here.restored) action = nextAction(here, profile);
+    else action = journeyAction(profile);
+    this.guideAction = action;
+  }
+
+  /** Where in the world a next step points, or null if it is something done from a menu. */
+  private resolveTarget(target: NextTarget): THREE.Vector3 | null {
+    const up = (v: THREE.Vector3, h: number): THREE.Vector3 => _guide.set(v.x, v.y + h, v.z);
+    switch (target.kind) {
+      case 'landmark': {
+        const lm = this.world.landmarks.find((l) => l.id === target.id);
+        return lm ? up(lm.position, Math.min(14, Math.max(4, lm.height * 0.6))) : null;
+      }
+      case 'npc': {
+        const it = this.world.interactables.find((i) => i.kind === 'npc' && i.npc?.id === target.id);
+        return it ? up(it.position, 3.2) : null;
+      }
+      case 'challenge': {
+        const it = this.world.interactables.find((i) => i.kind === 'challenge' && i.challenge?.id === target.id);
+        return it ? up(it.position, 3.4) : null;
+      }
+      case 'plaque': {
+        const it = this.world.interactables.find((i) => i.kind === 'plaque' && i.plaque?.id === target.id);
+        return it ? up(it.position, 3) : null;
+      }
+      case 'travel': {
+        const pad = this.world.padFor(target.zoneId);
+        return pad ? up(pad.position, 10) : null;
+      }
+      default:
+        return null;
+    }
+  }
+
+  /** Per frame: place the marker and keep the Next step card honest. */
+  private updateGuide(dt: number, blocked: boolean): void {
+    const flying = this.player.state === 'vimana' || this.player.state === 'freefall' || this.player.state === 'glide';
+    // The first time the player touches ground after the flight, the coach offers to show them around.
+    if (flying) this.hasFlown = true;
+    else if (this.hasFlown && this.player.state === 'ground') {
+      this.hasFlown = false;
+      this.coach.start();
+    }
+    const action = flying || !save.settings.guide ? null : this.guideAction;
+
+    this.guideTimer -= dt;
+    const tick = this.guideTimer <= 0;
+    if (tick) {
+      this.guideTimer = 0.4;
+      this.hud.setNext(action ? { title: action.short, how: action.how } : null);
+    }
+    const pos = action ? this.resolveTarget(action.target) : null;
+    if (!action || !pos) {
+      this.waypoint.set(null);
+      this.guideDistance = null;
+      if (tick) this.hud.setNextDistance(null);
+      this.runCoach(dt, blocked);
+      return;
+    }
+    this.waypoint.set({ position: pos, label: action.short });
+    this.waypoint.setVisible(!blocked && !this.dialogue.isOpen);
+    const w = this.viewport.clientWidth || window.innerWidth;
+    const h = this.viewport.clientHeight || window.innerHeight;
+    const d = this.waypoint.update(this.camera, w, h, this.player.position);
+    this.guideDistance = d;
+    if (tick) this.hud.setNextDistance(d);
+    this.runCoach(dt, blocked);
+  }
+
+  private runCoach(dt: number, blocked: boolean): void {
+    this.coach.update(dt, {
+      active: !blocked && !this.dialogue.isOpen && this.player.state === 'ground',
+      yaw: this.player.yaw,
+      walked: this.player.distanceWalked,
+      markerDistance: save.settings.guide ? this.guideDistance : null,
+    });
+  }
+
   private refreshObjectives(): void {
+    this.refreshGuide();
     const zone = this.currentZone ?? (ZONES[0] as Zone);
     const progress = save.zone(zone.id);
     const landmarks = zone.landmarks.filter((l) => l.codexId);
@@ -1115,62 +1231,133 @@ class Game {
       onClose: () => this.resume(),
     });
 
-    const rows = el('div');
+    // Where to go: the things people look for first, as large buttons.
+    const go = el('div', 'pause-go');
+    const tile = (icon: string, name: string, hint: string, key: string, run: () => void): HTMLElement => {
+      const b = el('button', 'pause-tile') as HTMLButtonElement;
+      b.type = 'button';
+      b.append(el('span', 'pt-icon', icon), el('b', undefined, name), el('small', undefined, hint));
+      const k = document.createElement('kbd');
+      k.textContent = key;
+      b.append(k);
+      b.addEventListener('click', () => {
+        audio.click();
+        run();
+      });
+      return b;
+    };
+    go.append(
+      tile('🗺️', 'Map & roadmap', 'Where you are, and what to do next', 'M', () => {
+        closeOverlay();
+        this.paused = false;
+        this.openMap();
+      }),
+      tile('📖', 'How to play', 'The guide: what to do and how', 'F1', () => this.openHelp()),
+      tile('📜', 'The Gatha', 'Your scroll, plaques and story', 'K', () => {
+        closeOverlay();
+        this.paused = false;
+        this.scrollModal.present();
+      }),
+      tile('🔍', 'Codex', 'Everything you have scanned', 'J', () => {
+        closeOverlay();
+        this.openCodex();
+      }),
+    );
+    body.appendChild(go);
+
+    // Settings, grouped so the page is short and each group says what is in it.
+    const group = (title: string, summary: string, ...children: HTMLElement[]): HTMLElement => {
+      const d = el('details', 'set-group');
+      const sum = el('summary');
+      sum.append(el('b', undefined, title), el('small', undefined, summary));
+      d.append(sum, ...children);
+      return d;
+    };
+    const restartCoach = button('Show the first steps again', 'btn btn-ghost btn-small');
+    restartCoach.addEventListener('click', () => {
+      this.resume();
+      this.coach.start(true);
+    });
+    const sample = button('Hear a voice', 'btn btn-ghost btn-small');
+    sample.addEventListener('click', () => {
+      voice.speak(VOICE_SAMPLE, voice.profileForSpeaker('Maitri'));
+    });
+
+    const rows = el('div', 'set-groups');
     rows.append(
-      toggleRow('Shadows', 'Costs frames on older laptops.', save.settings.shadows, (v) => {
-        save.patchSettings({ shadows: v });
-        this.renderer.shadowMap.enabled = v;
-        this.world.sky.setShadows(v);
-      }),
-      toggleRow('Cinematic lighting', 'Bloom, sun shafts and colour grading. Steps down by itself if the game runs slowly.', save.settings.cinematic, (v) => {
-        save.patchSettings({ cinematic: v });
-        this.post.setEnabled(v);
-      }),
-      toggleRow('Gentle descent', 'The glider opens automatically and falls never hurt.', save.settings.gentleMode, (v) =>
-        save.patchSettings({ gentleMode: v }),
+      group(
+        'Guidance',
+        'The gold marker and the Next step card',
+        toggleRow('Gold marker and Next step card', 'Points at what to do next. Press T to switch it on or off any time.', save.settings.guide, (v) => {
+          save.patchSettings({ guide: v });
+          this.waypoint.setEnabled(v);
+          this.guideTimer = 0;
+        }),
+        restartCoach,
       ),
-      toggleRow('Dyslexia-friendly text', 'Wider spacing and a plainer typeface.', save.settings.dyslexiaFont, (v) => {
-        save.patchSettings({ dyslexiaFont: v });
-        this.applyAccessibility();
-      }),
-      toggleRow('Head movement', 'Turn off if camera bob makes you uncomfortable.', save.settings.motionBlurFree, (v) =>
-        save.patchSettings({ motionBlurFree: v }),
+      group(
+        'Sound and voices',
+        'Music, effects, who speaks and how',
+        sliderRow('Music', save.settings.musicVolume, 0, 1, (v) => {
+          save.patchSettings({ musicVolume: v });
+          audio.setVolumes(v, save.settings.sfxVolume);
+        }),
+        sliderRow('Sound effects', save.settings.sfxVolume, 0, 1, (v) => {
+          save.patchSettings({ sfxVolume: v });
+          audio.setVolumes(save.settings.musicVolume, v);
+        }),
+        toggleRow('Spoken voices', voiceHint(), save.settings.voices, (v) => {
+          save.patchSettings({ voices: v });
+          voice.setEnabled(v);
+        }),
+        choiceRow(
+          'Voice style',
+          'Indian: Indian-English speakers. Neutral: British English. Device: your computer’s own voice. Auto picks Indian, unless your device has a natural Indian-English voice of its own.',
+          [
+            ['auto', 'Auto'],
+            ['indian', 'Indian'],
+            ['neutral', 'Neutral'],
+            ['device', 'Device'],
+          ],
+          save.settings.voiceSource,
+          (v) => {
+            save.patchSettings({ voiceSource: v as Settings['voiceSource'] });
+            voice.setSource(v as Settings['voiceSource']);
+          },
+        ),
+        sliderRow('Voice volume', save.settings.voiceVolume, 0, 1, (v) => {
+          save.patchSettings({ voiceVolume: v });
+          voice.setVolume(v);
+        }),
+        sample,
       ),
-      sliderRow('Mouse sensitivity', save.settings.mouseSensitivity, 0.2, 3, (v) => {
-        save.patchSettings({ mouseSensitivity: v });
-        this.input.sensitivity = v;
-      }),
-      sliderRow('Music', save.settings.musicVolume, 0, 1, (v) => {
-        save.patchSettings({ musicVolume: v });
-        audio.setVolumes(v, save.settings.sfxVolume);
-      }),
-      sliderRow('Sound effects', save.settings.sfxVolume, 0, 1, (v) => {
-        save.patchSettings({ sfxVolume: v });
-        audio.setVolumes(save.settings.musicVolume, v);
-      }),
-      toggleRow('Spoken voices', voiceHint(), save.settings.voices, (v) => {
-        save.patchSettings({ voices: v });
-        voice.setEnabled(v);
-      }),
-      choiceRow(
-        'Voice style',
-        'Indian: Indian-English speakers. Neutral: British English. Device: your computer’s own voice. Auto picks Indian, unless your device has a natural Indian-English voice of its own.',
-        [
-          ['auto', 'Auto'],
-          ['indian', 'Indian'],
-          ['neutral', 'Neutral'],
-          ['device', 'Device'],
-        ],
-        save.settings.voiceSource,
-        (v) => {
-          save.patchSettings({ voiceSource: v as Settings['voiceSource'] });
-          voice.setSource(v as Settings['voiceSource']);
-        },
+      group(
+        'Display and comfort',
+        'Speed, text, camera and controls',
+        toggleRow('Shadows', 'Costs frames on older laptops.', save.settings.shadows, (v) => {
+          save.patchSettings({ shadows: v });
+          this.renderer.shadowMap.enabled = v;
+          this.world.sky.setShadows(v);
+        }),
+        toggleRow('Cinematic lighting', 'Bloom, sun shafts and colour grading. Steps down by itself if the game runs slowly.', save.settings.cinematic, (v) => {
+          save.patchSettings({ cinematic: v });
+          this.post.setEnabled(v);
+        }),
+        toggleRow('Gentle descent', 'The glider opens automatically and falls never hurt.', save.settings.gentleMode, (v) =>
+          save.patchSettings({ gentleMode: v }),
+        ),
+        toggleRow('Dyslexia-friendly text', 'Wider spacing and a plainer typeface.', save.settings.dyslexiaFont, (v) => {
+          save.patchSettings({ dyslexiaFont: v });
+          this.applyAccessibility();
+        }),
+        toggleRow('Head movement', 'Turn off if camera bob makes you uncomfortable.', save.settings.motionBlurFree, (v) =>
+          save.patchSettings({ motionBlurFree: v }),
+        ),
+        sliderRow('Mouse sensitivity', save.settings.mouseSensitivity, 0.2, 3, (v) => {
+          save.patchSettings({ mouseSensitivity: v });
+          this.input.sensitivity = v;
+        }),
       ),
-      sliderRow('Voice volume', save.settings.voiceVolume, 0, 1, (v) => {
-        save.patchSettings({ voiceVolume: v });
-        voice.setVolume(v);
-      }),
     );
     body.appendChild(rows);
 
@@ -1181,18 +1368,13 @@ class Game {
       await this.runQuiz(this.currentZone?.id ?? null, 'practice', 6, 'Practice round');
     });
 
-    const sample = button('Hear a voice', 'btn btn-ghost');
-    sample.addEventListener('click', () => {
-      voice.speak(VOICE_SAMPLE, voice.profileForSpeaker('Maitri'));
-    });
-
     const exportBtn = button('Export learning record', 'btn btn-ghost');
     exportBtn.addEventListener('click', () => this.exportReport());
 
     const resume = button('Resume', 'btn btn-primary');
     resume.addEventListener('click', () => this.resume());
 
-    foot.append(practice, sample, exportBtn, resume);
+    foot.append(practice, exportBtn, resume);
     mountOverlay('pause', panel, { onEscape: () => this.resume() });
     resume.focus();
   }
@@ -1303,7 +1485,9 @@ class Game {
   }
 
   private openHelp(): void {
-    this.journey.present('guide');
+    if (overlayOpen()) closeOverlay();
+    this.paused = true;
+    presentHowToPlay({ onClose: () => this.resume() });
   }
 
   private exportReport(): void {
@@ -1558,8 +1742,10 @@ async function boot(): Promise<void> {
     { once: true },
   );
 
+  document.body.classList.add('title-open');
   const launch = (fresh: boolean): void => {
     audio.unlock();
+    document.body.classList.remove('title-open');
     bootScreen.hidden = true;
     if (fresh) game.startNewJourney();
     else game.continueJourney();
@@ -1567,26 +1753,12 @@ async function boot(): Promise<void> {
 
   playBtn?.addEventListener('click', () => launch(true));
   continueBtn?.addEventListener('click', () => launch(false));
+  // First-timers get a nudge toward the guide; it never blocks the game.
+  const badge = document.getElementById('howto-badge');
+  if (badge && !hasSeenIntro() && !save.hasProgress) badge.hidden = false;
   howtoBtn?.addEventListener('click', () => {
-    const { panel, body, foot } = buildPanel({ title: 'How to play', closable: true });
-    const grid = el('div', 'key-grid');
-    for (const [action, keys] of CONTROLS) {
-      const row = el('div', 'key-row');
-      row.appendChild(el('span', undefined, action));
-      const wrap = el('span', 'keys');
-      for (const k of keys) {
-        const kbd = document.createElement('kbd');
-        kbd.textContent = k;
-        wrap.appendChild(kbd);
-      }
-      row.appendChild(wrap);
-      grid.appendChild(row);
-    }
-    body.appendChild(grid);
-    const close = button('Close', 'btn btn-primary');
-    close.addEventListener('click', () => closeOverlay());
-    foot.appendChild(close);
-    mountOverlay('help', panel, { onEscape: () => closeOverlay() });
+    if (badge) badge.hidden = true;
+    presentHowToPlay({ fromTitle: true, onStart: () => launch(true) });
   });
   creditsBtn?.addEventListener('click', () => {
     const { panel, body, foot } = buildPanel({ title: 'About this project', closable: true });
@@ -1595,8 +1767,8 @@ async function boot(): Promise<void> {
       <h3>What this is</h3>
       <p><strong>Bharat Gatha</strong> is an open-world first-person game built for Smart India Hackathon
       problem statement 26208 — toys and games based on Indian civilisation, history and culture.
-      It runs entirely in the browser with no downloads: all geometry and all audio are generated
-      procedurally from code.</p>
+      It runs entirely in the browser: the world, the music and the sounds of place are
+      generated from code, and the spoken lines are pre-rendered voice clips.</p>
       <h3>How it handles history</h3>
       <p>Every factual claim in the codex carries a source kind — <strong>archaeology</strong>,
       <strong>written source</strong>, <strong>epic tradition</strong> or <strong>debated</strong> — so the
@@ -1606,7 +1778,7 @@ async function boot(): Promise<void> {
       <p>${ZONES.length} regions · ${CODEX.length} codex entries · ${QUESTION_COUNT} authored questions, plus
       procedurally generated ones drawn from the timeline and codex so the supply never runs out.</p>
       <h3>Built with</h3>
-      <p>TypeScript, three.js and the Web Audio API. No art assets, no sample libraries, no server.</p>
+      <p>TypeScript, three.js and the Web Audio API. No art assets, no sample libraries and no server; the only audio files are the spoken lines.</p>
     `;
     body.appendChild(prose);
     const close = button('Close', 'btn btn-primary');

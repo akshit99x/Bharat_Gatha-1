@@ -9,7 +9,7 @@ import { Vegetation, defaultVegetationOptions, type ExclusionCircle } from './Ve
 import { CollisionWorld } from './Collision';
 import { buildLandmark } from './architecture';
 import { Kit } from './architecture/kit';
-import { stoneMaterial, glowMaterial, shade, shaderTime } from './Materials';
+import { masonryMaterial, stoneMaterial, glowMaterial, shade, shaderTime } from './Materials';
 import { Rng } from '../core/Rng';
 import { Chariot } from '../vehicles/Chariot';
 import { Atmosphere } from './Atmosphere';
@@ -228,7 +228,7 @@ export class World {
     const rotY = THREE.MathUtils.degToRad(landmark.rotation ?? 0);
     const scale = landmark.scale ?? 1;
 
-    const mesh = new THREE.Mesh(built.geometry, stoneMaterial());
+    const mesh = new THREE.Mesh(built.geometry, masonryMaterial());
     mesh.name = `landmark:${landmark.id}`;
     mesh.position.set(x, y, z);
     mesh.rotation.y = rotY;

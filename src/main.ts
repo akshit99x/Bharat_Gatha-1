@@ -1779,6 +1779,17 @@ async function boot(): Promise<void> {
       procedurally generated ones drawn from the timeline and codex so the supply never runs out.</p>
       <h3>Built with</h3>
       <p>TypeScript, three.js and the Web Audio API. No art assets, no sample libraries and no server; the only audio files are the spoken lines.</p>
+      <h3>Team</h3>
+      <ul class="team">
+        <li>Khyati Kalra <em>BMS25071</em></li>
+        <li>Mehar Ravi Arora <em>BMS25083</em></li>
+        <li>Pia Gujral <em>BMS25096</em></li>
+        <li>Ranvir Vikas Gaikwad <em>BMS25105</em></li>
+        <li>Rijul Srivastava <em>BMS25110</em></li>
+        <li>Sai Akshit Ram Marella <em>BMS25112</em></li>
+        <li>Saksham Aggrawal <em>BMS25113</em></li>
+        <li>Samridhi Jain <em>BMS25116</em></li>
+      </ul>
     `;
     body.appendChild(prose);
     const close = button('Close', 'btn btn-primary');

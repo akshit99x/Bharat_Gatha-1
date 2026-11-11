@@ -1982,6 +1982,39 @@ select {
   padding-left: 1.2rem;
 }
 
+/*
+ * The team list in the About panel. Eight names in one column would push the
+ * rest of the panel off screen, so they run in two, with the roll numbers set
+ * underneath each name in tabular figures so the digits line up.
+ */
+.prose ul.team {
+  columns: 2;
+  column-gap: 1.6rem;
+  padding-left: 1.1rem;
+  margin: 0.5rem 0 0;
+}
+
+.prose ul.team li {
+  /* Never split a name from its roll number across the column break. */
+  break-inside: avoid;
+  margin-bottom: 0.45rem;
+}
+
+.prose ul.team em {
+  display: block;
+  color: var(--parchment-dim);
+  font-style: normal;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 560px) {
+  .prose ul.team {
+    columns: 1;
+  }
+}
+
 .prose li {
   margin-bottom: 0.35rem;
 }

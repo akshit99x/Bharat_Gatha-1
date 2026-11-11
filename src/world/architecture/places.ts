@@ -66,13 +66,20 @@ export function palaceCity(ctx: BuildContext): void {
   // Ranges of halls around three sides.
   const rangeDepth = 22;
   for (let w = 0; w < wings; w++) {
-    const angle = (w / Math.max(3, wings)) * Math.PI * 2 + Math.PI / 2;
+    // Spread round the three sides away from the gate (+Z). They used to start *at* the gate, so with
+    // five wings the first range of halls was built straight across the entrance.
+    const angle = Math.PI / 2 + ((w + 1) / (wings + 1)) * Math.PI * 2;
     const cx = Math.cos(angle) * (half - rangeDepth / 2);
     const cz = Math.sin(angle) * (half - rangeDepth / 2);
     const long = court * 0.62;
     const rot = -angle + Math.PI / 2;
 
     kit.slab([long, rangeDepth], [cx, 1.2, cz], 2.4, shade(stone, 0.96), { rotY: rot });
+    // Three courses of steps all round the platform, each low enough to walk up.
+    for (let k = 1; k <= 3; k++) {
+      const top = 2.4 - k * 0.6;
+      kit.slab([long + k * 1.9, rangeDepth + k * 1.9], [cx, top / 2, cz], top, shade(stone, 0.96 - k * 0.025), { rotY: rot });
+    }
     if (pillared) {
       // A hypostyle hall: rows of columns under a flat roof. Mauryan Kumrahar
       // and Vijayanagara's halls both work this way.
@@ -382,16 +389,26 @@ export function hillFort(ctx: BuildContext): void {
   }
   const crest = 2.5 + 3 * 4.6 + 2.5;
 
-  // Curtain wall, as straight segments between bastions.
+  // Curtain wall, as straight segments between bastions. The ring is turned half a step so that a
+  // wall, not a bastion, faces east: that is where the gate and the way up go.
   const pts: Array<[number, number]> = [];
   for (let i = 0; i < towers; i++) {
-    const a = (i / towers) * Math.PI * 2;
+    const a = ((i + 0.5) / towers) * Math.PI * 2;
     pts.push([Math.cos(a) * R, Math.sin(a) * R]);
   }
+  const gateX = R * Math.cos(Math.PI / towers);
+  const gateGap = 11;
   for (let i = 0; i < towers; i++) {
     const a = pts[i] as [number, number];
     const b = pts[(i + 1) % towers] as [number, number];
-    kit.wall(a, b, wallH, 4.0, shade(stone, 0.96), 0);
+    if (i === towers - 1) {
+      // The east wall, with the gateway left open in the middle and the wall carried over it.
+      kit.wall(a, [gateX, -gateGap / 2], wallH, 4.0, shade(stone, 0.96), 0);
+      kit.wall([gateX, gateGap / 2], b, wallH, 4.0, shade(stone, 0.96), 0);
+      kit.box([4.0, wallH - 14, gateGap], [gateX, 14 + (wallH - 14) / 2, 0], shade(stone, 0.98), { collide: false });
+    } else {
+      kit.wall(a, b, wallH, 4.0, shade(stone, 0.96), 0);
+    }
     addCrenellations(kit, a, b, wallH, shade(stone, 1.04), 1.4);
   }
 
@@ -404,50 +421,34 @@ export function hillFort(ctx: BuildContext): void {
     });
   }
 
-  // The gate, deliberately bent so nothing can charge it.
-  const gateA = pts[0] as [number, number];
-  const gx = gateA[0];
-  const gz = gateA[1];
-  kit.corbelGate([gx * 1.0, 0, gz * 1.0], 8, 12, 7.0, shade(stone, 1.04), { rotY: -Math.atan2(gz, gx) });
-  if (bentGate) {
-    // A short passage, then a right-angle turn walled on both sides.
-    const inward = Math.atan2(gz, gx);
-    const px = gx * 0.86;
-    const pz = gz * 0.86;
-    kit.wall([px, pz], [px - Math.sin(inward) * 18, pz + Math.cos(inward) * 18], wallH * 0.8, 3.0, shade(stone, 0.94));
-    kit.wall(
-      [px + Math.cos(inward) * -8 - Math.sin(inward) * 18, pz + Math.sin(inward) * -8 + Math.cos(inward) * 18],
-      [px - Math.sin(inward) * 18, pz + Math.cos(inward) * 18],
-      wallH * 0.8,
-      3.0,
-      shade(stone, 0.94),
-    );
-    // Second gate at the turn.
-    kit.corbelGate(
-      [px - Math.sin(inward) * 20, 0, pz + Math.cos(inward) * 20],
-      7,
-      10,
-      6.0,
-      shade(stone, 1.0),
-      { rotY: -(inward + Math.PI / 2) },
-    );
-  }
-  // The long exposed approach road, switchbacking up.
-  for (let i = 0; i < 5; i++) {
-    const a = Math.atan2(gz, gx) + i * 0.22;
-    const r0 = R * (1.1 + i * 0.16);
-    kit.slab([30, 9], [Math.cos(a) * r0, 0.4 + i * 0.1, Math.sin(a) * r0], 0.8, shade(palette.rock, 1.02), {
-      rotY: -a,
-      collide: false,
-    });
+  // The way up: one long stair from the foot of the hill, through the gate, to the summit terrace.
+  // (It used to be a few decorative slabs, and the fort could not be entered at all.)
+  {
+    const count = Math.ceil(crest / 0.45);
+    // Gentle enough to pass over the corner of every terrace on the way (each steps in 0.14 R for 4.6 m).
+    const run = ((R * 0.14) / 4.6) * (crest / count) * 1.04;
+    const topEdge = R * (1.06 - 3 * 0.14);
+    kit.steps([topEdge + count * run - run / 2, 0, 0], count, crest / count, run, 7, shade(palette.rock, 1.04), {}, 'x-');
+    // The gatehouse stands in the wall, astride the stair.
+    kit.corbelGate([gateX, 0, 0], 8.4, 15, 6.0, shade(stone, 1.04), { rotY: Math.PI / 2 });
+    if (bentGate) {
+      // An outer gate lower down, set off the line of the stair's foot: the approach is exposed and
+      // turns, so nothing can charge the main gate. (Kept clear of the stair itself.)
+      const ox = topEdge + count * run + 6;
+      kit.corbelGate([ox, 0, 9], 7, 10, 5.0, shade(stone, 1.0), {});
+      kit.wall([ox - 7, 3], [ox - 7, 22], wallH * 0.5, 2.6, shade(stone, 0.94));
+    }
+    kit.marker('gate', [topEdge + count * run + 3, 0, 0]);
   }
 
-  // The citadel on the summit.
+  // The citadel on the summit, with its own flight up from the terrace.
   kit.cylinder(R * 0.3, R * 0.33, 8.0, [0, crest + 4, 0], shade(stone, 1.0), { segments: 18 });
+  kit.steps([R * 0.33 + 18 * 1.0 - 0.5, crest, 0], 18, 8 / 18, 1.0, 6, shade(stone, 1.02), {}, 'x-');
+  // Turned so no tower stands at the head of the stair.
   kit.ring(6, R * 0.26, (px, pz) => {
     kit.box([7, 10, 7], [px, crest + 13, pz], shade(stone, 1.02));
     addCrenellations(kit, [px - 3.5, pz], [px + 3.5, pz], crest + 18, shade(stone, 1.08), 1.0);
-  });
+  }, Math.PI / 6);
   kit.box([R * 0.26, 14, R * 0.22], [0, crest + 15, 0], shade(stone, 1.04));
   addChhatri(kit, [0, crest + 22, 0], 6, 10, shade(stone, 1.06), 8);
   addBanner(kit, R * 0.2, -R * 0.2, crest + 8, 14, CLOTH_SAFFRON);
@@ -471,7 +472,6 @@ export function hillFort(ctx: BuildContext): void {
     addBoulder(kit, Math.cos(a) * r, Math.sin(a) * r, 0, rng.range(1.4, 3.6), palette.rock, rng);
   }
   scatterTrees(kit, 14, R * 1.15, R * 1.7, 'acacia', rng);
-  kit.marker('gate', [gx * 1.14, 0, gz * 1.14]);
   kit.marker('citadel', [0, crest + 8, 0]);
 }
 
@@ -497,16 +497,25 @@ export function lankaFort(ctx: BuildContext): void {
   }
   const baseY = sea ? 4.0 : 0;
 
-  // Curtain wall with projecting towers.
+  // Curtain wall with projecting towers. The ring is turned half a step so a wall, not a tower, faces
+  // east, and that wall has the gateway in it. (The wall used to be a closed ring: nobody could get in.)
   const pts: Array<[number, number]> = [];
   for (let i = 0; i < towers; i++) {
-    const a = (i / towers) * Math.PI * 2;
+    const a = ((i + 0.5) / towers) * Math.PI * 2;
     pts.push([Math.cos(a) * R, Math.sin(a) * R]);
   }
+  const gateX = R * Math.cos(Math.PI / towers);
+  const gateGap = 13.5;
   for (let i = 0; i < towers; i++) {
     const a = pts[i] as [number, number];
     const b = pts[(i + 1) % towers] as [number, number];
-    kit.wall(a, b, wallH, 4.4, shade(stone, 0.96), baseY);
+    if (i === towers - 1) {
+      kit.wall(a, [gateX, -gateGap / 2], wallH, 4.4, shade(stone, 0.96), baseY);
+      kit.wall([gateX, gateGap / 2], b, wallH, 4.4, shade(stone, 0.96), baseY);
+      kit.box([4.4, wallH - 17, gateGap], [gateX, baseY + 17 + (wallH - 17) / 2, 0], shade(stone, 0.98), { collide: false });
+    } else {
+      kit.wall(a, b, wallH, 4.4, shade(stone, 0.96), baseY);
+    }
     addCrenellations(kit, a, b, baseY + wallH, shade(stone, 1.04), 1.5);
   }
   for (const [bx, bz] of pts) {
@@ -516,9 +525,16 @@ export function lankaFort(ctx: BuildContext): void {
     addChhatri(kit, [bx, baseY + wallH * 1.2, bz], 5.0, 9, shade(stone, 1.04), 4);
   }
 
-  // Gate facing the causeway.
-  const g = pts[0] as [number, number];
-  kit.corbelGate([g[0], baseY, g[1]], 11, 15, 8.0, shade(stone, 1.04), { rotY: -Math.atan2(g[1], g[0]) });
+  // The gate, in the east wall, facing the causeway.
+  const g: [number, number] = [gateX, 0];
+  kit.corbelGate([gateX, baseY, 0], 11, 15, 8.0, shade(stone, 1.04), { rotY: Math.PI / 2 });
+  if (sea) {
+    // A sea fort stands on a rock: a flight up from the shore to the gate.
+    const count = Math.ceil(baseY / 0.45);
+    kit.steps([R * 1.1 + count * 1.0 - 0.5, 0, 0], count, baseY / count, 1.0, 9, shade(palette.rock, 1.04), {}, 'x-');
+  }
+  // And a flight from the gate court up to the palace terrace.
+  kit.steps([R * 0.55 + 9 * 1.0 - 0.5, baseY, 0], 9, 4 / 9, 1.0, 9, shade(stone, 1.02), {}, 'x-');
 
   // Palace within: terraces, pillared halls, a tower.
   kit.cylinder(R * 0.52, R * 0.55, 4.0, [0, baseY + 2.0, 0], shade(stone, 1.0), { segments: 20 });
@@ -664,21 +680,30 @@ export function stepwell(ctx: BuildContext): void {
   const depth = large ? 12 : 9;
   const stepCount = Math.round(depth / 0.9);
 
-  // Descending terraces on all four sides — the pushkarani form.
+  // The well is dug below ground: cut the ground away over it, or the ground simply covers it.
+  kit.pit([-W / 2, -D / 2], [W / 2, D / 2], -depth - 0.2);
+
+  // Descending terraces on all four sides — the pushkarani form. Each is a solid ring you can stand on,
+  // wide enough to meet the next, so the tank is a real stepped funnel with no gaps into the void.
+  const stepX = (W / 2 - 6) / stepCount;
+  const stepZ = (D / 2 - 6) / stepCount;
+  const drop = depth / stepCount;
   for (let s = 0; s < stepCount; s++) {
-    const inset = s * ((W / 2 - 4) / stepCount);
-    const w = W - inset * 2;
-    const d = D - inset * 2;
-    const y = -s * (depth / stepCount);
+    const w = W - s * stepX * 2;
+    const d = D - s * stepZ * 2;
+    const y = -s * drop;
+    const tone = shade(stone, 1.0 + (s % 3) * 0.03);
+    // Solid from this terrace down to the floor, so no one sees under it.
+    const h = depth + y;
+    const tx = stepX + 0.1;
+    const tz = stepZ + 0.1;
     for (const [bx, bz, bw, bd] of [
-      [0, -d / 2, w, 1.2],
-      [0, d / 2, w, 1.2],
-      [-w / 2, 0, 1.2, d],
-      [w / 2, 0, 1.2, d],
+      [0, -(d / 2 - tz / 2), w, tz],
+      [0, d / 2 - tz / 2, w, tz],
+      [-(w / 2 - tx / 2), 0, tx, d],
+      [w / 2 - tx / 2, 0, tx, d],
     ] as Array<[number, number, number, number]>) {
-      kit.box([bw, depth / stepCount + 0.3, bd], [bx, y - (depth / stepCount) / 2, bz], shade(stone, 1.0 + (s % 3) * 0.03), {
-        collide: false,
-      });
+      kit.box([bw, h, bd], [bx, y - h / 2, bz], tone);
     }
     // Numbered blocks — Hampi's stepped tank was assembled from a kit of parts.
     if (stepped && s % 3 === 0) {
@@ -686,21 +711,22 @@ export function stepwell(ctx: BuildContext): void {
     }
   }
 
-  // Water at the bottom, and a collider so you can walk the terraces.
+  // The floor and the water over it.
   const floorY = -depth;
-  kit.slab([W - (W / 2 - 4) * 2 + 4, D - (W / 2 - 4) * 2 + 4], [0, floorY, 0], 0.6, 0x24343a);
-  addWaterPlane(kit, [W * 0.3, D * 0.3], [0, floorY + 1.2, 0]);
-  // Ring of invisible blockers forming a walkable funnel.
-  for (let s = 0; s < stepCount; s++) {
-    const inset = s * ((W / 2 - 4) / stepCount);
-    const y = -s * (depth / stepCount);
-    kit.blocker([-(W / 2 - inset), y - 0.4, -(D / 2 - inset)], [W / 2 - inset, y, D / 2 - inset]);
+  kit.slab([14, 14], [0, floorY - 0.3, 0], 0.6, 0x24343a);
+  addWaterPlane(kit, [11.6, 11.6], [0, floorY + 1.0, 0]);
+
+  // One proper flight down the middle of the front, so the terraces need not be hopped one by one.
+  {
+    const count = stepCount * 2;
+    kit.steps([0, 0, D / 2 - stepZ / 4], count, -depth / count, stepZ / 2, 6, shade(stone, 1.06), {}, 'z-');
   }
 
-  // Coping and, unless this is a bare cistern, side pavilions.
+  // Coping round the rim, open at the head of the flight.
   for (const [bx, bz, bw, bd] of [
     [0, -D / 2 - 1.2, W + 4, 2.4],
-    [0, D / 2 + 1.2, W + 4, 2.4],
+    [-(W / 4 + 3.5), D / 2 + 1.2, W / 2 - 3, 2.4],
+    [W / 4 + 3.5, D / 2 + 1.2, W / 2 - 3, 2.4],
     [-W / 2 - 1.2, 0, 2.4, D + 4],
     [W / 2 + 1.2, 0, 2.4, D + 4],
   ] as Array<[number, number, number, number]>) {
@@ -758,8 +784,7 @@ export function vimanaPad(ctx: BuildContext): void {
     kit.box([span * 2 + 4, 0.9, 1.2], [0, 12.4 + i * 1.5, R + 2], shade(stone, 1.08), { collide: false });
   }
   addKalasha(kit, [0, 15.4, R + 2], 1.0, shade(stone, 1.16));
-  kit.steps([0, 0, R + 5], 4, 0.4, 1.2, 10, shade(stone, 1.02));
-  kit.blocker([-5, 0, R + 1], [5, 1.6, R + 9]);
+  kit.steps([0, 0, R + 4 * 1.2], 4, 0.4, 1.2, 10, shade(stone, 1.02), {}, 'z-');
 
   addBanner(kit, -R + 4, -R + 4, 1.6, 10, CLOTH_SAFFRON);
   addBanner(kit, R - 4, -R + 4, 1.6, 10, CLOTH_SAFFRON);

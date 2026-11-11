@@ -60,6 +60,7 @@ export class Hud {
   private readonly nextDist: HTMLElement;
   private readonly interactPrompt: HTMLElement;
   private readonly interactLabel: HTMLElement;
+  private readonly interactKey: HTMLElement | null;
   private readonly scanReadout: HTMLElement;
   private readonly scanBar: HTMLElement;
   private readonly scanLabel: HTMLElement;
@@ -96,6 +97,7 @@ export class Hud {
     this.nextDist = query(this.objectivePanel, '.opn-dist');
     this.interactPrompt = must('interact-prompt');
     this.interactLabel = query(this.interactPrompt, '.ip-label');
+    this.interactKey = this.interactPrompt.querySelector('kbd');
     this.scanReadout = must('scan-readout');
     this.scanBar = query(this.scanReadout, '.sr-bar i');
     this.scanLabel = query(this.scanReadout, '.sr-label');
@@ -261,12 +263,14 @@ export class Hud {
 
   // ----------------------------------------------------------- interactions
 
-  setInteractPrompt(label: string | null): void {
+  /** The prompt near the crosshair. `key` is the key cap shown before the label (E unless told otherwise). */
+  setInteractPrompt(label: string | null, key = 'E'): void {
     if (label === null) {
       this.interactPrompt.hidden = true;
       return;
     }
     if (this.interactLabel.textContent !== label) this.interactLabel.textContent = label;
+    if (this.interactKey && this.interactKey.textContent !== key) this.interactKey.textContent = key;
     this.interactPrompt.hidden = false;
   }
 

@@ -111,9 +111,12 @@ to the device's own voice; Auto keeps the device's voice when it has a natural I
 recording of a line, if one is ever added, takes priority (`npm run voices:script`, `voices:import`,
 `voices:check`). Licences, measurements and how to re-render: [`docs/VOICE_RECORDING.md`](docs/VOICE_RECORDING.md).
 
-**Moving.** Staircases are climbable (their colliders are real stairs); rotated buildings collide as the
-rectangles they are, not as their bounding boxes; walking into a ledge up to about a metre high hops you
-onto it; the view eases over steps instead of jolting; the camera stops short of hillsides.
+**Moving and climbing.** Walk into a wall and press `Space` to climb it, up to about four storeys (a "Climb"
+prompt appears); `S` lets go. Ledges up to a metre are hopped automatically. Every staircase leads to the floor
+it climbs to, and every person, challenge and plaque can be reached from its region's landing terrace: both are
+checked by tests in `scripts/tests/` (`stairs`, `reach`). Round things collide as circles and turned things as
+the rectangles they are; sunken tanks (stepwells, the Great Bath) are real cut-outs in the ground; the ground is
+levelled under each monument; the view eases over steps and the camera stops short of hillsides.
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
@@ -361,4 +364,6 @@ entries are the ones to read first — they are where the interesting history is
 `scripts/tests/` holds three Playwright scripts that drive the real player controller (`npm i -D playwright`, run
 `npm run dev`, then `node scripts/tests/walk.mjs`): **walk** (walks 8 directions from every interactable and a
 grid of land, and reports trapped or popping spots), **climb** (approaches every landmark) and **vault**
-(ledges of several heights, rotated and not).
+(ledges of several heights, rotated and not), **wallclimb** (walls from 1 to 11 m), **stairs** (every flight must
+end on floor), **reach** (every person, challenge and plaque must be reachable from the landing terrace) and
+**overlap** (no monument inside another).

@@ -27,6 +27,10 @@ export interface Box {
    * corners.
    */
   obb?: { cx: number; cz: number; hx: number; hz: number; c: number; s: number };
+  /** Set for round things: the footprint is this circle. */
+  circle?: { cx: number; cz: number; r: number };
+  /** The top is curved: solid, but nothing should be stood on it by the placement code. */
+  curved?: boolean;
 }
 
 export interface ResolveResult {
@@ -71,57 +75,39 @@ export class CollisionWorld {
   }
 
   /**
-   * Add local-space colliders from a built monument, transformed by the
-   * monument's placement. Rotation is applied to the box corners and the
-   * enclosing AABB is kept — a slight overestimate, deliberately chosen so the
-   * player never clips through a rotated wall.
+   * Add local-space colliders from a built monument, transformed by the monument's placement. A box
+   * that ends up turned (by the building, by its own yaw, or both) keeps an oriented footprint, and a
+   * round one a circle, so the player collides with the shape that is drawn.
    */
   addPlaced(colliders: readonly Collider[], originX: number, originY: number, originZ: number, rotY = 0, scale = 1): void {
-    const c = Math.cos(rotY);
-    const s = Math.sin(rotY);
-    // A quarter-turn keeps boxes axis-aligned, so the enclosing box is exact and no OBB is needed.
-    const oriented = Math.abs(s * c) > 0.002;
+    const c0 = Math.cos(rotY);
+    const s0 = Math.sin(rotY);
     for (const box of colliders) {
       const [lx0, ly0, lz0] = box.min;
       const [lx1, ly1, lz1] = box.max;
-      let minX = Infinity;
-      let maxX = -Infinity;
-      let minZ = Infinity;
-      let maxZ = -Infinity;
-      for (const px of [lx0, lx1]) {
-        for (const pz of [lz0, lz1]) {
-          const sx = px * scale;
-          const sz = pz * scale;
-          const rx = sx * c + sz * s;
-          const rz = -sx * s + sz * c;
-          if (rx < minX) minX = rx;
-          if (rx > maxX) maxX = rx;
-          if (rz < minZ) minZ = rz;
-          if (rz > maxZ) maxZ = rz;
-        }
-      }
+      // The box's own yaw adds to the building's.
+      const yaw = rotY + (box.rotY ?? 0);
+      const c = Math.cos(yaw);
+      const s = Math.sin(yaw);
+      const hx = Math.abs(lx1 - lx0) * 0.5 * scale;
+      const hz = Math.abs(lz1 - lz0) * 0.5 * scale;
+      // Its centre is placed by the building's rotation alone.
+      const mx = ((lx0 + lx1) / 2) * scale;
+      const mz = ((lz0 + lz1) / 2) * scale;
+      const cx = originX + mx * c0 + mz * s0;
+      const cz = originZ - mx * s0 + mz * c0;
+      // Enclosing axis-aligned bounds of the turned rectangle, for the spatial hash and the height tests.
+      const ex = Math.abs(hx * c) + Math.abs(hz * s);
+      const ez = Math.abs(hx * s) + Math.abs(hz * c);
+
       const index = this.boxes.length;
-      this.add(
-        originX + minX,
-        originY + ly0 * scale,
-        originZ + minZ,
-        originX + maxX,
-        originY + ly1 * scale,
-        originZ + maxZ,
-      );
-      // `add` rejects degenerate boxes; only decorate the one it actually stored.
-      if (oriented && this.boxes.length > index) {
-        const mx = ((lx0 + lx1) / 2) * scale;
-        const mz = ((lz0 + lz1) / 2) * scale;
-        const stored = this.boxes[index] as Box;
-        stored.obb = {
-          cx: originX + mx * c + mz * s,
-          cz: originZ - mx * s + mz * c,
-          hx: Math.abs(lx1 - lx0) * 0.5 * scale,
-          hz: Math.abs(lz1 - lz0) * 0.5 * scale,
-          c,
-          s,
-        };
+      this.add(cx - ex, originY + ly0 * scale, cz - ez, cx + ex, originY + ly1 * scale, cz + ez);
+      // `add` rejects degenerate boxes; only decorate the one it actually stored. A quarter-turn keeps
+      // a box axis-aligned, so its enclosing bounds are already exact and no oriented footprint is needed.
+      if (this.boxes.length > index) {
+        if (box.curved) (this.boxes[index] as Box).curved = true;
+        if (box.round) (this.boxes[index] as Box).circle = { cx, cz, r: Math.min(hx, hz) };
+        else if (Math.abs(s * c) > 0.002) (this.boxes[index] as Box).obb = { cx, cz, hx, hz, c, s };
       }
     }
   }
@@ -177,6 +163,21 @@ export class CollisionWorld {
         if (b.maxY <= feet + stepHeight) continue;
         if (b.minY >= feet + height) continue;
 
+        const round = b.circle;
+        if (round) {
+          // Circle against circle: push straight out from the centre.
+          const rx = px - round.cx;
+          const rz = pz - round.cz;
+          const d = Math.hypot(rx, rz);
+          const reach = round.r + radius;
+          if (d >= reach) continue;
+          if (d > 1e-6) {
+            px += (rx / d) * (reach - d);
+            pz += (rz / d) * (reach - d);
+          } else px += reach;
+          blocked = true;
+          continue;
+        }
         // Work in the box's own frame, so a rotated building is a rectangle and not its bounding box.
         const o = b.obb;
         let x0 = b.minX;
@@ -235,6 +236,23 @@ export class CollisionWorld {
     return { x: px, y, z: pz, supportY, blocked };
   }
 
+  /**
+   * Everything solid in the column at a point: each box's floor and top, and how wide its footprint is
+   * at its narrowest (which tells a broad platform from a house or a wall).
+   */
+  columnAt(x: number, z: number): Array<{ minY: number; maxY: number; span: number }> {
+    const ids = this.candidates(x, z, 1, this.scratch);
+    const out: Array<{ minY: number; maxY: number; span: number }> = [];
+    for (const i of ids) {
+      const b = this.boxes[i] as Box;
+      if (!overlapsBox(x, z, 0, b)) continue;
+      // A curved top is no platform, whatever its size.
+      const span = b.curved ? 0 : b.circle ? b.circle.r * 2 : b.obb ? Math.min(b.obb.hx, b.obb.hz) * 2 : Math.min(b.maxX - b.minX, b.maxZ - b.minZ);
+      out.push({ minY: b.minY, maxY: b.maxY, span });
+    }
+    return out;
+  }
+
   /** Highest box top beneath a point, within a small horizontal tolerance. */
   supportAt(x: number, z: number, y: number, radius = 0.4): number | null {
     const ids = this.candidates(x, z, radius + 1, this.scratch);
@@ -289,6 +307,12 @@ export class CollisionWorld {
 
 /** Does a circle of `radius` at (x, z) touch the box's footprint — oriented if it has one? */
 function overlapsBox(x: number, z: number, radius: number, b: Box): boolean {
+  if (b.circle) {
+    const rx = x - b.circle.cx;
+    const rz = z - b.circle.cz;
+    const reach = b.circle.r + radius;
+    return rx * rx + rz * rz <= reach * reach;
+  }
   const o = b.obb;
   if (!o) return overlapsXZ(x, z, radius, b);
   const ox = x - o.cx;

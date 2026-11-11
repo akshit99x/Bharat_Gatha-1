@@ -89,7 +89,7 @@ export const setuLanka: Zone = {
       name: 'The Shoal Boulders',
       kind: 'boulderField',
       offset: [-90, 60],
-      opts: { count: 34, spread: 90, scale: 1.3 },
+      opts: { count: 30, spread: 68, scale: 1.3 },
       codexId: 'adams-bridge-geology',
       scanSeconds: 3,
       signposted: true,

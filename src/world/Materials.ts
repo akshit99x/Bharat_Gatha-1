@@ -9,6 +9,18 @@ import * as THREE from 'three';
  * still giving each part its own stone colour.
  */
 
+/**
+ * Holes in the ground. A stepwell or a sunken bath is dug below ground level, so the terrain has to be
+ * cut away over it or the ground simply covers it. Each is a rectangle (centre x/z, half extents) with a
+ * yaw; the terrain shader discards inside them, and Terrain.heightAt drops to the pit's floor.
+ */
+export const MAX_PITS = 24;
+export const terrainPits = {
+  rect: { value: Array.from({ length: MAX_PITS }, () => new THREE.Vector4(0, 0, 0, 0)) },
+  rot: { value: Array.from({ length: MAX_PITS }, () => new THREE.Vector2(1, 0)) },
+  count: { value: 0 },
+};
+
 /** Shared clock for the foliage's wind. World.update advances it each frame. */
 export const shaderTime = { value: 0 };
 
@@ -40,15 +52,21 @@ float bgNoise(vec3 x) {
  * things in proportion to how high they stand. Rocks are excluded from the sway
  * by their grey: stone has no saturation, leaves and bark do.
  */
-function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): void {
+function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain' | 'masonry'): void {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = shaderTime;
+    if (kind === 'terrain') {
+      shader.uniforms.uPit = terrainPits.rect;
+      shader.uniforms.uPitRot = terrainPits.rot;
+      shader.uniforms.uPitCount = terrainPits.count;
+    }
     shader.vertexShader = shader.vertexShader
       .replace(
         '#include <common>',
         `#include <common>
          uniform float uTime;
          varying vec3 vWPos;
+         varying vec3 vWNormal;
          varying float vObjY;`,
       )
       .replace(
@@ -56,7 +74,7 @@ function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): vo
         `#include <begin_vertex>
          vObjY = position.y;
          #ifdef USE_INSTANCING
-           ${kind === 'stone' ? `
+           ${kind !== 'terrain' ? `
            {
              float sat = abs(color.r - color.g) + abs(color.g - color.b);
              float foliage = smoothstep(0.05, 0.14, sat);
@@ -74,8 +92,10 @@ function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): vo
         '#include <worldpos_vertex>',
         `#include <worldpos_vertex>
          vWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+         vWNormal = normalize(mat3(modelMatrix) * objectNormal);
          #ifdef USE_INSTANCING
            vWPos = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
+           vWNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);
          #endif`,
       );
 
@@ -84,12 +104,23 @@ function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): vo
         '#include <common>',
         `#include <common>
          varying vec3 vWPos;
+         varying vec3 vWNormal;
          varying float vObjY;
+         ${kind === 'terrain' ? `uniform vec4 uPit[${MAX_PITS}];
+         uniform vec2 uPitRot[${MAX_PITS}];
+         uniform int uPitCount;` : ''}
          ${NOISE_GLSL}`,
       )
       .replace(
         '#include <color_fragment>',
         `#include <color_fragment>
+         ${kind === 'terrain' ? `
+         for (int i = 0; i < ${MAX_PITS}; i++) {
+           if (i >= uPitCount) break;
+           vec2 d = vWPos.xz - uPit[i].xy;
+           vec2 q = vec2(d.x * uPitRot[i].x - d.y * uPitRot[i].y, d.x * uPitRot[i].y + d.y * uPitRot[i].x);
+           if (abs(q.x) < uPit[i].z && abs(q.y) < uPit[i].w) discard;
+         }` : ''}
          {
            float n1 = bgNoise(vWPos * ${kind === 'terrain' ? '0.045' : '0.55'});
            float n2 = bgNoise(vWPos * ${kind === 'terrain' ? '0.31' : '2.6'});
@@ -98,12 +129,47 @@ function weather(mat: THREE.MeshStandardMaterial, kind: 'stone' | 'terrain'): vo
            diffuseColor.rgb *= 1.0 + w;
            // Variation in hue as well as value, so it does not read as one tone going lighter and darker.
            diffuseColor.rgb += (vec3(n1 - 0.5, n2 - 0.5, 0.5 - n1) * 0.04);
-           ${kind === 'stone' ? `
+           ${kind !== 'terrain' ? `
            // Where a thing meets the ground it is damper, dirtier and in shadow.
            float base = 1.0 - smoothstep(0.0, 2.8, vObjY);
            diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.66, 0.6, 0.52), base * 0.6);
            diffuseColor.rgb *= mix(0.8, 1.0, smoothstep(0.0, 1.6, vObjY));
            ` : ''}
+           ${kind === 'masonry' ? `
+           // Built things are laid in courses: a thin dark joint every course, with the upright joints
+           // staggered from one course to the next. Leaves and cloth (strongly coloured, or green) are left alone.
+           {
+             vec3 base = vColor.rgb;
+             float green = step(base.r * 1.08, base.g) * step(base.b * 1.08, base.g);
+             float courseH = 0.62;
+             float row = floor(vWPos.y / courseH);
+             float fy = fract(vWPos.y / courseH);
+             float along = (abs(vWNormal.x) > abs(vWNormal.z) ? vWPos.z : vWPos.x) / 1.35 + mod(row, 2.0) * 0.5;
+             float fx = fract(along);
+             float wallness = 1.0 - smoothstep(0.55, 0.9, abs(vWNormal.y));
+             float bed = 1.0 - smoothstep(0.0, 0.07, min(fy, 1.0 - fy));
+             float perp = 1.0 - smoothstep(0.0, 0.035, min(fx, 1.0 - fx));
+             float joint = max(bed, perp * 0.7) * wallness * (1.0 - green);
+             // each block a touch different from its neighbour
+             float block = bgHash(vec3(floor(along), row, 3.0)) - 0.5;
+             diffuseColor.rgb *= 1.0 + block * 0.09 * wallness * (1.0 - green);
+             diffuseColor.rgb *= 1.0 - joint * 0.2;
+           }` : ''}
+         }`,
+      )
+      .replace(
+        '#include <normal_fragment_maps>',
+        `#include <normal_fragment_maps>
+         {
+           // Fine relief from the same noise, so light catches a surface instead of sliding off it.
+           float F = ${kind === 'terrain' ? '0.85' : '2.4'};
+           float e = ${kind === 'terrain' ? '0.2' : '0.07'};
+           float h0 = bgNoise(vWPos * F) + bgNoise(vWPos * F * 3.1) * 0.45;
+           float hx = bgNoise((vWPos + vec3(e, 0.0, 0.0)) * F) + bgNoise((vWPos + vec3(e, 0.0, 0.0)) * F * 3.1) * 0.45;
+           float hy = bgNoise((vWPos + vec3(0.0, e, 0.0)) * F) + bgNoise((vWPos + vec3(0.0, e, 0.0)) * F * 3.1) * 0.45;
+           float hz = bgNoise((vWPos + vec3(0.0, 0.0, e)) * F) + bgNoise((vWPos + vec3(0.0, 0.0, e)) * F * 3.1) * 0.45;
+           vec3 grad = vec3(hx - h0, hy - h0, hz - h0) / e;
+           normal = normalize(normal - (viewMatrix * vec4(grad, 0.0)).xyz * ${kind === 'terrain' ? '0.16' : '0.055'});
          }`,
       );
   };
@@ -181,6 +247,17 @@ export function terrainMaterial(): THREE.MeshStandardMaterial {
     flatShading: false,
   });
   weather(mat, 'terrain');
+  cache.set(key, mat);
+  return mat;
+}
+
+/** Stone as it is in a building: the same weathered material, laid in courses with joints. */
+export function masonryMaterial(): THREE.MeshStandardMaterial {
+  const key = 'masonry';
+  const hit = cache.get(key);
+  if (hit) return hit as THREE.MeshStandardMaterial;
+  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.84, metalness: 0.02, flatShading: false });
+  weather(mat, 'masonry');
   cache.set(key, mat);
   return mat;
 }

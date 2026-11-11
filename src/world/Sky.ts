@@ -93,6 +93,10 @@ interface LightTarget {
   sunDir: THREE.Vector3;
 }
 
+/** Half-width of the area round the player that gets shadows, in metres. */
+const SHADOW_EXTENT = 95;
+const _snap = new THREE.Vector3();
+
 export class Sky {
   readonly mesh: THREE.Mesh;
   readonly sun: THREE.DirectionalLight;
@@ -173,15 +177,17 @@ export class Sky {
       this.sun.shadow.mapSize.set(2048, 2048);
       this.sun.shadow.camera.near = 1;
       this.sun.shadow.camera.far = 700;
-      const extent = 240;
+      // A tight box round the player: about 9 cm of ground per shadow texel instead of 23, which is the
+      // difference between a soft smudge and a shadow with an edge.
+      const extent = SHADOW_EXTENT;
       const cam = this.sun.shadow.camera;
       cam.left = -extent;
       cam.right = extent;
       cam.top = extent;
       cam.bottom = -extent;
       cam.updateProjectionMatrix();
-      this.sun.shadow.bias = -0.0008;
-      this.sun.shadow.normalBias = 0.9;
+      this.sun.shadow.bias = -0.0006;
+      this.sun.shadow.normalBias = 0.42;
     }
 
     this.hemi = new THREE.HemisphereLight(this.current.zenith.getHex(), 0x6b5a44, 1.15);
@@ -220,8 +226,11 @@ export class Sky {
     this.mesh.position.copy(cameraPosition);
     // Shadow camera follows the player, which is what keeps a 2k map usable
     // across a 3.6 km island.
-    this.sun.target.position.copy(cameraPosition);
-    this.sun.position.copy(cameraPosition).addScaledVector(this.current.sunDir, 320);
+    // Moved in whole shadow texels, so shadow edges do not crawl as the player walks.
+    const texel = (SHADOW_EXTENT * 2) / 2048;
+    _snap.set(Math.round(cameraPosition.x / texel) * texel, cameraPosition.y, Math.round(cameraPosition.z / texel) * texel);
+    this.sun.target.position.copy(_snap);
+    this.sun.position.copy(_snap).addScaledVector(this.current.sunDir, 320);
   }
 
   private blend(k: number): void {

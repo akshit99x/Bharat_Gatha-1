@@ -135,6 +135,7 @@ function pages(): Page[] {
               ['Run', keys('Shift')],
               ['Crouch', keys('Ctrl')],
               ['Jump (and hop onto low ledges just by walking at them)', keys('Space')],
+              ['Climb a wall or a roof: walk up to it and press Space', keys('Space')],
               ['Look around', keys('Mouse')],
               ['Switch between over-the-shoulder and first person', keys('V')],
             ],

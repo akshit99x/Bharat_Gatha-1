@@ -62,7 +62,14 @@ export function indusCitadel(ctx: BuildContext): void {
   }
 
   // Ramp up the long side, and a parapet.
-  kit.steps([-width / 2 - 10, 0, 0], 11, y / 11, 1.5, 9, shade(brick, 0.88));
+  {
+    // One long flight from the ground to the top tier. It has to *reach* the top tier: the tiers step
+    // inward, so a flight that stops at the base edge ends in mid-air over the terraces.
+    const topEdge = -(width * (1 - 0.11 * (tiers - 1))) / 2;
+    const count = Math.ceil(y / 0.4);
+    const run = 1.0;
+    kit.steps([topEdge - count * run + run / 2, 0, 0], count, y / count, run, 9, shade(brick, 0.88));
+  }
   for (const side of [-1, 1]) {
     kit.box([width, 1.2, 0.8], [0, y + 0.6, side * (depth / 2 - 2)], shade(brick, 0.86), { collide: false });
   }
@@ -103,18 +110,18 @@ export function greatBath(ctx: BuildContext): void {
   }
   addWaterPlane(kit, [tankW - 1.2, tankD - 1.2], [0, -0.9, 0]);
 
-  // Steps at both ends, descending into the water.
+  // The tank is below ground level: cut the ground away over it.
+  kit.pit([-tankW / 2, -tankD / 2], [tankW / 2, tankD / 2], -tankDepth - 0.3);
+
+  // A flight of steps down into the water at one end, and the matching flight at the other shown in
+  // relief. (Both ends had steps at Mohenjo-daro.)
+  kit.steps([0, platform, tankD / 2 - 0.25], 8, -(platform + tankDepth - 0.25) / 8, 0.5, 5.5, shade(brick, 1.0), {}, 'z-');
+  for (let i = 0; i < 5; i++) {
+    kit.box([5.5, 0.55, 0.9], [0, platform - 0.3 - i * 0.55, -(tankD / 2 - 0.9 - i * 0.9)], shade(brick, 1.0), { collide: false });
+  }
+  // And steps up onto the platform from the ground, front and back.
   for (const side of [-1, 1]) {
-    for (let i = 0; i < 5; i++) {
-      const w = 5.5;
-      kit.box(
-        [w, 0.55, 0.9],
-        [0, platform - 0.3 - i * 0.55, side * (tankD / 2 - 0.9 - i * 0.9)],
-        shade(brick, 1.0),
-        { collide: false },
-      );
-    }
-    kit.blocker([-3, -tankDepth, side * (tankD / 2 - 5)], [3, platform - 1.4, side * (tankD / 2 - 0.4)]);
+    kit.steps([0, 0, side * (outerD / 2 + 4 * 0.8 - 0.4)], 4, platform / 4, 0.8, 6, shade(brick, 0.98), {}, side > 0 ? 'z-' : 'z+');
   }
 
   // Surrounding corridor of small rooms, and the well that fed the tank.
@@ -280,18 +287,18 @@ export function ziggurat(ctx: BuildContext): void {
   kit.box([w * 0.18, 3.4, 0.4], [0, y + 4.5, d * 0.24], 0x241c14, { collide: false });
 
   // Three staircases converging on the first terrace, as at Ur.
-  const climb = tierH * (tiers - 1);
-  const stepCount = 22;
-  kit.steps([-base / 2 - 24, 0, 0], stepCount, climb / stepCount, 1.1, 8, shade(mud, 0.95));
-  for (const side of [-1, 1]) {
-    kit.steps(
-      [-base / 2 - 2, 0, side * (base * 0.36 + 10)],
-      stepCount,
-      climb / stepCount,
-      1.1,
-      6,
-      shade(mud, 0.95),
-    );
+  // Three staircases, as at Ur. The great central flight climbs the whole face to the shrine terrace;
+  // the two beside it reach the first terrace. Each ends on the tier it climbs to (the tiers step inward,
+  // so a flight has to run past the base to meet them).
+  {
+    const count = Math.ceil(y / 0.45);
+    const run = 0.8;
+    const topEdge = -(base * (1 - 0.2 * (tiers - 1))) / 2;
+    kit.steps([topEdge - count * run + run / 2, 0, 0], count, y / count, run, 8, shade(mud, 0.95));
+    const sideCount = Math.ceil(tierH / 0.45);
+    for (const side of [-1, 1]) {
+      kit.steps([-base / 2 - sideCount * run + run / 2, 0, side * (base * 0.72 * 0.32)], sideCount, tierH / sideCount, run, 5, shade(mud, 0.93));
+    }
   }
   kit.marker('summit', [0, y, 0]);
 }
@@ -587,7 +594,7 @@ export function harbour(ctx: BuildContext): void {
     kit.cylinder(0.5, 0.6, 1.1, [px, 2.9, pz], shade(stone, 0.88), { segments: 8, collide: false });
   });
   // Steps down to the water.
-  kit.steps([-6, 2.1, 4], 6, -0.42, 1.2, 7, shade(stone, 1.0));
+  kit.steps([-6, 2.4, 0.6], 6, -0.42, 1.2, 7, shade(stone, 1.0), {}, 'z+');
 
   // Jetty out into the water.
   kit.along([0, 2], [0, 34], 10, (px, pz) => {

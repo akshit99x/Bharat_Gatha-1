@@ -55,6 +55,7 @@ export const maratha: Zone = {
       name: 'The Tower of Victory',
       kind: 'nagaraTemple',
       offset: [-40, -60],
+      stack: true, // on the fort's summit terrace
       rotation: 15,
       codexId: 'vijaya-stambha',
       scanSeconds: 3.5,
@@ -76,7 +77,8 @@ export const maratha: Zone = {
       id: 'maratha-cistern',
       name: 'The Rock-Cut Cisterns',
       kind: 'stepwell',
-      offset: [30, 20],
+      // At the foot of the hill beside the stair: a stepwell dug into the fort's own mound would be hidden by it.
+      offset: [156, 8],
       opts: { stepped: 1, rockCut: 1 },
       codexId: 'fort-water',
       scanSeconds: 3,
@@ -96,7 +98,8 @@ export const maratha: Zone = {
       id: 'maratha-bazaar',
       name: 'The Fort Bazaar',
       kind: 'bazaarStreet',
-      offset: [70, 70],
+      // At the foot of the hill, beside the road to the gate (it used to be half inside the mound).
+      offset: [150, 78],
       rotation: 40,
       opts: { stalls: 10, length: 90 },
     },

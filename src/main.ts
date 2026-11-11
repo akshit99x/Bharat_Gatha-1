@@ -610,6 +610,8 @@ class Game {
     } else if (near && !scanning) {
       this.hud.setInteractPrompt(near.label);
       if (this.input.justPressed('interact')) void this.interact(near);
+    } else if (this.player.canClimb && !scanning) {
+      this.hud.setInteractPrompt('Climb', 'Space');
     } else {
       this.hud.setInteractPrompt(null);
     }

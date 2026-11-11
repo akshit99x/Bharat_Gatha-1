@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Noise2D, clamp, clamp01, lerp, smoothstep } from '../core/Noise';
 import { ZONES, getZone } from '../content/zones';
 import type { Zone } from '../content/types';
-import { terrainMaterial, mixColor } from './Materials';
+import { MAX_PITS, terrainMaterial, terrainPits, mixColor } from './Materials';
 
 /**
  * The island.
@@ -90,6 +90,7 @@ export class Terrain {
   private readonly noise: Noise2D;
   private readonly warp: Noise2D;
   private readonly bridges: Bridge[] = [];
+  private readonly pits: Array<{ cx: number; cz: number; hx: number; hz: number; c: number; s: number; floor: number; reach: number }> = [];
   private readonly zones: Zone[];
 
   constructor(seed: string) {
@@ -132,7 +133,36 @@ export class Terrain {
     const h10 = h[i00 + 1] as number;
     const h01 = h[i00 + GRID_VERTS] as number;
     const h11 = h[i00 + GRID_VERTS + 1] as number;
-    return lerp(lerp(h00, h10, fx), lerp(h01, h11, fx), fz);
+    const ground = lerp(lerp(h00, h10, fx), lerp(h01, h11, fx), fz);
+    if (this.pits.length === 0) return ground;
+    for (const p of this.pits) {
+      const ox = x - p.cx;
+      const oz = z - p.cz;
+      if (Math.abs(ox) > p.reach || Math.abs(oz) > p.reach) continue;
+      if (Math.abs(ox * p.c - oz * p.s) < p.hx && Math.abs(ox * p.s + oz * p.c) < p.hz) return Math.min(ground, p.floor);
+    }
+    return ground;
+  }
+
+  /** A circle round each cut-out, for anything that must keep clear of them (trees, grass). */
+  pitCircles(): Array<{ x: number; z: number; radius: number }> {
+    return this.pits.map((p) => ({ x: p.cx, z: p.cz, radius: p.reach + 4 }));
+  }
+
+  /**
+   * Cut a rectangular hole in the ground for something dug below it. The hole is drawn (the terrain
+   * shader discards inside it) and walked (the ground there is the pit's floor).
+   */
+  addPit(pit: { cx: number; cz: number; hx: number; hz: number; c: number; s: number; floor: number }): void {
+    if (this.pits.length >= MAX_PITS) {
+      console.warn('[Terrain] too many pits; ignoring one');
+      return;
+    }
+    const i = this.pits.length;
+    this.pits.push({ ...pit, reach: Math.hypot(pit.hx, pit.hz) });
+    (terrainPits.rect.value[i] as THREE.Vector4).set(pit.cx, pit.cz, pit.hx, pit.hz);
+    (terrainPits.rot.value[i] as THREE.Vector2).set(pit.c, pit.s);
+    terrainPits.count.value = this.pits.length;
   }
 
   /** Surface normal, from central differences on the baked grid. */
@@ -271,7 +301,20 @@ export class Terrain {
   private buildMesh(): THREE.Mesh {
     const geo = new THREE.PlaneGeometry(WORLD_SIZE, WORLD_SIZE, GRID_CELLS, GRID_CELLS);
     geo.rotateX(-Math.PI / 2);
+    geo.deleteAttribute('uv');
+    this.fill(geo);
 
+    const mesh = new THREE.Mesh(geo, terrainMaterial());
+    mesh.name = 'terrain';
+    mesh.receiveShadow = true;
+    mesh.castShadow = false;
+    mesh.matrixAutoUpdate = false;
+    mesh.updateMatrix();
+    return mesh;
+  }
+
+  /** Write the baked heights and their colours into a terrain geometry. */
+  private fill(geo: THREE.BufferGeometry): void {
     const pos = geo.getAttribute('position') as THREE.BufferAttribute;
     const colors = new Float32Array(pos.count * 3);
     const c = new THREE.Color();
@@ -289,19 +332,43 @@ export class Terrain {
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
     }
-
+    pos.needsUpdate = true;
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    geo.deleteAttribute('uv');
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
+  }
 
-    const mesh = new THREE.Mesh(geo, terrainMaterial());
-    mesh.name = 'terrain';
-    mesh.receiveShadow = true;
-    mesh.castShadow = false;
-    mesh.matrixAutoUpdate = false;
-    mesh.updateMatrix();
-    return mesh;
+  /**
+   * Level the ground under things that are about to be built, the way a site is prepared: flat across
+   * each footprint at the height of its centre, easing back into the natural ground over the next thirty
+   * metres. Without this a staircase's foot floats above a slope or is buried in it, and halls stand
+   * half-sunk. Sea and shore are left alone.
+   */
+  level(pads: ReadonlyArray<{ x: number; z: number; radius: number }>): void {
+    if (pads.length === 0) return;
+    const EASE = 30;
+    for (const pad of pads) {
+      const target = this.heightAt(pad.x, pad.z);
+      if (target < SEA_LEVEL + 0.8) continue;
+      // Flat a little past the footprint, so the cells that straddle its edge are flat too.
+      const flat = pad.radius + CELL_SIZE * 0.75;
+      const reach = flat + EASE;
+      const i0 = Math.max(0, Math.floor((pad.x - reach + WORLD_HALF) / CELL_SIZE));
+      const i1 = Math.min(GRID_VERTS - 1, Math.ceil((pad.x + reach + WORLD_HALF) / CELL_SIZE));
+      const j0 = Math.max(0, Math.floor((pad.z - reach + WORLD_HALF) / CELL_SIZE));
+      const j1 = Math.min(GRID_VERTS - 1, Math.ceil((pad.z + reach + WORLD_HALF) / CELL_SIZE));
+      for (let j = j0; j <= j1; j++) {
+        for (let i = i0; i <= i1; i++) {
+          const k = j * GRID_VERTS + i;
+          const h = this.heights[k] as number;
+          if (h < SEA_LEVEL + 0.3) continue;
+          const d = Math.hypot(-WORLD_HALF + i * CELL_SIZE - pad.x, -WORLD_HALF + j * CELL_SIZE - pad.z);
+          const w = smoothstep(reach, flat, d);
+          if (w > 0) this.heights[k] = lerp(h, target, w);
+        }
+      }
+    }
+    this.fill(this.mesh.geometry);
   }
 
   /** Vertex colour: biome palette, modulated by height, slope and a little noise. */

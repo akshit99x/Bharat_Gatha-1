@@ -19,7 +19,7 @@ import { CameraRig, type CameraMode } from './CameraRig';
  * and every era in it before the player has to choose where to start.
  */
 
-export type PlayerState = 'vimana' | 'freefall' | 'glide' | 'ground' | 'swim';
+export type PlayerState = 'vimana' | 'freefall' | 'glide' | 'ground' | 'swim' | 'climb';
 
 const EYE_HEIGHT = 1.68;
 const CROUCH_EYE = 1.02;
@@ -40,6 +40,9 @@ const JUMP_SPEED = 7.4;
 const STEP_HEIGHT = 0.68;
 /** The tallest ledge the player will hop onto by themselves when walking at it. */
 const VAULT_HEIGHT = 1.12;
+/** The tallest wall the player can climb: walk into it and press Space. About four storeys. */
+const CLIMB_MAX = 9.5;
+const CLIMB_SPEED = 3.4;
 
 const FREEFALL_GRAVITY = -36;
 const FREEFALL_TERMINAL = -62;
@@ -103,6 +106,10 @@ export class PlayerController {
   /** What the camera and avatar show: the real height, eased, so stepping up a stair is not a jolt. */
   private visualY = 0;
   private vaultCooldown = 0;
+  /** A climb in progress: the wall's top, the way onto it, and how far over the lip we are. */
+  private climb: { topY: number; dx: number; dz: number; over: number; grip: number } | null = null;
+  /** True while standing against something that could be climbed, so the HUD can say so. */
+  canClimb = false;
 
   private ride: VimanaRide | null = null;
   private rideTime = 0;
@@ -255,6 +262,9 @@ export class PlayerController {
         break;
       case 'swim':
         this.updateSwim(dt);
+        break;
+      case 'climb':
+        this.updateClimb(dt);
         break;
       default:
         this.updateGround(dt);
@@ -440,6 +450,19 @@ export class PlayerController {
     if (this.grounded) this.coyote = 0.12;
     else this.coyote -= dt;
 
+    // A wall ahead that can be climbed? Space starts up it instead of jumping in place.
+    const ledge = this.ledgeAhead(moving);
+    this.canClimb = ledge !== null;
+    if (ledge && this.input.justPressed('jump')) {
+      this.state = 'climb';
+      this.climb = { topY: ledge.topY, dx: ledge.dx, dz: ledge.dz, over: 0, grip: 0 };
+      this.velocity.set(0, 0, 0);
+      this.grounded = false;
+      this.canClimb = false;
+      audio.footstep(true);
+      return;
+    }
+
     if (this.input.justPressed('jump') && this.coyote > 0) {
       this.velocity.y = JUMP_SPEED;
       this.grounded = false;
@@ -500,6 +523,81 @@ export class PlayerController {
     // Did we walk into the sea?
     const groundY = this.world.groundAt(this.position.x, this.position.z, this.position.y);
     if (groundY < SEA_LEVEL - 1.0 && this.position.y < SEA_LEVEL + 0.2) this.enterWater();
+  }
+
+  /**
+   * Is there a wall right in front that can be climbed? Returns the top to climb to and the way onto it.
+   * The top must be within reach, taller than a step or a hop, and have room to stand on.
+   */
+  private ledgeAhead(moving: boolean): { topY: number; dx: number; dz: number } | null {
+    if (this.crouching) return null;
+    const dx = moving ? this.wish.x : this.forwardVec.x;
+    const dz = moving ? this.wish.z : this.forwardVec.z;
+    const feet = this.position.y;
+    const ax = this.position.x + dx * (RADIUS + 0.4);
+    const az = this.position.z + dz * (RADIUS + 0.4);
+    const column = this.world.collision.columnAt(ax, az);
+    // Something has to actually be in the way at body height.
+    if (!column.some((b) => b.minY < feet + 1.2 && b.maxY > feet + VAULT_HEIGHT)) return null;
+    const tops = column
+      .map((b) => b.maxY)
+      .filter((t) => t > feet + VAULT_HEIGHT && t <= feet + CLIMB_MAX)
+      .sort((a, b) => a - b);
+    for (const top of tops) {
+      // Room to stand on it, there and half a metre further in.
+      const clear = (cx: number, cz: number): boolean =>
+        !this.world.collision.columnAt(cx, cz).some((b) => b.minY < top + BODY_HEIGHT && b.maxY > top + 0.15);
+      if (clear(ax, az) && clear(ax + dx * 0.5, az + dz * 0.5)) {
+        // And nothing overhanging the wall face on the way up.
+        const here = this.world.collision.columnAt(this.position.x, this.position.z);
+        if (here.some((b) => b.minY > feet + 0.5 && b.minY < top + BODY_HEIGHT && b.maxY > feet + BODY_HEIGHT)) return null;
+        return { topY: top, dx, dz };
+      }
+    }
+    return null;
+  }
+
+  /** Up the wall hand over hand, then over the lip and onto the top. Back or crouch lets go. */
+  private updateClimb(dt: number): void {
+    const c = this.climb;
+    if (!c) {
+      this.state = 'ground';
+      return;
+    }
+    this.velocity.set(0, 0, 0);
+    this.fovTarget = this.baseFov;
+    this.bobAmount = THREE.MathUtils.lerp(this.bobAmount, 0, Math.min(1, dt * 6));
+
+    if (c.over <= 0 && (this.input.pressed('back') || this.input.pressed('crouch'))) {
+      // Let go: drop back to the ground below.
+      this.climb = null;
+      this.state = 'ground';
+      this.grounded = false;
+      return;
+    }
+
+    if (this.position.y < c.topY) {
+      this.position.y = Math.min(c.topY, this.position.y + CLIMB_SPEED * dt);
+      c.grip += CLIMB_SPEED * dt;
+      if (c.grip > 0.9) {
+        c.grip = 0;
+        audio.footstep(true);
+      }
+      return;
+    }
+    // Over the lip: a short step forward onto the top.
+    const step = Math.min(dt * 3.2, 0.95 - c.over);
+    c.over += step;
+    this.position.x += c.dx * step;
+    this.position.z += c.dz * step;
+    this.position.y = c.topY;
+    if (c.over >= 0.95) {
+      this.climb = null;
+      this.state = 'ground';
+      this.grounded = true;
+      this.coyote = 0.12;
+      audio.footstep(false);
+    }
   }
 
   private updateSwim(dt: number): void {
@@ -629,6 +727,9 @@ export class PlayerController {
     const horizontal = Math.hypot(this.velocity.x, this.velocity.z);
     if (this.vehicle) {
       this.bodyYaw = this.vehicle.yaw;
+    } else if (this.state === 'climb' && this.climb) {
+      // Face the wall being climbed.
+      this.bodyYaw = approachAngle(this.bodyYaw, PlayerController.yawTowards(this.climb.dx, this.climb.dz), dt * 12);
     } else if (horizontal > 0.9) {
       const moveYaw = PlayerController.yawTowards(this.velocity.x, this.velocity.z);
       this.bodyYaw = approachAngle(this.bodyYaw, moveYaw, dt * 11);
@@ -670,6 +771,8 @@ export class PlayerController {
         return 'glide';
       case 'swim':
         return 'swim';
+      case 'climb':
+        return 'climb';
       case 'vimana':
         return 'idle';
       default:

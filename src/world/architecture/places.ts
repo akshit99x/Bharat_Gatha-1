@@ -382,16 +382,26 @@ export function hillFort(ctx: BuildContext): void {
   }
   const crest = 2.5 + 3 * 4.6 + 2.5;
 
-  // Curtain wall, as straight segments between bastions.
+  // Curtain wall, as straight segments between bastions. The ring is turned half a step so that a
+  // wall, not a bastion, faces east: that is where the gate and the way up go.
   const pts: Array<[number, number]> = [];
   for (let i = 0; i < towers; i++) {
-    const a = (i / towers) * Math.PI * 2;
+    const a = ((i + 0.5) / towers) * Math.PI * 2;
     pts.push([Math.cos(a) * R, Math.sin(a) * R]);
   }
+  const gateX = R * Math.cos(Math.PI / towers);
+  const gateGap = 11;
   for (let i = 0; i < towers; i++) {
     const a = pts[i] as [number, number];
     const b = pts[(i + 1) % towers] as [number, number];
-    kit.wall(a, b, wallH, 4.0, shade(stone, 0.96), 0);
+    if (i === towers - 1) {
+      // The east wall, with the gateway left open in the middle and the wall carried over it.
+      kit.wall(a, [gateX, -gateGap / 2], wallH, 4.0, shade(stone, 0.96), 0);
+      kit.wall([gateX, gateGap / 2], b, wallH, 4.0, shade(stone, 0.96), 0);
+      kit.box([4.0, wallH - 14, gateGap], [gateX, 14 + (wallH - 14) / 2, 0], shade(stone, 0.98), { collide: false });
+    } else {
+      kit.wall(a, b, wallH, 4.0, shade(stone, 0.96), 0);
+    }
     addCrenellations(kit, a, b, wallH, shade(stone, 1.04), 1.4);
   }
 
@@ -404,50 +414,33 @@ export function hillFort(ctx: BuildContext): void {
     });
   }
 
-  // The gate, deliberately bent so nothing can charge it.
-  const gateA = pts[0] as [number, number];
-  const gx = gateA[0];
-  const gz = gateA[1];
-  kit.corbelGate([gx * 1.0, 0, gz * 1.0], 8, 12, 7.0, shade(stone, 1.04), { rotY: -Math.atan2(gz, gx) });
-  if (bentGate) {
-    // A short passage, then a right-angle turn walled on both sides.
-    const inward = Math.atan2(gz, gx);
-    const px = gx * 0.86;
-    const pz = gz * 0.86;
-    kit.wall([px, pz], [px - Math.sin(inward) * 18, pz + Math.cos(inward) * 18], wallH * 0.8, 3.0, shade(stone, 0.94));
-    kit.wall(
-      [px + Math.cos(inward) * -8 - Math.sin(inward) * 18, pz + Math.sin(inward) * -8 + Math.cos(inward) * 18],
-      [px - Math.sin(inward) * 18, pz + Math.cos(inward) * 18],
-      wallH * 0.8,
-      3.0,
-      shade(stone, 0.94),
-    );
-    // Second gate at the turn.
-    kit.corbelGate(
-      [px - Math.sin(inward) * 20, 0, pz + Math.cos(inward) * 20],
-      7,
-      10,
-      6.0,
-      shade(stone, 1.0),
-      { rotY: -(inward + Math.PI / 2) },
-    );
-  }
-  // The long exposed approach road, switchbacking up.
-  for (let i = 0; i < 5; i++) {
-    const a = Math.atan2(gz, gx) + i * 0.22;
-    const r0 = R * (1.1 + i * 0.16);
-    kit.slab([30, 9], [Math.cos(a) * r0, 0.4 + i * 0.1, Math.sin(a) * r0], 0.8, shade(palette.rock, 1.02), {
-      rotY: -a,
-      collide: false,
-    });
+  // The way up: one long stair from the foot of the hill, through the gate, to the summit terrace.
+  // (It used to be a few decorative slabs, and the fort could not be entered at all.)
+  {
+    const count = Math.ceil(crest / 0.45);
+    const run = 1.15;
+    const topEdge = R * (1.06 - 3 * 0.14);
+    kit.steps([topEdge + count * run - run / 2, 0, 0], count, crest / count, run, 7, shade(palette.rock, 1.04), {}, 'x-');
+    // The gatehouse stands in the wall, astride the stair.
+    kit.corbelGate([gateX, 0, 0], 8.4, 15, 6.0, shade(stone, 1.04), { rotY: Math.PI / 2 });
+    if (bentGate) {
+      // An outer gate lower down, set off the line of the stair's foot: the approach is exposed and
+      // turns, so nothing can charge the main gate. (Kept clear of the stair itself.)
+      const ox = topEdge + count * run + 6;
+      kit.corbelGate([ox, 0, 9], 7, 10, 5.0, shade(stone, 1.0), {});
+      kit.wall([ox - 7, 3], [ox - 7, 22], wallH * 0.5, 2.6, shade(stone, 0.94));
+    }
+    kit.marker('gate', [topEdge + count * run + 3, 0, 0]);
   }
 
-  // The citadel on the summit.
+  // The citadel on the summit, with its own flight up from the terrace.
   kit.cylinder(R * 0.3, R * 0.33, 8.0, [0, crest + 4, 0], shade(stone, 1.0), { segments: 18 });
+  kit.steps([R * 0.3 + 18 * 1.0 - 0.5 - 0.6, crest, 0], 18, 8 / 18, 1.0, 6, shade(stone, 1.02), {}, 'x-');
+  // Turned so no tower stands at the head of the stair.
   kit.ring(6, R * 0.26, (px, pz) => {
     kit.box([7, 10, 7], [px, crest + 13, pz], shade(stone, 1.02));
     addCrenellations(kit, [px - 3.5, pz], [px + 3.5, pz], crest + 18, shade(stone, 1.08), 1.0);
-  });
+  }, Math.PI / 6);
   kit.box([R * 0.26, 14, R * 0.22], [0, crest + 15, 0], shade(stone, 1.04));
   addChhatri(kit, [0, crest + 22, 0], 6, 10, shade(stone, 1.06), 8);
   addBanner(kit, R * 0.2, -R * 0.2, crest + 8, 14, CLOTH_SAFFRON);
@@ -471,7 +464,6 @@ export function hillFort(ctx: BuildContext): void {
     addBoulder(kit, Math.cos(a) * r, Math.sin(a) * r, 0, rng.range(1.4, 3.6), palette.rock, rng);
   }
   scatterTrees(kit, 14, R * 1.15, R * 1.7, 'acacia', rng);
-  kit.marker('gate', [gx * 1.14, 0, gz * 1.14]);
   kit.marker('citadel', [0, crest + 8, 0]);
 }
 
@@ -758,8 +750,7 @@ export function vimanaPad(ctx: BuildContext): void {
     kit.box([span * 2 + 4, 0.9, 1.2], [0, 12.4 + i * 1.5, R + 2], shade(stone, 1.08), { collide: false });
   }
   addKalasha(kit, [0, 15.4, R + 2], 1.0, shade(stone, 1.16));
-  kit.steps([0, 0, R + 5], 4, 0.4, 1.2, 10, shade(stone, 1.02));
-  kit.blocker([-5, 0, R + 1], [5, 1.6, R + 9]);
+  kit.steps([0, 0, R + 4 * 1.2], 4, 0.4, 1.2, 10, shade(stone, 1.02), {}, 'z-');
 
   addBanner(kit, -R + 4, -R + 4, 1.6, 10, CLOTH_SAFFRON);
   addBanner(kit, R - 4, -R + 4, 1.6, 10, CLOTH_SAFFRON);

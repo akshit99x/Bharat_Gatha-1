@@ -111,6 +111,10 @@ export class World {
   readonly group = new THREE.Group();
 
   readonly landmarks: PlacedLandmark[] = [];
+  /** Which colliders belong to which landmark (for checking that monuments do not sit inside each other). */
+  readonly colliderRanges: Array<{ landmarkId: string; from: number; to: number }> = [];
+  /** Every staircase's top step and the point just past it. */
+  readonly stairs: Array<{ landmarkId: string; top: THREE.Vector3; beyond: THREE.Vector3 }> = [];
   readonly interactables: Interactable[] = [];
   readonly chariots: Chariot[] = [];
 
@@ -191,6 +195,11 @@ export class World {
       y = found.y;
     }
     if (landmark.kind === 'dhow' || landmark.kind === 'ramSetu') y = SEA_LEVEL;
+    // Built on top of something already placed (a tower on a fort's summit): stand on its highest terrace.
+    if (landmark.stack) {
+      const tops = this.collision.columnAt(x, z).filter((b) => b.span >= 10).map((b) => b.maxY);
+      if (tops.length > 0) y = Math.max(y, ...tops);
+    }
 
     const rotY = THREE.MathUtils.degToRad(landmark.rotation ?? 0);
     const scale = landmark.scale ?? 1;
@@ -207,7 +216,23 @@ export class World {
     this.group.add(mesh);
     this.monumentMeshes.push(mesh);
 
+    const firstCollider = this.collision.count;
     this.collision.addPlaced(built.colliders, x, y, z, rotY, scale);
+    this.colliderRanges.push({ landmarkId: landmark.id, from: firstCollider, to: this.collision.count });
+
+    // Staircases, in world space: the top step and the spot just beyond it (used to verify they connect).
+    {
+      const c = Math.cos(rotY);
+      const s = Math.sin(rotY);
+      const toWorld = (p: readonly [number, number, number]): THREE.Vector3 =>
+        new THREE.Vector3(x + (p[0] * c + p[2] * s) * scale, y + p[1] * scale, z + (-p[0] * s + p[2] * c) * scale);
+      const tops = built.markers.filter((m) => m.name === 'stair:top');
+      const beyonds = built.markers.filter((m) => m.name === 'stair:beyond');
+      tops.forEach((t, i) => {
+        const b = beyonds[i];
+        if (b) this.stairs.push({ landmarkId: landmark.id, top: toWorld(t.pos), beyond: toWorld(b.pos) });
+      });
+    }
 
     const placed: PlacedLandmark = {
       id: landmark.id,
@@ -241,9 +266,46 @@ export class World {
   }
 
   /** A carved post with a floating marker, placed where a challenge starts. */
+  /**
+   * Where a person or a post should stand for a spot chosen on the map.
+   *
+   * On the ground if the ground there is clear. If the spot is inside something built, then on top of it
+   * when it is a broad platform (a fort's terrace, a temple plinth), and otherwise at the nearest clear
+   * place beside it. Without this, anyone whose spot fell inside a mound or a hall was buried in it.
+   */
+  private standPoint(wx: number, wz: number, search: number): { x: number; y: number; z: number } {
+    const ground = this.terrain.findGround(wx, wz, search);
+    const tryAt = (x: number, z: number): number | null => {
+      const y0 = this.terrain.heightAt(x, z);
+      if (y0 < SEA_LEVEL + 0.4) return null;
+      const column = this.collision.columnAt(x, z);
+      const clear = (y: number): boolean => !column.some((b) => b.minY < y + 1.9 && b.maxY > y + 0.12);
+      if (clear(y0)) return y0;
+      // The lowest broad platform with headroom: its terrace, not the roof of the keep above it.
+      const tops = column
+        .filter((b) => b.span >= 10 && b.maxY > y0)
+        .map((b) => b.maxY)
+        .sort((a, b) => a - b);
+      for (const t of tops) if (clear(t)) return t;
+      return null;
+    };
+    const here = tryAt(ground.x, ground.z);
+    if (here !== null) return { x: ground.x, y: here, z: ground.z };
+    for (let r = 2; r <= 24; r += 2) {
+      for (let k = 0; k < 10; k++) {
+        const a = (k / 10) * Math.PI * 2 + r * 0.7;
+        const x = ground.x + Math.cos(a) * r;
+        const z = ground.z + Math.sin(a) * r;
+        const y = tryAt(x, z);
+        if (y !== null) return { x, y, z };
+      }
+    }
+    return ground;
+  }
+
   private placeChallengeMarker(zone: Zone, challenge: ChallengeSpec): void {
     const [wx, wz] = worldPos(zone, challenge.offset);
-    const ground = this.terrain.findGround(wx, wz, 70);
+    const ground = this.standPoint(wx, wz, 70);
     const stone = zone.palette.stone;
 
     const kit = new Kit();
@@ -311,7 +373,7 @@ export class World {
         wz = it.position.z + (d < 0.01 ? 0 : dz * k);
       }
     }
-    const ground = this.terrain.findGround(wx, wz, 60);
+    const ground = this.standPoint(wx, wz, 60);
     const color = npc.color ?? 0xb08a5a;
 
     let geo = this.personGeometries.get(color);

@@ -44,8 +44,9 @@ export const hampi: Zone = {
       id: 'hampi-boulders',
       name: 'The Boulder Ridge',
       kind: 'boulderField',
-      offset: [-110, -120],
-      opts: { count: 60, spread: 170, scale: 2.1 },
+      // Kept clear of the temple and the palace: a ridge beside them, not boulders in their halls.
+      offset: [-160, -160],
+      opts: { count: 52, spread: 105, scale: 2.1 },
       codexId: 'hampi-landscape',
       scanSeconds: 3,
       signposted: true,

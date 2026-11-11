@@ -385,7 +385,9 @@ export function dravidaTemple(ctx: BuildContext): void {
     shade(stone, 1.02),
     { collide: false },
   );
-  kit.steps([-mandapaW / 2 - 8, 0, 14], 5, 0.4, 1.4, 10, shade(stone, 1.0));
+  // Steps up to the hall floor, set between the columns: one flight at the side, one at the front.
+  kit.steps([-(mandapaW + 4) / 2 - 5 * 1.4 + 0.7, 0, 14 + mandapaD / 8], 5, 0.4, 1.4, 6, shade(stone, 1.0));
+  kit.steps([mandapaW / 12, 0, 14 + (mandapaD + 4) / 2 + 5 * 1.4 - 0.7], 5, 0.4, 1.4, 6, shade(stone, 1.0), {}, 'z-');
 
   // The vimana: diminishing storeys over the sanctum.
   const baseW = 34;
@@ -481,17 +483,19 @@ export function nagaraTemple(ctx: BuildContext): void {
       collide: false,
     });
   }
-  kit.steps([0, 0, plinth * 0.675 + 8], 6, 0.47, 1.3, 9, shade(stone, 0.98));
-  kit.blocker([-4.5, 0, plinth * 0.675], [4.5, 2.8, plinth * 0.675 + 9]);
+  // A broad flight up the front of the plinth: wide enough to step off either side of the hall at the top.
+  kit.steps([0, 0, plinth * 0.675 + 6 * 1.3 - 0.65], 6, 2.8 / 6, 1.3, 22, shade(stone, 0.98), {}, 'z-');
 
   // Mandapa with a pyramidal roof (pidha deul in Odisha).
-  kit.box([16, 9, 16], [0, 7.3, 12], shade(stone, 1.0));
+  // Set back from the head of the stair, so the flight ends on a landing and not against the wall.
+  kit.box([16, 9, 13], [0, 7.3, 10], shade(stone, 1.0));
+  kit.box([3.4, 5.2, 0.5], [0, 2.8 + 2.6, 16.6], 0x1c1612, { collide: false }); // the doorway
   const pidhas = 6;
   for (let i = 0; i < pidhas; i++) {
     const w = 17 - i * 2.2;
-    kit.slab([w, w], [0, 11.8 + i * 1.5, 12], 1.5, shade(stone, 1.04 + i * 0.01), { collide: false });
+    kit.slab([w, w * 0.85], [0, 11.8 + i * 1.5, 10], 1.5, shade(stone, 1.04 + i * 0.01), { collide: false });
   }
-  kit.sphere(1.6, [0, 11.8 + pidhas * 1.5 + 0.8, 12], shade(stone, 1.1), { segments: 10, collide: false });
+  kit.sphere(1.6, [0, 11.8 + pidhas * 1.5 + 0.8, 10], shade(stone, 1.1), { segments: 10, collide: false });
 
   // The sanctum tower. Kalinga rekha deuls rise nearly straight then turn in sharply.
   const profile: Array<[number, number]> = [];
@@ -605,7 +609,7 @@ export function konarkTemple(ctx: BuildContext): void {
   // Seven horses straining at the front.
   for (let i = 0; i < horses; i++) {
     const hx = (i - (horses - 1) / 2) * 5.4;
-    const hz = L / 2 + 14;
+    const hz = L / 2 + 23; // ahead of the stair, pulling
     const coat = shade(stone, rng.range(1.02, 1.14));
     kit.box([2.4, 3.2, 6.4], [hx, 3.0, hz], coat, { rotX: -0.18 });
     kit.box([1.7, 2.0, 2.4], [hx, 5.2, hz + 3.8], coat, { collide: false });
@@ -620,7 +624,13 @@ export function konarkTemple(ctx: BuildContext): void {
     }
   }
   // Steps and guardian lions.
-  kit.steps([0, 0, L / 2 + 4], 7, plinthTop / 7, 1.3, 12, shade(stone, 1.0));
+  {
+    // Up the front to the top course of the plinth (5.6 m), ending on its edge.
+    const top = 4 * 1.4;
+    const edge = (L + 8 - 3 * 1.6) / 2;
+    const count = 13;
+    kit.steps([0, 0, edge + count * 1.0 - 0.5], count, top / count, 1.0, 12, shade(stone, 1.0), {}, 'z-');
+  }
   for (const side of [-1, 1]) {
     kit.box([3.0, 4.4, 5.0], [side * 11, plinthTop + 2.2, L / 2 + 2], shade(stone, 1.1), { collide: false });
     kit.box([2.2, 2.2, 2.2], [side * 11, plinthTop + 5.4, L / 2 + 0.6], shade(stone, 1.14), { collide: false });
@@ -698,7 +708,15 @@ export function jantarMantar(ctx: BuildContext): void {
     stone,
     { collide: true },
   );
-  kit.steps([-30 - gl / 2, 0, 3.2], 24, gnomonH / 24, (gl * 0.5) / 24, 2.4, shade(stone, 1.04));
+  {
+    // The stair runs up the gnomon's own slope, from its foot to its head, as at Jaipur, and ends on a
+    // small landing: the place the instrument is read from.
+    const count = Math.ceil(gnomonH / 0.5);
+    const run = gl / count;
+    kit.steps([-30 + gl / 2 - run / 2, 0, 3.9], count, gnomonH / count, run, 2.6, shade(stone, 1.04), {}, 'x-');
+    kit.slab([4.2, 7.6], [-30 - gl / 2 - 2.1, gnomonH - 0.3, 1.4], 0.6, shade(stone, 1.08));
+    kit.slab([4.2, 7.6], [-30 - gl / 2 - 2.1, gnomonH / 2 - 0.3, 1.4], gnomonH - 0.6, shade(stone, 0.96), { collide: false, inset: 0 });
+  }
   // Two quadrant scales flanking it, built as arcs of small blocks.
   for (const side of [-1, 1]) {
     const arcR = gnomonH * 0.78;
@@ -1070,7 +1088,7 @@ export function stoneChariot(ctx: BuildContext): void {
     }
   }
   // Stairway up into the shrine.
-  kit.steps([0, 1.4, -11], 5, 0.5, 1.1, 5, shade(stone, 1.0));
+  kit.steps([0, 0, -8.5 - 4 * 0.9 + 0.45], 4, 0.45, 0.9, 5, shade(stone, 1.0), {}, 'z+');
   kit.marker('front', [0, 1.4, 14]);
 }
 

@@ -55,7 +55,9 @@ export const sindhu: Zone = {
       id: 'sindhu-greatbath',
       name: 'The Great Bath',
       kind: 'greatBath',
-      offset: [-6, -62],
+      // North of the citadel mound, on open ground. (It used to sit inside the mound's footprint, where the
+      // mound swallowed it whole.)
+      offset: [-6, -114],
       codexId: 'indus-greatbath',
       scanSeconds: 3,
       signposted: true,

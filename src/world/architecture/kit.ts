@@ -18,7 +18,14 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 export interface Collider {
   min: [number, number, number];
   max: [number, number, number];
+  /** Yaw of the box about its own centre, for pieces turned at an angle. Absent means axis-aligned. */
+  rotY?: number;
+  /** The footprint is the circle inscribed in the box (columns, drums, domes, round platforms). */
+  round?: boolean;
 }
+
+/** Which way a flight of steps climbs. */
+export type Facing = 'x+' | 'x-' | 'z+' | 'z-';
 
 export interface Marker {
   name: string;
@@ -45,6 +52,8 @@ export interface Placement {
   /** Shrink the collider inwards so doorways stay walkable. */
   inset?: number;
 }
+
+const DIRS: Record<Facing, [number, number]> = { 'x+': [1, 0], 'x-': [-1, 0], 'z+': [0, 1], 'z-': [0, -1] };
 
 const _m = new THREE.Matrix4();
 const _q = new THREE.Quaternion();
@@ -97,7 +106,7 @@ export class Kit {
     const seg = place.segments ?? 12;
     const geo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, seg, 1, place.open ?? false);
     const r = Math.max(radiusTop, radiusBottom);
-    this.push(geo, at, color, place, place.collide ?? true, [r * 2, height, r * 2]);
+    this.push(geo, at, color, place, place.collide ?? true, [r * 2, height, r * 2], true);
     return this;
   }
 
@@ -110,7 +119,7 @@ export class Kit {
   sphere(radius: number, at: readonly [number, number, number], color: number, place: Placement & { segments?: number } = {}): this {
     const seg = place.segments ?? 12;
     const geo = new THREE.SphereGeometry(radius, seg, Math.max(6, seg >> 1));
-    this.push(geo, at, color, place, place.collide ?? false, [radius * 2, radius * 2, radius * 2]);
+    this.push(geo, at, color, place, place.collide ?? false, [radius * 2, radius * 2, radius * 2], true);
     return this;
   }
 
@@ -120,7 +129,7 @@ export class Kit {
     const geo = new THREE.SphereGeometry(radius, seg, Math.max(5, seg >> 1), 0, Math.PI * 2, 0, Math.PI / 2);
     if (place.squash && place.squash !== 1) geo.scale(1, place.squash, 1);
     const h = radius * (place.squash ?? 1);
-    this.push(geo, at, color, place, place.collide ?? true, [radius * 2, h, radius * 2]);
+    this.push(geo, at, color, place, place.collide ?? true, [radius * 2, h, radius * 2], true);
     return this;
   }
 
@@ -224,7 +233,47 @@ export class Kit {
     }
     this.pushRaw(geo, at, color, place);
     if (place.collide ?? true) {
-      this.addBoxCollider([at[0] + minX, at[1] + minY, at[2] - hz], [at[0] + maxX, at[1] + maxY, at[2] + hz], place.inset ?? 0);
+      // Follow the outline in horizontal bands, so a wedge is a slope of low blocks and not a solid
+      // bounding box with an invisible wall over its thin end.
+      const rot = place.rotY ?? 0;
+      const c = Math.cos(rot);
+      const sn = Math.sin(rot);
+      const inset = Math.max(0, place.inset ?? 0);
+      const bands = Math.max(1, Math.min(14, Math.ceil((maxY - minY) / 1.2)));
+      for (let k = 0; k < bands; k++) {
+        const y0 = minY + ((maxY - minY) * k) / bands;
+        const y1 = minY + ((maxY - minY) * (k + 1)) / bands;
+        // Where the outline is at least this band's floor high: its x-extent at the band's base.
+        const probe = y0 + (y1 - y0) * 0.02;
+        let x0 = Infinity;
+        let x1 = -Infinity;
+        for (let i = 0; i < n; i++) {
+          const a = outline[i] as readonly [number, number];
+          const b = outline[(i + 1) % n] as readonly [number, number];
+          if ((a[1] - probe) * (b[1] - probe) > 0) continue;
+          const t = Math.abs(b[1] - a[1]) < 1e-9 ? 0 : (probe - a[1]) / (b[1] - a[1]);
+          const x = a[0] + (b[0] - a[0]) * Math.max(0, Math.min(1, t));
+          x0 = Math.min(x0, x);
+          x1 = Math.max(x1, x);
+          if (Math.abs(b[1] - a[1]) < 1e-9) {
+            x0 = Math.min(x0, a[0], b[0]);
+            x1 = Math.max(x1, a[0], b[0]);
+          }
+        }
+        if (!(x1 - x0 > 0.05)) continue;
+        const mid = (x0 + x1) / 2;
+        const half = (x1 - x0) / 2 - inset;
+        // The band's centre, turned with the piece about its anchor.
+        const cx = at[0] + mid * c;
+        const cz = at[2] - mid * sn;
+        const col: Collider = { min: [cx - half, at[1] + minY, cz - (hz - inset)], max: [cx + half, at[1] + y1, cz + (hz - inset)] };
+        if (Math.abs(sn * c) > 0.002) col.rotY = rot;
+        else if (Math.abs(sn) > 0.7) {
+          col.min = [cx - (hz - inset), at[1] + minY, cz - half];
+          col.max = [cx + (hz - inset), at[1] + y1, cz + half];
+        }
+        this.boxes.push(col);
+      }
     }
     this.track(at[1] + maxY, Math.hypot(at[0], at[2]) + Math.max(Math.abs(minX), Math.abs(maxX), hz));
     return this;
@@ -303,7 +352,15 @@ export class Kit {
     return this;
   }
 
-  /** A flight of steps climbing in +X. */
+  /**
+   * A flight of steps. `at` is the centre of the lowest step at its foot; the flight climbs `count` steps
+   * of `rise` in the `facing` direction, each `run` deep and `width` across. A negative `rise` means the
+   * flight goes *down* in that direction from `at` (steps to the water), and is built as the same stair
+   * seen from the other end.
+   *
+   * The collider is a real staircase: each visible step is a solid block whose top matches it, and a step
+   * taller than the player can walk up is sliced into low risers inside its own footprint.
+   */
   steps(
     at: readonly [number, number, number],
     count: number,
@@ -312,29 +369,46 @@ export class Kit {
     width: number,
     color: number,
     place: Placement = {},
+    facing: Facing = 'x+',
   ): this {
-    for (let i = 0; i < count; i++) {
-      this.box(
-        [run, rise * (i + 1), width],
-        [at[0] + i * run, at[1] + (rise * (i + 1)) / 2, at[2]],
-        color,
-        { ...place, collide: false },
-      );
+    if (rise < 0) {
+      const opposite: Record<Facing, Facing> = { 'x+': 'x-', 'x-': 'x+', 'z+': 'z-', 'z-': 'z+' };
+      const [fx, fz] = DIRS[facing];
+      const far = (count - 1) * run;
+      return this.steps([at[0] + fx * far, at[1] + rise * count, at[2] + fz * far], count, -rise, run, width, color, place, opposite[facing]);
     }
-    // The collider has to be something the player can actually climb. Each visible step becomes a
-    // solid block whose top matches it; a step taller than the player's step-up (about 0.68 m) is
-    // sliced into low risers inside its own footprint, so a tall stair still reads as a stair to the
-    // eye but walks like a ramp. (This used to be one slab only 0.6 of a step high, which let people
-    // walk straight through the stairs and then stopped them dead at the wall above.)
-    if (rise > 0) {
-      const slices = Math.max(1, Math.ceil(rise / 0.55));
-      for (let i = 0; i < count; i++) {
-        for (let j = 0; j < slices; j++) {
-          const x0 = at[0] + (i - 0.5) * run + (j * run) / slices;
-          const x1 = x0 + run / slices;
-          const top = at[1] + rise * i + (rise * (j + 1)) / slices;
-          this.addBoxCollider([x0, at[1], at[2] - width / 2], [x1, top, at[2] + width / 2], 0);
-        }
+    const [dx, dz] = DIRS[facing];
+    const alongX = dx !== 0;
+    /** A block from the flight's base up to `top`, covering [a, b] metres along the climb. */
+    const span = (a: number, b: number): { min: [number, number]; max: [number, number]; mid: [number, number]; size: [number, number] } => {
+      const c0 = [at[0] + dx * a, at[2] + dz * a];
+      const c1 = [at[0] + dx * b, at[2] + dz * b];
+      const half = width / 2;
+      const minX = alongX ? Math.min(c0[0] as number, c1[0] as number) : at[0] - half;
+      const maxX = alongX ? Math.max(c0[0] as number, c1[0] as number) : at[0] + half;
+      const minZ = alongX ? at[2] - half : Math.min(c0[1] as number, c1[1] as number);
+      const maxZ = alongX ? at[2] + half : Math.max(c0[1] as number, c1[1] as number);
+      return { min: [minX, minZ], max: [maxX, maxZ], mid: [(minX + maxX) / 2, (minZ + maxZ) / 2], size: [maxX - minX, maxZ - minZ] };
+    };
+
+    for (let i = 0; i < count; i++) {
+      const s = span((i - 0.5) * run, (i + 0.5) * run);
+      const h = rise * (i + 1);
+      this.box([s.size[0], h, s.size[1]], [s.mid[0], at[1] + h / 2, s.mid[1]], color, { ...place, rotY: 0, collide: false });
+    }
+
+    // Where the flight tops out, and a point just past it: the world checks there is floor to step onto.
+    const topY = at[1] + rise * count;
+    const last = (count - 1) * run;
+    this.marker('stair:top', [at[0] + dx * last, topY, at[2] + dz * last]);
+    this.marker('stair:beyond', [at[0] + dx * (last + run / 2 + 1.2), topY, at[2] + dz * (last + run / 2 + 1.2)]);
+
+    const slices = Math.max(1, Math.ceil(rise / 0.55));
+    for (let i = 0; i < count; i++) {
+      for (let j = 0; j < slices; j++) {
+        const s = span((i - 0.5) * run + (j * run) / slices, (i - 0.5) * run + ((j + 1) * run) / slices);
+        const top = at[1] + rise * i + (rise * (j + 1)) / slices;
+        this.addBoxCollider([s.min[0], at[1], s.min[1]], [s.max[0], top, s.max[1]], 0);
       }
     }
     return this;
@@ -485,18 +559,30 @@ export class Kit {
     place: Placement,
     collide: boolean,
     size: readonly [number, number, number],
+    round = false,
   ): void {
     this.pushRaw(geo, at, color, place);
     if (collide) {
-      // Rotated pieces get an enclosing AABB — a slight overestimate, which is
-      // the right trade: you never fall through a wall, you just stop a little early.
       const rot = place.rotY ?? 0;
-      const c = Math.abs(Math.cos(rot));
-      const s = Math.abs(Math.sin(rot));
-      const hx = (size[0] * c + size[2] * s) / 2;
-      const hz = (size[0] * s + size[2] * c) / 2;
       const hy = size[1] / 2;
-      this.addBoxCollider([at[0] - hx, at[1] - hy, at[2] - hz], [at[0] + hx, at[1] + hy, at[2] + hz], place.inset ?? 0);
+      const inset = Math.max(0, place.inset ?? 0);
+      if (round && size[0] >= 2) {
+        // Something round collides as a circle, not as its bounding square: no invisible corners.
+        const h = size[0] / 2 - inset;
+        this.boxes.push({ min: [at[0] - h, at[1] - hy, at[2] - h], max: [at[0] + h, at[1] + hy, at[2] + h], round: true });
+      } else {
+        // The box as it stands, with its own yaw: the world collides against the turned rectangle.
+        const hx = size[0] / 2 - inset;
+        const hz = size[2] / 2 - inset;
+        const c: Collider = { min: [at[0] - hx, at[1] - hy, at[2] - hz], max: [at[0] + hx, at[1] + hy, at[2] + hz] };
+        if (Math.abs(Math.sin(rot) * Math.cos(rot)) > 0.002) c.rotY = rot;
+        else if (Math.abs(Math.sin(rot)) > 0.7) {
+          // A quarter turn: still axis-aligned, with the sides swapped.
+          c.min = [at[0] - hz, at[1] - hy, at[2] - hx];
+          c.max = [at[0] + hz, at[1] + hy, at[2] + hx];
+        }
+        this.boxes.push(c);
+      }
     }
     this.track(at[1] + size[1] / 2, Math.hypot(at[0], at[2]) + Math.max(size[0], size[2]) / 2);
   }

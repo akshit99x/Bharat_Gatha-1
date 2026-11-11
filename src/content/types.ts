@@ -133,6 +133,8 @@ export interface Landmark {
   opts?: Record<string, number | string | boolean>;
   /** Show the name as a floating label when nearby. */
   signposted?: boolean;
+  /** Stand on top of whatever earlier landmark is under this spot (a tower on a fort's summit). */
+  stack?: boolean;
 }
 
 // ---------------------------------------------------------------- challenges

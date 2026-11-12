@@ -1,0 +1,41 @@
+// Needs Playwright, the API (npm run api:dev) and the game (npm run dev). Run: node scripts/tests/dashboard.mjs
+import { chromium } from 'playwright';
+const shots = '/tmp';
+const API = process.env.API || 'http://127.0.0.1:8000';
+const j = async (path, opts = {}) => { const r = await fetch(API + path, { method: opts.method || 'GET', headers: { 'Content-Type': 'application/json', ...(opts.token ? { Authorization: 'Bearer ' + opts.token } : {}) }, body: opts.body ? JSON.stringify(opts.body) : undefined }); const t = await r.text(); return { status: r.status, body: t ? JSON.parse(t) : null }; };
+const now = Date.now();
+const profile = (o) => ({ version: 4, createdAt: now - 1e9, updatedAt: now, playerName: 'Yatri', vidya: o.vidya, codex: o.codex || [], zones: o.zones || {}, quests: {}, story: { plaques: o.plaques || {}, panels: o.panels || [], openPicks: o.open || 0, comfortPicks: o.comfort || 0, sabhaDone: false, twelfth: null }, questions: o.questions || {}, stats: { quizAsked: o.asked, quizRight: o.right, challengesDone: 3, distanceWalked: 1, playSeconds: o.secs || 3600, landmarksScanned: 1 } });
+const cls = (await j('/api/classes', { method: 'POST', body: { name: 'Class 8B · History 2026' } })).body;
+const mk = async (nick, p) => { const s = (await j(`/api/classes/${cls.code}/join`, { method: 'POST', body: { nickname: nick } })).body; if (p) await j('/api/me/progress', { method: 'PUT', token: s.student_code, body: { profile: p } }); return s; };
+const sindhu = { discovered: true, challenges: ['sindhu-weights', 'sindhu-drains', 'sindhu-seals'], sealed: true, bestSeal: 80 };
+await mk('Asha', profile({ vidya: 640, asked: 40, right: 33, codex: ['indus-townplan', 'indus-greatbath', 'indus-seals'], zones: { sindhu }, panels: ['sindhu'], plaques: { 'sindhu-massacre': { done: true, tries: 1 }, 'sindhu-unplanned': { done: true, tries: 3 } }, questions: { 'gen:century:1': { seen: 8, right: 7 }, 'gen:evidence:1': { seen: 8, right: 6 } }, open: 4, comfort: 1 }));
+await mk('Ravi K', profile({ vidya: 220, asked: 25, right: 9, zones: { sindhu: { discovered: true, challenges: ['sindhu-weights'], sealed: false, bestSeal: 0 } }, plaques: { 'sindhu-unplanned': { done: false, tries: 6 } }, questions: { 'gen:century:2': { seen: 10, right: 3 }, 'gen:evidence:2': { seen: 9, right: 2 } }, open: 1, comfort: 7 }));
+await mk('Meera', profile({ vidya: 90, asked: 4, right: 3, zones: { sindhu: { discovered: true, challenges: [], sealed: false } }, questions: { 'gen:region:1': { seen: 4, right: 3 } } }));
+await mk('Joined only');
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1280, height: 1500 } });
+const errors = []; page.on('pageerror', (e) => errors.push('PAGEERROR ' + e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
+// served by the API's own static route? No: by vite (public/teacher). Use the dev server so /api is proxied.
+await page.goto('http://127.0.0.1:5173/teacher/index.html'); await page.waitForTimeout(800);
+await page.screenshot({ path: `${shots}/340-teacher-welcome.png` });
+await page.fill('#openCode', cls.code); await page.fill('#openToken', 'wrong'); await page.click('#openForm button'); await page.waitForTimeout(600);
+console.log('wrong token ->', await page.$eval('#openResult', (e) => e.textContent));
+await page.fill('#openToken', cls.teacher_token); await page.click('#openForm button'); await page.waitForSelector('#dash:not(.hide)', { timeout: 8000 });
+await page.waitForTimeout(800);
+console.log('title:', await page.$eval('#dTitle', (e) => e.textContent), '| tiles:', JSON.stringify(await page.$$eval('.tile', (t) => t.map((x) => x.textContent))));
+console.log('rows:', JSON.stringify(await page.$$eval('#roster tbody tr', (r) => r.map((x) => [x.cells[0].textContent, x.cells[3].textContent, x.cells[5].textContent.slice(0, 70)]))));
+// add a hard-to-read question, then an easy one
+await page.click('details.add summary');
+await page.selectOption('#qZone', 'sindhu');
+await page.fill('#qStem', 'Notwithstanding considerable historiographical disagreement, which settlement demonstrated municipal sophistication?');
+await page.fill('#qO0', 'Mohenjo-daro'); await page.fill('#qO1', 'Lothal'); await page.fill('#qExplain', 'Archaeological investigations demonstrate extraordinarily sophisticated hydraulic infrastructure.');
+await page.click('#qForm button.primary'); await page.waitForTimeout(800);
+console.log('hard question ->', await page.$eval('#qResult', (e) => e.textContent));
+await page.fill('#qStem', 'Which Indus city had a Great Bath on its citadel?'); await page.fill('#qO0', 'Mohenjo-daro'); await page.fill('#qO1', 'Lothal'); await page.fill('#qExplain', 'The Great Bath stands on the citadel mound at Mohenjo-daro.');
+await page.click('#qForm button.primary'); await page.waitForTimeout(800);
+console.log('easy question ->', await page.$eval('#qResult', (e) => e.textContent), '| listed:', await page.$$eval('#qlist details', (d) => d.length));
+await page.screenshot({ path: `${shots}/341-teacher-dash.png`, fullPage: true });
+const [download] = await Promise.all([page.waitForEvent('download'), page.click('#csv')]);
+console.log('csv file:', download.suggestedFilename());
+console.log(errors.join('\n') || 'no page errors');
+await browser.close();

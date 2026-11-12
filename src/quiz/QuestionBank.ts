@@ -53,9 +53,20 @@ const COOLDOWN_MINUTES = 12;
 export class QuestionBank {
   private readonly save: SaveStore;
   private drawCounter = 0;
+  /** The class's own questions, added by a teacher (see src/net/Cloud.ts). */
+  private extra: Question[] = [];
 
   constructor(save: SaveStore) {
     this.save = save;
+  }
+
+  /** Questions a teacher has added for this class. They are drawn alongside the authored ones. */
+  setClassQuestions(list: Question[]): void {
+    this.extra = list;
+  }
+
+  get classQuestionCount(): number {
+    return this.extra.length;
   }
 
   /** How many authored questions exist for a zone. */
@@ -116,7 +127,8 @@ export class QuestionBank {
 
   private pickAuthored(rng: Rng, zoneId: string | null, count: number, exclude: Set<string>): Question[] {
     if (count <= 0) return [];
-    const base = zoneId ? [...questionsForZone(zoneId), ...questionsForZone('general')] : QUESTIONS;
+    const own = zoneId ? this.extra.filter((q) => q.zoneId === zoneId || q.zoneId === 'general') : this.extra;
+    const base = zoneId ? [...questionsForZone(zoneId), ...questionsForZone('general'), ...own] : [...QUESTIONS, ...own];
     const candidates = base.filter((q) => !exclude.has(q.id));
     if (candidates.length === 0) return [];
 
@@ -197,7 +209,7 @@ export class QuestionBank {
   /** Per-skill accuracy across everything answered so far. */
   skillBreakdown(): Array<{ skill: string; asked: number; right: number; accuracy: number }> {
     const map = new Map<string, { asked: number; right: number }>();
-    const skillOf = new Map(QUESTIONS.map((q) => [q.id, q.skill]));
+    const skillOf = new Map([...QUESTIONS, ...this.extra].map((q) => [q.id, q.skill]));
 
     for (const [id, rec] of Object.entries(this.save.profile.questions)) {
       // Generated ids encode their generator, which maps onto a skill name.

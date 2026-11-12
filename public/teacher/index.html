@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bharat Gatha · Teacher dashboard</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--ink:#0b0a10;--stone:#1d1a26;--stone2:#2a2534;--parchment:#f3e7cf;--dim:#cdbfa5;--gold:#e8b44b;--gold2:#f0cf8e;--bright:#ffd97a;--leaf:#76bb5a;--red:#e05252;--teal:#37b2a4;--line:rgb(255 255 255/.09)}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:radial-gradient(120% 90% at 50% 0%,#2a2038 0%,#14111c 50%,#09080e 100%) fixed;color:var(--parchment);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+a{color:var(--gold2)}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.9rem clamp(1rem,4vw,2.5rem);border-bottom:1px solid var(--line);background:rgb(0 0 0/.3)}
+.brand{display:flex;align-items:baseline;gap:.7rem}
+.brand b{font:700 1.15rem Georgia,serif;letter-spacing:.08em;color:var(--gold2)}
+.brand span{color:var(--dim);font-size:.85rem}
+main{max-width:1180px;margin:0 auto;padding:1.4rem clamp(1rem,4vw,2.5rem) 4rem}
+h1,h2,h3{font-family:Georgia,serif;font-weight:700;margin:0 0 .6rem}
+h1{font-size:1.7rem;color:var(--gold2)} h2{font-size:1.2rem;color:var(--gold2);margin-top:2.2rem;letter-spacing:.03em} h3{font-size:1rem}
+p{margin:0 0 .8rem} .dim{color:var(--dim)} small{color:var(--dim)}
+.card{background:linear-gradient(180deg,#191622,#120f19);border:1px solid rgb(232 180 75/.22);border-radius:14px;padding:1.2rem 1.3rem;margin:0 0 1.1rem}
+.grid2{display:grid;gap:1.1rem;grid-template-columns:1fr 1fr}
+@media(max-width:820px){.grid2{grid-template-columns:1fr}}
+label{display:grid;gap:.3rem;margin:0 0 .85rem;font-size:.82rem;letter-spacing:.07em;text-transform:uppercase;color:var(--gold2)}
+input,select,textarea{width:100%;padding:.65rem .8rem;border:1px solid rgb(255 255 255/.2);border-radius:9px;background:rgb(0 0 0/.35);color:var(--parchment);font:inherit;font-size:1rem;letter-spacing:normal;text-transform:none}
+textarea{min-height:4.5rem;resize:vertical} input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button{font:inherit;cursor:pointer;border-radius:999px;border:1px solid rgb(232 180 75/.55);background:transparent;color:var(--gold2);padding:.55rem 1.1rem}
+button:hover{background:rgb(232 180 75/.12)} button.primary{background:linear-gradient(180deg,#ff9a4a,#e8b44b);color:#1a1426;border-color:transparent;font-weight:700}
+button.danger{border-color:rgb(224 82 82/.6);color:#ff9a9a} button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
+.msg{margin:.5rem 0 1rem;padding:.65rem .85rem;border-radius:9px;border:1px solid var(--line);background:rgb(255 255 255/.05);font-size:.93rem}
+.msg.bad{border-color:rgb(224 82 82/.6);background:rgb(224 82 82/.12)} .msg.good{border-color:rgb(118 187 90/.6)} .msg.warn{border-color:rgb(232 180 75/.6);background:rgb(232 180 75/.1)}
+.big{font:700 2.1rem ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;color:var(--bright);text-align:center;padding:.8rem;border:2px dashed rgb(232 180 75/.6);border-radius:14px;background:rgb(232 180 75/.07);user-select:all}
+.tiles{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:0 0 1.2rem}
+.tile{padding:.9rem 1rem;border:1px solid var(--line);border-radius:12px;background:rgb(255 255 255/.04)}
+.tile b{display:block;font:700 1.8rem Georgia,serif;color:var(--gold)} .tile span{font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:var(--dim)}
+table{width:100%;border-collapse:collapse;font-size:.92rem} th,td{padding:.55rem .6rem;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);font-weight:600;white-space:nowrap} td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.bar{height:.55rem;border-radius:99px;background:rgb(255 255 255/.12);overflow:hidden;min-width:90px} .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal),var(--leaf))}
+.bar.low i{background:linear-gradient(90deg,#e05252,#e8b44b)}
+.flag{display:inline-block;margin:.1rem .25rem .1rem 0;padding:.1rem .55rem;border-radius:99px;font-size:.78rem;background:rgb(232 180 75/.15);border:1px solid rgb(232 180 75/.45)}
+.heat{display:grid;gap:3px;grid-auto-flow:row;font-size:.78rem}
+.cell{width:100%;min-width:34px;height:26px;border-radius:5px;display:grid;place-items:center;font-size:.72rem;color:#101018;font-weight:700}
+.hide{display:none!important} .dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.35rem}
+details.q{border:1px solid var(--line);border-radius:10px;margin:.5rem 0;background:rgb(255 255 255/.03)} details.q summary{padding:.6rem .8rem;cursor:pointer}
+details.q .body{padding:0 .8rem .8rem}
+.pill{padding:.05rem .5rem;border-radius:99px;border:1px solid var(--line);font-size:.78rem;color:var(--dim)}
+@media print{header.top,button,form,details.add{display:none!important}body{background:#fff;color:#000}.card,.tile{border-color:#999;background:#fff}h1,h2,.tile b,th{color:#000}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><b>BHARAT GATHA</b><span>Teacher dashboard</span></div>
+  <div class="row"><a href="../">← Back to the game</a><button id="signout" class="hide">Sign out</button></div>
+</header>
+<main>
+
+<!-- Sign in / make a class -->
+<section id="welcome">
+  <h1>Your class, at a glance</h1>
+  <p class="dim">See how your students are getting on in Bharat Gatha: which chapters they have finished, which topics need practice, and which claims in the history they find hardest. Students use a nickname, never a real name, and only you can see your class.</p>
+  <div id="serverNote"></div>
+  <div class="grid2">
+    <form class="card" id="makeForm">
+      <h2 style="margin-top:0">Make a class</h2>
+      <label>Class name<input id="className" maxlength="80" placeholder="e.g. Class 8B, History, 2026" required></label>
+      <button class="primary" type="submit">Make the class</button>
+      <div id="makeResult"></div>
+    </form>
+    <form class="card" id="openForm">
+      <h2 style="margin-top:0">Open a class</h2>
+      <label>Class code<input id="openCode" maxlength="8" placeholder="6 letters and numbers" autocomplete="off" spellcheck="false" required></label>
+      <label>Teacher token<input id="openToken" type="password" placeholder="The long token from when you made it" autocomplete="off" required></label>
+      <button class="primary" type="submit">Open</button>
+      <div id="openResult"></div>
+    </form>
+  </div>
+</section>
+
+<!-- The dashboard -->
+<section id="dash" class="hide">
+  <div class="row" style="justify-content:space-between;align-items:flex-end">
+    <div><h1 id="dTitle">Class</h1><p class="dim" id="dSub"></p></div>
+    <div class="row"><button id="refresh">Refresh</button><button id="csv">Download spreadsheet</button><button id="print">Print</button></div>
+  </div>
+  <div class="card">
+    <div class="grid2">
+      <div><h3 style="margin:0 0 .4rem">Tell your students</h3>
+        <p class="dim">In the game, on the title screen, choose <b>Join a class</b> and type this code and a nickname.</p></div>
+      <div class="big" id="dCode" aria-label="Class code"></div>
+    </div>
+  </div>
+  <div id="tiles" class="tiles"></div>
+
+  <h2>Students</h2>
+  <div class="card scroll"><table id="roster"><thead><tr><th>Nickname</th><th class="num">Vidya</th><th class="num">Panels</th><th class="num">Accuracy</th><th>Last played</th><th>Worth a look</th><th></th></tr></thead><tbody></tbody></table><p class="dim" id="rosterEmpty">No students yet. Share the class code above.</p></div>
+
+  <h2>Chapter progress</h2>
+  <p class="dim">Each square is one student in one chapter, from 0% to 100% of what that chapter asks (scanning, challenges, plaques, sealing and restoring the panel).</p>
+  <div class="card scroll" id="heatWrap"></div>
+
+  <div class="grid2">
+    <div><h2>Skills, weakest first</h2><div class="card" id="skills"></div></div>
+    <div><h2>Claims the class finds hardest</h2><div class="card" id="plaques"></div></div>
+  </div>
+
+  <h2>Your own questions</h2>
+  <p class="dim">Questions you add join the quiz for everyone in this class, alongside the game’s own. They are written for 12 to 16 year olds, so the dashboard checks how hard each one is to read.</p>
+  <div class="card"><div id="qlist"></div>
+    <details class="add" style="margin-top:1rem"><summary style="cursor:pointer;color:var(--gold2)">Add a question</summary>
+      <form id="qForm" style="margin-top:.9rem">
+        <div class="grid2">
+          <label>Region<select id="qZone"></select></label>
+          <label>Difficulty<select id="qDiff"><option value="1">1 · Recall</option><option value="2" selected>2 · Understanding</option><option value="3">3 · Analysis</option></select></label>
+        </div>
+        <label>Question<textarea id="qStem" maxlength="300" required placeholder="Which … ?"></textarea></label>
+        <div id="qOpts"></div>
+        <label>Why it is right (shown after they answer)<textarea id="qExplain" maxlength="500" required></textarea></label>
+        <label>Skill it practises<input id="qSkill" list="skillList" maxlength="60" value="Class question"><datalist id="skillList"></datalist></label>
+        <div class="row"><button class="primary" type="submit">Add question</button><span class="dim" id="qNote"></span></div>
+        <div id="qResult"></div>
+      </form>
+    </details>
+  </div>
+
+  <h2>Privacy and tidying up</h2>
+  <div class="card">
+    <p>Students are identified only by the nickname they chose. Remove a student with the button in the table above, and everything saved for them is erased. You can erase the whole class and every student’s saved progress at any time.</p>
+    <p class="dim">Classes nobody has used for a year are erased automatically.</p>
+    <button class="danger" id="delClass">Erase this class and all its data</button>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const API = ''; // same address as this page; the API sets CORS if it is elsewhere
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+  const store = { get() { try { return JSON.parse(localStorage.getItem('bg-teacher') || 'null'); } catch { return null; } }, set(v) { try { v ? localStorage.setItem('bg-teacher', JSON.stringify(v)) : localStorage.removeItem('bg-teacher'); } catch {} } };
+  let cls = store.get(), content = null, timer = null, last = null;
+
+  async function api(path, { method = 'GET', body, auth = true, raw = false } = {}) {
+    const res = await fetch(API + path, { method, headers: { 'Content-Type': 'application/json', ...(auth && cls ? { Authorization: 'Bearer ' + cls.token } : {}) }, body: body ? JSON.stringify(body) : undefined });
+    if (res.status === 204) return null;
+    if (raw && res.ok) return res;
+    let data = null; try { data = await res.json(); } catch {}
+    if (!res.ok) {
+      const d = data && (data.error || data.detail);
+      let msg = d && d.message ? d.message : null;
+      if (!msg && Array.isArray(d)) msg = d.map((x) => (x.msg || '').replace(/^Value error, /, '')).filter(Boolean).join(' ');
+      const e = new Error(msg || `Something went wrong (${res.status}).`); e.status = res.status; throw e;
+    }
+    return data;
+  }
+  const say = (target, text, kind = 'bad') => { target.replaceChildren(); if (text) { const m = el('div', 'msg ' + kind, text); m.setAttribute('role', kind === 'bad' ? 'alert' : 'status'); target.append(m); } };
+  const pct = (x) => (x === null || x === undefined ? '–' : Math.round(x * 100) + '%');
+  const ago = (ms) => { if (!ms) return 'never'; const d = (Date.now() - ms) / 86400000; return d < 1 ? 'today' : d < 2 ? 'yesterday' : `${Math.floor(d)} days ago`; };
+  const colour = (f) => `hsl(${Math.round(8 + 120 * f)} ${f === 0 ? 0 : 55}% ${f === 0 ? 30 : 55}%)`;
+
+  // ---- start
+  async function boot() {
+    try { const h = await api('/api/health', { auth: false }); if (h.storage === 'ephemeral') say($('serverNote'), 'This server is running without a database, so classes will be forgotten when it restarts. It is fine for a trial; before real use, the person who set it up should connect a database (see docs/BACKEND.md).', 'warn'); }
+    catch { say($('serverNote'), 'Could not reach the server. If you opened this file directly from your computer, open it from the game’s web address instead.', 'bad'); }
+    try { content = await api('/api/content', { auth: false }); } catch {}
+    if (content) {
+      $('qZone').replaceChildren(...[['general', 'Any region (general)'], ...content.zones.map((z) => [z.id, `Chapter ${z.chapter} · ${z.name}`])].map(([v, t]) => { const o = el('option', '', t); o.value = v; return o; }));
+      $('skillList').replaceChildren(...content.skills.map((s) => { const o = el('option'); o.value = s; return o; }));
+    }
+    $('qOpts').replaceChildren(...[0, 1, 2, 3].map((i) => { const l = el('label'); l.append(el('span', '', `Option ${i + 1}${i < 2 ? '' : ' (optional)'}`)); const row = el('div', 'row'); const t = el('input'); t.id = 'qO' + i; t.maxLength = 160; t.required = i < 2; t.style.flex = '1'; const r = el('input'); r.type = 'radio'; r.name = 'qAns'; r.value = i; r.checked = i === 0; r.style.width = 'auto'; r.setAttribute('aria-label', `Option ${i + 1} is the right answer`); row.append(t, r, el('small', '', i === 0 ? '← right answer' : '')); l.append(row); return l; }));
+    cls ? open() : show('welcome');
+  }
+  function show(which) { $('welcome').classList.toggle('hide', which !== 'welcome'); $('dash').classList.toggle('hide', which !== 'dash'); $('signout').classList.toggle('hide', which !== 'dash'); }
+
+  $('makeForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); const out = $('makeResult'); say(out, '');
+    try {
+      const r = await api('/api/classes', { method: 'POST', body: { name: $('className').value }, auth: false });
+      cls = { code: r.code, name: r.name, token: r.teacher_token }; store.set(cls);
+      out.replaceChildren(el('div', 'msg good', 'Your class is ready. Keep the teacher token somewhere safe: it is the only way back in, and it cannot be recovered.'), el('div', 'big', r.code));
+      const tok = el('div', 'msg warn'); tok.append(el('b', '', 'Teacher token: '), el('code', '', r.teacher_token)); out.append(tok);
+      const dl = el('button', '', 'Download the code and token as a text file'); dl.type = 'button';
+      dl.onclick = () => { const a = el('a'); a.href = URL.createObjectURL(new Blob([`Bharat Gatha class: ${r.name}\nClass code (give to students): ${r.code}\nTeacher token (keep private): ${r.teacher_token}\nDashboard: ${location.href}\n`], { type: 'text/plain' })); a.download = `bharat-gatha-${r.code}.txt`; a.click(); };
+      const go = el('button', 'primary', 'Open the dashboard'); go.type = 'button'; go.onclick = open;
+      const row = el('div', 'row'); row.append(dl, go); out.append(row);
+    } catch (err) { say(out, err.status === 429 ? 'Too many classes made from here just now. Wait a while and try again.' : err.message); }
+  });
+  $('openForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); const out = $('openResult'); say(out, '');
+    cls = { code: $('openCode').value.trim().toUpperCase().replace(/[\s-]/g, ''), token: $('openToken').value.trim() };
+    try { await api(`/api/classes/${cls.code}/report`); store.set(cls); open(); } catch (err) { cls = null; say(out, err.status === 403 ? 'That token does not match this class code.' : err.message); }
+  });
+  $('signout').onclick = () => { store.set(null); cls = null; clearInterval(timer); show('welcome'); };
+
+  // ---- dashboard
+  async function open() { show('dash'); await load(); clearInterval(timer); timer = setInterval(() => { if (!document.hidden) load(true); }, 30000); }
+  $('refresh').onclick = () => load();
+  $('print').onclick = () => window.print();
+  $('csv').onclick = async () => { try { const r = await api(`/api/classes/${cls.code}/report.csv`, { raw: true }); const a = el('a'); a.href = URL.createObjectURL(await r.blob()); a.download = `bharat-gatha-${cls.code}.csv`; a.click(); } catch (e) { alert(e.message); } };
+
+  async function load(quiet) {
+    try {
+      const r = await api(`/api/classes/${cls.code}/report`); last = r; render(r);
+      if (!quiet) { const qs = await api(`/api/classes/${cls.code}/questions`); renderQuestions(qs); }
+    } catch (e) { if (e.status === 403 || e.status === 404) { store.set(null); cls = null; show('welcome'); say($('openResult'), e.message); } else if (!quiet) alert(e.message); }
+  }
+
+  function render(r) {
+    $('dTitle').textContent = r.class.name; $('dCode').textContent = r.class.code;
+    $('dSub').textContent = `${r.students} student${r.students === 1 ? '' : 's'} · ${r.synced} with saved progress · updated ${new Date().toLocaleTimeString()}`;
+    const tiles = [[r.students, 'Students'], [r.activeThisWeek, 'Played this week'], [r.averageVidya, 'Average Vidya'], [pct(r.averageAccuracy), 'Quiz accuracy'], [r.chaptersRestored, 'Panels restored'], [r.needAttention, 'Worth a look']];
+    $('tiles').replaceChildren(...tiles.map(([v, l]) => { const t = el('div', 'tile'); t.append(el('b', '', String(v)), el('span', '', l)); return t; }));
+
+    const tb = $('roster').tBodies[0]; tb.replaceChildren();
+    $('rosterEmpty').classList.toggle('hide', r.roster.length > 0); $('roster').classList.toggle('hide', r.roster.length === 0);
+    for (const s of r.roster) {
+      const tr = el('tr'); const sm = s.summary;
+      tr.append(el('td', '', s.nickname), el('td', 'num', sm ? String(sm.vidya) : '–'), el('td', 'num', sm ? `${sm.chaptersRestored}/11` : '–'), el('td', 'num', sm ? pct(sm.accuracy) : '–'), el('td', '', ago(s.lastSeen)));
+      const f = el('td'); if (!sm) f.append(el('span', 'dim', 'Joined; no progress saved yet')); else if (!s.flags.length) f.append(el('span', 'dim', '—')); else s.flags.forEach((x) => f.append(el('span', 'flag', x))); tr.append(f);
+      const act = el('td'); const rm = el('button', 'danger', 'Remove'); rm.style.padding = '.2rem .7rem'; rm.onclick = async () => { if (!confirm(`Remove ${s.nickname} and erase everything saved for them?`)) return; try { await api(`/api/classes/${cls.code}/students/${s.id}`, { method: 'DELETE' }); load(); } catch (e) { alert(e.message); } }; act.append(rm); tr.append(act);
+      tb.append(tr);
+    }
+
+    // heat map: students down, chapters across
+    const wrap = $('heatWrap'); wrap.replaceChildren();
+    if (!r.synced) { wrap.append(el('p', 'dim', 'Nothing to show until a student has saved progress.')); }
+    else {
+      const t = el('table'); const hd = el('tr'); hd.append(el('th', '', 'Student'));
+      r.chapters.forEach((c) => { const th = el('th', 'num', String(c.chapter)); th.title = c.name; hd.append(th); }); t.append(hd);
+      for (const s of r.roster.filter((x) => x.summary)) { const tr = el('tr'); tr.append(el('td', '', s.nickname)); for (const c of s.summary.chapters) { const td = el('td'); const cell = el('div', 'cell', c.fraction ? Math.round(c.fraction * 100) + '' : ''); cell.style.background = colour(c.fraction); cell.title = `${c.name}: ${Math.round(c.fraction * 100)}%${c.restored ? ' · panel restored' : ''}`; td.append(cell); tr.append(td); } t.append(tr); }
+      const foot = el('tr'); foot.append(el('th', '', 'Class average')); r.chapters.forEach((c) => foot.append(el('th', 'num', Math.round(c.avgProgress * 100) + '%'))); t.append(foot);
+      wrap.append(t); wrap.append(el('small', '', 'Chapters 1–11 in story order. Hover a square for the chapter name.'));
+    }
+
+    const sk = $('skills'); sk.replaceChildren();
+    if (!r.skills.length) sk.append(el('p', 'dim', 'No quiz answers yet.'));
+    r.skills.forEach((s) => { const row = el('div'); row.style.margin = '0 0 .8rem'; const top = el('div', 'row'); top.style.justifyContent = 'space-between'; top.append(el('span', '', s.skill), el('b', '', pct(s.accuracy))); const bar = el('div', 'bar' + (s.accuracy < 0.6 ? ' low' : '')); const i = el('i'); i.style.width = Math.round(s.accuracy * 100) + '%'; bar.append(i); row.append(top, bar, el('small', '', `${s.asked} answers from ${s.students} student${s.students === 1 ? '' : 's'}`)); sk.append(row); });
+
+    const pl = $('plaques'); pl.replaceChildren();
+    if (!r.hardestPlaques.length) pl.append(el('p', 'dim', 'No claims tried yet. These are the plaques students must judge against the evidence.'));
+    r.hardestPlaques.forEach((p) => { const row = el('div'); row.style.margin = '0 0 .8rem'; row.append(el('p', '', '“' + p.claim + '”')); row.lastChild.style.margin = '0'; row.append(el('small', '', `${p.avgTries} ${p.avgTries === 1 ? 'try' : 'tries'} on average · ${p.students} student${p.students === 1 ? '' : 's'}`)); pl.append(row); });
+  }
+
+  // ---- class questions
+  function renderQuestions(qs) {
+    const box = $('qlist'); box.replaceChildren();
+    if (!qs.length) { box.append(el('p', 'dim', 'You have not added any questions yet.')); return; }
+    qs.forEach((q) => {
+      const d = el('details', 'q'); const s = el('summary', '', q.stem); d.append(s);
+      const b = el('div', 'body');
+      const ul = el('ol'); q.options.forEach((o, i) => { const li = el('li', '', o); if (i === q.answer) { li.style.color = '#9be07a'; li.style.fontWeight = '700'; } ul.append(li); }); b.append(ul);
+      b.append(el('p', 'dim', q.explain));
+      const meta = el('div', 'row'); meta.append(el('span', 'pill', q.zoneId === 'general' ? 'Any region' : q.zoneId), el('span', 'pill', 'Difficulty ' + q.difficulty), el('span', 'pill', q.skill), el('span', 'pill', 'Reads at grade ' + (q.readingGrade ?? '?')));
+      b.append(meta); q.warnings.forEach((w) => b.append(el('div', 'msg warn', w)));
+      const del = el('button', 'danger', 'Delete'); del.style.marginTop = '.6rem'; del.onclick = async () => { if (!confirm('Delete this question?')) return; try { await api(`/api/classes/${cls.code}/questions/${q.id.split(':')[1]}`, { method: 'DELETE' }); load(); } catch (e) { alert(e.message); } };
+      b.append(del); d.append(b); box.append(d);
+    });
+  }
+  $('qForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); const out = $('qResult'); say(out, '');
+    const options = [0, 1, 2, 3].map((i) => $('qO' + i).value.trim()).filter(Boolean);
+    let answer = Number(document.querySelector('input[name=qAns]:checked').value);
+    const filled = [0, 1, 2, 3].filter((i) => $('qO' + i).value.trim()); answer = filled.indexOf(answer);
+    if (answer < 0) return say(out, 'Choose a right answer that has text in it.');
+    try {
+      const q = await api(`/api/classes/${cls.code}/questions`, { method: 'POST', body: { zone_id: $('qZone').value, difficulty: Number($('qDiff').value), stem: $('qStem').value, options, answer, explain: $('qExplain').value, skill: $('qSkill').value || 'Class question' } });
+      say(out, q.warnings.length ? 'Added. ' + q.warnings[0] : 'Added. Your students will see it in their next quiz.', q.warnings.length ? 'warn' : 'good');
+      $('qStem').value = ''; $('qExplain').value = ''; [0, 1, 2, 3].forEach((i) => ($('qO' + i).value = '')); load();
+    } catch (err) { say(out, err.message); }
+  });
+
+  $('delClass').onclick = async () => { const name = prompt(`This erases the class “${cls.name || cls.code}”, every student in it and all their saved progress. It cannot be undone.\n\nType the class code (${cls.code}) to confirm.`); if (!name || name.trim().toUpperCase() !== cls.code) return; try { await api(`/api/classes/${cls.code}`, { method: 'DELETE' }); store.set(null); cls = null; clearInterval(timer); show('welcome'); } catch (e) { alert(e.message); } };
+
+  boot();
+})();
+</script>
+</body>
+</html>

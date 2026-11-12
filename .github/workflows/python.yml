@@ -1,0 +1,28 @@
+name: Python tests
+
+# The optional teacher API (server/) and the tools. The game's own deploy is in deploy.yml.
+
+on:
+  push:
+    paths: ['server/**', 'tools/**', 'tests/**', 'api/**', 'requirements*.txt', 'pyproject.toml', 'public/teacher/**']
+  pull_request:
+    paths: ['server/**', 'tools/**', 'tests/**', 'api/**', 'requirements*.txt', 'pyproject.toml', 'public/teacher/**']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest

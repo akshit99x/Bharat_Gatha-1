@@ -312,6 +312,19 @@ export class SaveStore {
     }, 1200);
   }
 
+  private flushListeners: Array<(profile: Profile) => void> = [];
+
+  /** Run `fn` after every write to storage (the class connection uses this to sync). */
+  onFlush(fn: (profile: Profile) => void): void {
+    this.flushListeners.push(fn);
+  }
+
+  /** Replace the whole profile (restoring from the cloud). */
+  replaceProfile(profile: Profile): void {
+    this.data = { ...emptyProfile(), ...profile, settings: { ...DEFAULT_SETTINGS, ...(profile.settings ?? {}) } };
+    this.flush();
+  }
+
   flush(): void {
     this.data.updatedAt = Date.now();
     try {
@@ -319,6 +332,7 @@ export class SaveStore {
     } catch (err) {
       console.warn('[Save] could not persist profile', err);
     }
+    for (const fn of this.flushListeners) fn(this.data);
   }
 
   reset(): void {

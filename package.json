@@ -12,7 +12,11 @@
     "voices:script": "node scripts/voices.mjs script",
     "voices:import": "node scripts/voices.mjs import",
     "voices:manifest": "node scripts/voices.mjs manifest",
-    "voices:check": "node scripts/voices.mjs check"
+    "voices:check": "node scripts/voices.mjs check",
+    "content:export": "node scripts/export-content.mjs",
+    "api:dev": "python3 -m uvicorn server.app:app --reload --port 8000",
+    "api:test": "python3 -m pytest -q",
+    "content:report": "python3 -m tools.content_report"
   },
   "dependencies": {
     "three": "0.169.0"

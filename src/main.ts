@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { Post } from './render/Post';
 import { Waypoint } from './ui/Waypoint';
 import { Coach } from './ui/Coach';
+import { cloud } from './net/Cloud';
+import { presentClassPanel } from './ui/ClassPanel';
 import { Combat, PLAYER_HEARTS } from './combat/Combat';
 import { chapterProgress, journeyAction, nextAction, type NextAction, type NextTarget } from './story/Progress';
 import { hasSeenIntro, presentHowToPlay } from './ui/HowToPlay';
@@ -161,6 +163,11 @@ class Game {
     this.waypoint = new Waypoint(document.getElementById('hud') ?? document.body);
     this.waypoint.setEnabled(save.settings.guide);
     this.coach = new Coach(document.getElementById('hud') ?? document.body);
+    // The optional class connection: every save may be sent to the teacher's server, and the class's own
+    // questions join the quiz. None of it is needed to play.
+    cloud.attach(() => save.profile);
+    save.onFlush((profile) => cloud.schedule(profile));
+    void this.loadClassQuestions();
     bus.on('codex:unlock', () => this.coach.notify('scan'));
     // The conch's second (and only other) moment: a chapter's panel restored to the Gatha.
     bus.on('story:panel', () => window.setTimeout(() => audio.conch(), 600));
@@ -1333,6 +1340,15 @@ class Game {
     const rows = el('div', 'set-groups');
     rows.append(
       group(
+        'My class',
+        cloud.membership ? `${cloud.membership.className}, as ${cloud.membership.nickname}` : 'Join your teacher’s class and save your progress',
+        (() => {
+          const open = button(cloud.membership ? 'Class and cloud save' : 'Join a class', 'btn btn-ghost btn-small');
+          open.addEventListener('click', () => presentClassPanel({ onChange: () => void this.loadClassQuestions() }));
+          return open;
+        })(),
+      ),
+      group(
         'Guidance',
         'The gold marker and the Next step card',
         toggleRow('Gold marker and Next step card', 'Points at what to do next. Press T to switch it on or off any time.', save.settings.guide, (v) => {
@@ -1428,6 +1444,13 @@ class Game {
     foot.append(practice, exportBtn, resume);
     mountOverlay('pause', panel, { onEscape: () => this.resume() });
     resume.focus();
+  }
+
+  /** Fetch the class's own questions (a no-op when not in a class, or offline). */
+  async loadClassQuestions(): Promise<void> {
+    // (Read the bank only after the wait: this is first called from the constructor, before the bank exists.)
+    const list = await cloud.questions();
+    this.bank.setClassQuestions(list);
   }
 
   private showToolbelt(): void {
@@ -1825,6 +1848,32 @@ async function boot(): Promise<void> {
 
   playBtn?.addEventListener('click', () => launch(true));
   continueBtn?.addEventListener('click', () => launch(false));
+  // Classes need a server. Offer the button only where one answers (or the student is already in a class).
+  const classBtn = document.getElementById('btn-class');
+  const classDot = document.getElementById('dot-class');
+  void (async () => {
+    if (!classBtn || !((await cloud.available()) || cloud.membership)) return;
+    const paint = (): void => {
+      classBtn.textContent = cloud.membership ? `Class: ${cloud.membership.className}` : 'Join a class';
+    };
+    paint();
+    classBtn.hidden = false;
+    if (classDot) classDot.hidden = false;
+    classBtn.addEventListener('click', () => presentClassPanel({ onChange: () => { paint(); void game.loadClassQuestions(); } }));
+    // A saved copy in the cloud that is newer than this device's (played elsewhere since): offer it.
+    if (cloud.membership) {
+      try {
+        const saved = await cloud.pull();
+        if (saved && saved.clientUpdatedAt > save.profile.updatedAt + 60_000) {
+          document.getElementById('boot')?.classList.add('has-cloud-news');
+          classBtn.textContent = `${classBtn.textContent} · newer save found`;
+        }
+      } catch {
+        /* offline: nothing to say */
+      }
+    }
+  })();
+
   // First-timers get a nudge toward the guide; it never blocks the game.
   const badge = document.getElementById('howto-badge');
   if (badge && !hasSeenIntro() && !save.hasProgress) badge.hidden = false;

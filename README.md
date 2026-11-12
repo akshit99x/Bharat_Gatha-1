@@ -120,6 +120,14 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
+**For classrooms (optional Python backend).** Teachers can make a class, students join with a class code and a nickname,
+and a dashboard shows who has finished which chapters, which skills need practice and which claims students find hardest.
+Progress is also saved to the cloud, so it follows a student to another device, and teachers can add their own questions
+to the quiz. It is a small FastAPI service in `server/` (Python), with a dashboard at `/teacher/`; the game works without
+it and hides the class features when it cannot reach one. Offline tools in `tools/` report on the game's content (reading
+level, answer-length bias) and turn exported learning records into a spreadsheet. Setup, deployment and privacy:
+[`docs/BACKEND.md`](docs/BACKEND.md). Findings about the content: [`docs/CONTENT_REPORT.md`](docs/CONTENT_REPORT.md).
+
 **Haze shades (combat).** Out in each region's open country stand two grey columns of haze, the Dhundh given
 form. Come near and its shades come at you: press `1` for the bow and left-click to shoot (arrows fly and stick),
 or `Q` to strike close up; step back when one leans in to swing. Five hearts, which come back out of the fight;

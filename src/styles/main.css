@@ -6109,3 +6109,135 @@ body.high-contrast .coach {
     translate: 4px 0;
   }
 }
+
+/* =========================================================================
+   My class
+   ========================================================================= */
+
+.cls-lead {
+  margin: 0 0 0.9rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--parchment);
+}
+
+.cls-field {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0 0 0.9rem;
+}
+
+.cls-field > span {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+.cls-field small {
+  color: var(--parchment-dim);
+  font-size: 0.8rem;
+}
+
+.cls-input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 0.35);
+  color: var(--parchment);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.cls-input.mono,
+.cls-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cls-input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.cls-msg {
+  margin: 0.4rem 0 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.05);
+}
+
+.cls-msg.cls-bad {
+  border-color: rgb(224 82 82 / 0.6);
+  background: rgb(224 82 82 / 0.12);
+}
+
+.cls-msg.cls-good {
+  border-color: rgb(118 187 90 / 0.6);
+}
+
+.cls-code {
+  margin: 0.4rem 0 0.7rem;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--gold-bright);
+  border: 2px dashed rgb(232 180 75 / 0.6);
+  border-radius: var(--radius);
+  background: rgb(232 180 75 / 0.08);
+  user-select: all;
+}
+
+.cls-code.small {
+  margin: 0;
+  padding: 0.3rem 0.7rem;
+  font-size: 1.05rem;
+  border-width: 1px;
+}
+
+.cls-codeline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0.8rem 0;
+  font-size: 0.85rem;
+  color: var(--parchment-dim);
+}
+
+.cls-state {
+  margin: 0.4rem 0;
+  font-size: 0.95rem;
+}
+
+.cls-state[data-state='synced']::before {
+  content: '● ';
+  color: var(--leaf);
+}
+
+.cls-state[data-state='offline']::before,
+.cls-state[data-state='newer-in-cloud']::before {
+  content: '● ';
+  color: var(--gold);
+}
+
+.cls-back {
+  margin-top: 1.1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.cls-back summary {
+  cursor: pointer;
+  color: var(--gold-soft);
+  margin-bottom: 0.7rem;
+}
+
+.cls-danger {
+  color: #ff9a9a;
+}

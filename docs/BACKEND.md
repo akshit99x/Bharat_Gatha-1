@@ -124,6 +124,17 @@ It measures how hard each codex entry and question is to read (Flesch-Kincaid gr
 16), counts questions by region, difficulty and skill, and flags questions that look wrong. See
 [`CONTENT_REPORT.md`](CONTENT_REPORT.md) for the current findings.
 
+**Rewriting quiz options.** `tools/fix_options.py` applies a reviewed JSON file of new options (`{"question-id": [options…]}`)
+to `src/content/questions/*.ts`. It keeps the same number of options and never moves the correct answer, and it writes
+nothing if any entry is wrong. `tools/data/option_fixes.json` is the pass that removed the "longest answer is right" giveaway
+(87% of questions before, 32% after, against 25% for guessing). A test keeps it that way, and another fails if
+`server/data/content.json` was not re-exported after a content edit.
+
+```bash
+python3 -m tools.fix_options tools/data/option_fixes.json --check   # validate only
+python3 -m tools.fix_options tools/data/option_fixes.json           # apply, then: npm run content:export
+```
+
 **Learning-record report.** If you would rather not run a server, students can press *Export learning record* in the pause
 menu and send you the file. Put the files in a folder and:
 

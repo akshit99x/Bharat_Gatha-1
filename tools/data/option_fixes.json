@@ -1,0 +1,890 @@
+{
+ "sindhu-grid": [
+  "Streets on a grid, meeting at right angles",
+  "A ring road circling a central royal palace",
+  "Houses radiating outward from a great temple",
+  "Narrow winding lanes with no overall plan"
+ ],
+ "sindhu-greatbath-seal": [
+  "Bitumen behind finely fitted brick",
+  "Lime plaster spread thickly over rubble",
+  "Glazed ceramic tiles set in clay mortar",
+  "Sheets of beaten copper nailed to timber"
+ ],
+ "sindhu-drains": [
+  "Covered drains and household sanitation",
+  "Royal tombs filled with gold and servants",
+  "Massive siege walls with gate towers",
+  "Temple towers dedicated to a single god"
+ ],
+ "sindhu-script-why": [
+  "No bilingual text, short inscriptions, unknown language",
+  "Every tablet was deliberately destroyed in antiquity",
+  "It was read in 1952 but the results were kept secret",
+  "The signs are purely decorative and encode nothing"
+ ],
+ "sindhu-seal-motif": [
+  "A one-horned animal facing a stand",
+  "A horse with a rider and a bridle",
+  "A lion attacking a herd of cattle",
+  "A peacock with its tail fanned out"
+ ],
+ "sindhu-dholavira": [
+  "Dams, channels and reservoirs",
+  "The largest granary of any Harappan city",
+  "A royal palace with a carved throne room",
+  "Being the only Harappan site with a moat"
+ ],
+ "sindhu-lothal": [
+  "Disputed: dockyard or tank, and the evidence allows both",
+  "Proven a dockyard by ship timbers found lying in the basin",
+  "Proven a reservoir by an inscription carved on its wall",
+  "Agreed by every archaeologist to be a public swimming pool"
+ ],
+ "sindhu-meluhha": [
+  "Meluhha",
+  "Dilmun",
+  "Magan",
+  "Marhashi"
+ ],
+ "sindhu-shortugai": [
+  "Lapis lazuli and tin",
+  "To guard a land route all the way to Egypt",
+  "As a cool summer capital for the rulers",
+  "To grow rice on terraces at high altitude"
+ ],
+ "sindhu-decline": [
+  "A weaker monsoon and shifting rivers emptied the cities",
+  "A single invasion destroyed every city within a decade",
+  "A volcanic eruption buried the whole region under ash",
+  "A plague wiped out the entire population in a generation"
+ ],
+ "sindhu-massacre": [
+  "The bones are from different periods, mostly without wounds",
+  "The skeletons were later shown to be the bones of cattle",
+  "Wheeler's excavation records were later proved to be forged",
+  "They turned out to be a modern burial ground dug into the site"
+ ],
+ "sindhu-nopalace": [
+  "Palaces, royal tombs or temples",
+  "Any evidence of writing at all",
+  "Weights made to a common standard",
+  "Signs of trade with distant lands"
+ ],
+ "meluhha-cuneiform-tool": [
+  "Pressed into wet clay with a reed",
+  "Chiselled into granite with bronze tools",
+  "Painted with a square-tipped reed brush",
+  "Stamped into clay with carved bronze dies"
+ ],
+ "meluhha-cuneiform-languages": [
+  "Several languages: Sumerian, Akkadian, Old Persian",
+  "Only Sumerian, for every one of its three thousand years",
+  "Only Akkadian, the language of the Babylonian kings",
+  "Only royal names and titles, never full sentences"
+ ],
+ "meluhha-behistun": [
+  "The Behistun inscription",
+  "The Rosetta Stone of Egypt",
+  "The Dholavira signboard",
+  "The Gwalior inscription"
+ ],
+ "meluhha-writing-purpose": [
+  "Accounting: barley, beer, sheep and labour",
+  "Hymns praising the gods of each city",
+  "The Epic of Gilgamesh and other stories",
+  "Predictions of eclipses and planets"
+ ],
+ "meluhha-base60": [
+  "60 minutes in an hour",
+  "The metric system of measures",
+  "100 paise in a rupee",
+  "The 7-day week of the calendar"
+ ],
+ "meluhha-weepers": [
+  "Weeper holes, so the mud-brick core could dry",
+  "Sockets that held permanent wooden scaffolding",
+  "Arrow slits for archers defending the temple",
+  "Damage from later builders quarrying the bricks"
+ ],
+ "meluhha-hammurabi": [
+  "They depend on the victim's social rank",
+  "They are exactly the same for everyone",
+  "Every one of them is a fine paid in silver",
+  "They apply only to priests and temple staff"
+ ],
+ "meluhha-rivers": [
+  "Salty soil, pushing farmers from wheat to barley",
+  "Wind erosion stripping away all of the topsoil",
+  "Permanent flooding of the whole river delta",
+  "Overfishing that emptied the rivers of food"
+ ],
+ "meluhha-dilmun": [
+  "Bahrain",
+  "Oman",
+  "Socotra",
+  "Cyprus"
+ ],
+ "meluhha-interpreter": [
+  "Sustained contact across a real language barrier",
+  "The Indus script has been read and translated",
+  "The people of Meluhha spoke and wrote Sumerian",
+  "The Indus civilisation can now be dated exactly"
+ ],
+ "meluhha-clay-survival": [
+  "Clay survives, and fire bakes it harder",
+  "They were all kept in sealed stone vaults",
+  "Scribes copied them onto metal plates",
+  "Mesopotamia has no rainfall at all"
+ ],
+ "meluhha-vs-indus": [
+  "Mesopotamia's writing can be read; the Indus script cannot",
+  "Mesopotamian cities were many times larger than Harappan ones",
+  "The Indus civilisation left almost no material remains behind",
+  "Mesopotamia was only discovered and excavated quite recently"
+ ],
+ "kosala-sundara": [
+  "Sundara Kanda: Hanuman's journey to Lanka",
+  "Yuddha Kanda: the great battle at Lanka",
+  "Bala Kanda: the childhood of Rama in Ayodhya",
+  "Uttara Kanda: events after the return home"
+ ],
+ "kosala-abroad-how": [
+  "With traders, monks and scholars over centuries",
+  "Through conquest by armies of Indian empires",
+  "Through colonial translations in the 1800s",
+  "It arose there independently, with no link to India"
+ ],
+ "kosala-jain-ravana": [
+  "As a dignified, almost noble figure",
+  "It removes him from the story entirely",
+  "It makes him the narrator of the tale",
+  "It makes him Rama's own elder brother"
+ ],
+ "kosala-shabari": [
+  "Intention matters more than ritual form",
+  "Forest dwellers must be kept out of worship",
+  "Berries are the most sacred of all fruits",
+  "Hospitality must follow a strict protocol"
+ ],
+ "kosala-forest": [
+  "Farming spreading into the forested Ganga valley",
+  "The collapse of the Harappan cities in the west",
+  "The arrival of Portuguese traders on the coast",
+  "Iron ploughs brought into India from China"
+ ],
+ "kosala-rhinoplasty": [
+  "Rebuilding a nose with a skin flap",
+  "Removing an infected appendix",
+  "Transfusing blood from a donor",
+  "Putting patients to sleep with ether"
+ ],
+ "kosala-herbs": [
+  "A wrong plant can make a remedy useless or lethal",
+  "Each plant was worshipped as a separate god",
+  "The medical texts were written for farmers",
+  "Plant names were used as a secret code by healers"
+ ],
+ "kosala-bow": [
+  "Archery and martial arts",
+  "Temple design and building",
+  "The theory of music and rhythm",
+  "Collecting tax on farmland"
+ ],
+ "kosala-many-ramayanas": [
+  "Many tellings in conversation, not one original",
+  "A single fixed text with a few copying errors",
+  "A modern invention with no history before 1800",
+  "A translation of a lost original Greek poem"
+ ],
+ "setu-geology": [
+  "A natural chain of sandbanks, ridges and coral",
+  "A continuous artificial causeway of dressed stone",
+  "A heap of spoil dredged up by modern shipping",
+  "Nothing at all: it appears only on old charts"
+ ],
+ "setu-order": [
+  "Sound the depths, drop a core, bind it, fill, then surface",
+  "Lay the surface slabs first, then build down to the seabed",
+  "Pour in sand, then pile stone on top with nothing to bind it",
+  "Drive wooden piles across the whole width, then pave over"
+ ],
+ "setu-vibhishana": [
+  "Crowns Vibhishana king of Lanka",
+  "Annexes Lanka to the kingdom of Kosala",
+  "Burns the city of Lanka to the ground",
+  "Leaves Lanka with no ruler at all"
+ ],
+ "setu-kumbhakarna": [
+  "Honesty without courage to act changes nothing",
+  "He is there simply to make the audience laugh",
+  "It shows loyalty to family is always right",
+  "It proves that Ravana was free of all blame"
+ ],
+ "setu-ravana": [
+  "So his fall is a tragedy of one ungoverned appetite",
+  "To suggest that too much learning will always cause evil",
+  "Because Ravana himself wrote part of the epic",
+  "Only to make the story longer and grander"
+ ],
+ "setu-dharmasankata": [
+  "A conflict between two genuine duties",
+  "A formal court of law hearing a case",
+  "A ritual performed to atone for a sin",
+  "A battle formation shaped like a wheel"
+ ],
+ "setu-periplus": [
+  "names Indian ports, goods and sailing seasons",
+  "is the oldest surviving text written in India",
+  "contains a map of the entire Indian Ocean",
+  "records the story of the Ramayana in Greek"
+ ],
+ "setu-rameswaram": [
+  "An old sacred link, with later buildings added over time",
+  "A single great building completed in one short campaign",
+  "A structure built entirely in the twentieth century",
+  "A temple that has never had anything added to it"
+ ],
+ "setu-campaign": [
+  "Alliance, scouting, crossing, embassy, then battle",
+  "Battle first, then alliance, then the crossing",
+  "Crossing first, then scouting, then the alliance",
+  "Embassy first, then battle, then the scouting"
+ ],
+ "setu-two-truths": [
+  "Judge the physical and cultural claims separately",
+  "Decide which of the two sides is simply lying",
+  "Declare the question unanswerable and drop it",
+  "Accept whichever of the claims is more popular"
+ ],
+ "kuru-length": [
+  "About 100,000 verses, ten times the Iliad and Odyssey",
+  "About 24,000 verses, the same length as the Ramayana",
+  "About 700 verses, the length of the Bhagavad Gita",
+  "About 1,000 verses, the length of one Rigveda book"
+ ],
+ "kuru-growth": [
+  "It grew from Jaya, to Bharata, to Mahabharata",
+  "It was composed and written down in a single night",
+  "It was translated into Sanskrit from Persian",
+  "It has not changed at all since it was composed"
+ ],
+ "kuru-gita-where": [
+  "In the Bhishma Parva, on the eve of battle",
+  "At the very end of the epic, after the war",
+  "In a separate appendix added to the epic",
+  "In the opening book, before the dice game"
+ ],
+ "kuru-gita-core": [
+  "Do your work without grasping at its results",
+  "Avoid every action, to avoid every consequence",
+  "Keep every promise whatever the outcome may be",
+  "Pursue victory by whatever means are available"
+ ],
+ "kuru-inaction": [
+  "It argues that standing still is itself an act",
+  "It ignores Arjuna's suggestion entirely",
+  "It accepts it, and the war is called off",
+  "It treats refusing to fight as the right answer"
+ ],
+ "kuru-gita-readers": [
+  "Commentary and disagreement are part of the tradition",
+  "The text has no fixed meaning and says nothing at all",
+  "Only one of those readers understood the text correctly",
+  "The text must be a modern forgery to allow such views"
+ ],
+ "kuru-sanjaya": [
+  "Sanjaya reporting it to the blind king Dhritarashtra",
+  "A first-person account written down by Arjuna himself",
+  "A letter that Krishna wrote some years after the war",
+  "An inscription discovered on a pillar at Kurukshetra"
+ ],
+ "kuru-abhimanyu": [
+  "He knew how to enter the formation but not how to leave",
+  "He forgot to bring his weapons with him onto the battlefield",
+  "He was betrayed by his own charioteer to the enemy",
+  "He went in deliberately, intending to die a hero"
+ ],
+ "kuru-chakravyuha": [
+  "Its symmetry: a gap anywhere lets attackers cut through",
+  "Its position on high ground, looking down on the enemy army",
+  "It was made up of war elephants and nothing else",
+  "Its archers were stationed safely behind a river"
+ ],
+ "kuru-drona-test": [
+  "He sees only the target and nothing else",
+  "He describes the whole tree in great detail",
+  "He refuses to shoot at the bird at all",
+  "He asks his teacher for a stronger bow"
+ ],
+ "kuru-ekalavya": [
+  "Talent throttled by social gatekeeping, told plainly",
+  "Proof that Drona was the better archer of the two",
+  "Proof that teaching yourself a skill never works",
+  "A late addition with no support in the manuscripts"
+ ],
+ "kuru-chariot": [
+  "Light chariots are fast on hard ground, useless on soft",
+  "Chariots of this period were built without any wheels",
+  "Chariots of this period were carved out of solid stone",
+  "Chariots were used only for transport, never in battle"
+ ],
+ "kuru-pgw": [
+  "A Painted Grey Ware settlement with flood damage",
+  "A stone inscription naming all five of the Pandavas",
+  "The remains of chariots buried after the war",
+  "Nothing, because the site has never been dug"
+ ],
+ "kuru-dating": [
+  "Unresolved: historians date only its material setting",
+  "Firmly fixed at 3102 BCE by the consensus of all scholars",
+  "Dated precisely to the year by radiocarbon tests",
+  "Agreed to be pure fiction with no real setting"
+ ],
+ "kuru-aftermath": [
+  "Women of both sides mourn; the victors inherit ruin",
+  "It ends at once with a grand victory celebration",
+  "It skips straight to a golden age without losses",
+  "It does not describe what happened after the war"
+ ],
+ "magadha-edict-language": [
+  "Prakrit, the spoken language",
+  "Pali, of the Buddhist canon",
+  "Classical Sanskrit of the court",
+  "Tamil, the language of the south"
+ ],
+ "magadha-edict12": [
+  "Do not praise your own sect while disparaging others",
+  "Every subject of the empire must become a Buddhist",
+  "Brahmins are exempt from all taxation in the empire",
+  "A temple must be built in every district of the land"
+ ],
+ "magadha-dhamma": [
+  "Good conduct: respect, generosity, non-injury",
+  "Buddhist doctrines all subjects must profess",
+  "The king's absolute authority in all law",
+  "A tax collected to support religious orders"
+ ],
+ "magadha-brahmi-descendants": [
+  "Devanagari, Tamil, Bengali, Thai, Khmer and more",
+  "Devanagari alone, and no other script at all",
+  "Only the scripts used in northern India today",
+  "The Arabic and Persian scripts of West Asia"
+ ],
+ "magadha-brahmi-abugida": [
+  "Each consonant has a vowel, changed by marks",
+  "Each sign stands for one whole word or idea",
+  "It is written without any vowels whatsoever",
+  "It is written from right to left, like Arabic"
+ ],
+ "magadha-prinsep": [
+  "Using coins naming the same king in Greek and Brahmi",
+  "Finding a Brahmi-Sanskrit dictionary in a monastery",
+  "Running the inscriptions through a computer program",
+  "Asking the last surviving readers of the old script"
+ ],
+ "magadha-stupa-solid": [
+  "A stupa is solid, with no inside",
+  "Entry is reserved for monks only",
+  "The inside floods every monsoon",
+  "The entrance was lost long ago"
+ ],
+ "magadha-sanchi-dates": [
+  "Satavahana, about the 1st century BCE",
+  "Ashokan, in the middle of the 3rd century BCE",
+  "Gupta, in the 5th century CE",
+  "Mughal, in the 17th century CE"
+ ],
+ "magadha-sanchi-buddha": [
+  "By symbols: footprint, empty seat, wheel, tree",
+  "As a standing figure dressed in monk's robes",
+  "As a seated figure under a royal umbrella",
+  "He is not referred to anywhere on the gates"
+ ],
+ "magadha-sanchi-donors": [
+  "Women, merchants and monks, not only kings",
+  "The Mauryan treasury paid for all of it",
+  "Forced labourers built it without pay",
+  "Foreign kings were the only donors"
+ ],
+ "magadha-arthashastra": [
+  "Statecraft compiled over centuries, not one policy",
+  "The personal diary kept by Chandragupta Maurya himself",
+  "A religious text about rituals and worship",
+  "A forgery written in the nineteenth century"
+ ],
+ "magadha-revenue": [
+  "Land revenue: a share of the harvest",
+  "Customs duties on goods arriving by sea",
+  "Tribute paid by foreign kings",
+  "Donations made to the temples"
+ ],
+ "magadha-nalanda-curriculum": [
+  "Logic, grammar, medicine, maths, astronomy",
+  "Only the recitation of Buddhist scripture",
+  "Only medicine, for training monk-healers",
+  "Only military strategy, for royal princes"
+ ],
+ "magadha-xuanzang": [
+  "Xuanzang, who studied there in the 630s",
+  "Megasthenes, the Greek envoy to the Mauryas",
+  "Abdur Razzaq, the Persian envoy to Vijayanagara",
+  "Domingo Paes, the Portuguese horse-trader"
+ ],
+ "magadha-gupta-caveat": [
+  "Caste rules hardened and women's property rights fell",
+  "There were no scientific achievements in the period",
+  "The Guptas never existed and are a later invention",
+  "The whole period lasted only about ten years"
+ ],
+ "chola-no-mortar": [
+  "Weight and geometry: interlocking granite, no mortar",
+  "Lime mortar spread between every course of stone",
+  "Iron cramps set in molten lead between the blocks",
+  "A poured concrete core hidden inside the granite"
+ ],
+ "chola-capstone": [
+  "Up a long earth ramp on rollers, later dug away",
+  "Lifted into place by a system of iron cranes",
+  "By flooding the site and floating the stone up",
+  "It was cast in place from molten stone"
+ ],
+ "chola-corbel": [
+  "A very thick base carrying the load down",
+  "A lightweight timber frame inside the walls",
+  "Flying buttresses propping up the sides",
+  "A keystone locking an arch at the top"
+ ],
+ "chola-foundation": [
+  "A broad compacted platform spreads the load",
+  "Deep stone piles driven down to the bedrock",
+  "A floating raft of timber beneath the temple",
+  "Granite bedrock lying right at the surface"
+ ],
+ "chola-lostwax-order": [
+  "Wax model, clay coat, melt wax, pour bronze, break mould",
+  "Clay model, pour the bronze, add a wax layer, then polish it",
+  "Pour bronze, carve it, then coat it in wax",
+  "Carve the bronze from a block, then wax it"
+ ],
+ "chola-unique": [
+  "The mould is broken to free the casting",
+  "Each was signed by a different artist",
+  "Each was cast from a different metal",
+  "The temple priests forbade any copies"
+ ],
+ "chola-processional": [
+  "They are carried out of the temple in processions",
+  "They were designed to hang from temple ceilings",
+  "They were weighed to calculate the temple's tax",
+  "They were mounted on the wheels of war chariots"
+ ],
+ "chola-kudavolai": [
+  "By lot: palm-leaf tickets drawn from a pot",
+  "By a show of hands in the village assembly",
+  "By appointment from the king's own officers",
+  "By inheritance, passed from father to son"
+ ],
+ "chola-disqualify": [
+  "Anyone, or whose relatives, failed to submit accounts",
+  "Anyone under the age of seventy at the time of the draw",
+  "Anyone who was married or had children",
+  "Anyone who was not a temple priest"
+ ],
+ "chola-not-democracy": [
+  "Property and literacy rules kept the franchise narrow",
+  "The inscriptions describing it are later forgeries",
+  "The assembly described in them never actually met",
+  "The rules were in force for only a single year"
+ ],
+ "chola-srivijaya": [
+  "The Strait of Malacca, chokepoint of the China trade",
+  "The Persian Gulf ports, gateway to Baghdad's markets",
+  "The Red Sea route, the road to Egypt and the Romans",
+  "The Maldives fisheries and their cowrie-shell trade"
+ ],
+ "chola-monsoon": [
+  "Winds reverse twice a year, so voyages had set seasons",
+  "Winds blow steadily from the west all year round, without a break",
+  "There is no seasonal pattern in the winds at all",
+  "Ships could sail safely only during the night"
+ ],
+ "chola-guilds": [
+  "The Ayyavole and Manigramam guilds",
+  "The Chola royal navy and nobody else",
+  "Portuguese and Dutch trading companies",
+  "Buddhist monastic orders from Sri Lanka"
+ ],
+ "chola-temple-economy": [
+  "Exact wages for priests, musicians and watchmen",
+  "The personal letters written by the Chola kings",
+  "The complete texts of epics now otherwise lost",
+  "Casualty figures from every battle of the reign"
+ ],
+ "chola-inscription-bias": [
+  "They record what donors wanted, not famines or the poor",
+  "They systematically exaggerate the yearly rainfall",
+  "They were written centuries after the events they describe",
+  "They are written in a script nobody can read today"
+ ],
+ "chola-tanks": [
+  "Seasonal rain and hard rock make storing rain vital",
+  "The region has no rivers of any kind, large or small, at all",
+  "Building canals was forbidden by royal law",
+  "The soil there cannot hold any water"
+ ],
+ "konark-chariot": [
+  "The sun god's chariot, with wheels and horses",
+  "A stepped pyramid of diminishing terraces",
+  "A fortified palace with walls and towers",
+  "A Buddhist stupa with four carved gateways"
+ ],
+ "konark-sundial": [
+  "Spokes divide the daylight into three-hour parts",
+  "The wheels turn once a day, like a clock's hand",
+  "Water poured into each hub drains at a fixed rate",
+  "The wheels cast no shadow and mark only noon"
+ ],
+ "konark-deul": [
+  "Collapsed; the porch survives, filled in to stabilise it",
+  "Fully intact, standing exactly as it did when it was first built",
+  "Never built at all beyond the stone plinth",
+  "Taken apart and rebuilt in a museum in Delhi"
+ ],
+ "konark-kalinga": [
+  "Walls rise nearly vertical, then curve in near the top",
+  "A stepped pyramid of storeys that shrink as they rise",
+  "A bulbous onion dome set on a drum of arches",
+  "A flat roof with no tower rising above the shrine"
+ ],
+ "konark-eclipse": [
+  "As shadows: Earth's on the Moon, the Moon's on us",
+  "As a demon that swallows the Sun and spits it out",
+  "As clouds of unusual thickness blocking the light",
+  "As the Moon changing how brightly it shines"
+ ],
+ "konark-pi-asanna": [
+  "It means \"approximate\": the value is not exact",
+  "It means \"sacred\": the number is divine and must not change",
+  "It means \"measured\": proven by experiment",
+  "It is the name of Aryabhata's own teacher"
+ ],
+ "konark-brahmagupta-zero": [
+  "Brahmagupta's Brahmasphutasiddhanta, 628",
+  "Aryabhata's Aryabhatiya, written in 499",
+  "Bhaskara II's Lilavati, written in 1150",
+  "The Bakhshali manuscript, found in 1881"
+ ],
+ "konark-madhava": [
+  "Infinite series for pi, sine and cosine",
+  "The first working telescope built anywhere in Asia",
+  "A mechanical calculating machine",
+  "The decimal point for fractions"
+ ],
+ "konark-yuktibhasha": [
+  "It gives derivations, and is written in Malayalam",
+  "It is the oldest of all Sanskrit mathematical texts",
+  "It was commissioned and paid for by the Mughal court",
+  "It contains a proof of Fermat's Last Theorem"
+ ],
+ "konark-samrat": [
+  "Local solar time, to within seconds",
+  "Rainfall, to the nearest millimetre",
+  "The brightness of stars, in magnitudes",
+  "Latitude only, to the nearest degree"
+ ],
+ "konark-why-stone": [
+  "A longer arc can be divided more finely",
+  "He did not trust instruments from abroad",
+  "Stone masonry was cheaper than brass",
+  "Telescopes were banned by the Mughal court"
+ ],
+ "konark-observatories": [
+  "Five: Delhi, Jaipur, Ujjain, Mathura, Varanasi",
+  "One, at Jaipur, right beside his own city palace",
+  "Two, one at Delhi and a second one at Agra",
+  "Twelve, one for each sign of the zodiac"
+ ],
+ "konark-siddhanta-method": [
+  "Verse for memory, corrections, and checking the sky",
+  "Secrecy, with results never written down for anyone",
+  "Trust in a single authority that nobody ever questioned",
+  "Rejection of every idea from foreign astronomy"
+ ],
+ "hampi-founded": [
+  "Harihara and Bukka",
+  "Krishnadevaraya",
+  "Rajaraja Chola I",
+  "Rana Kumbha of Mewar"
+ ],
+ "hampi-boulders": [
+  "Weathering peels off ancient granite in shells",
+  "Glaciers carried them there during an ancient ice age",
+  "Masons quarried them and then left them",
+  "They are the remains of a meteorite impact"
+ ],
+ "hampi-stone-chariot": [
+  "A Garuda shrine built from several granite blocks",
+  "A single giant boulder carved where it stood",
+  "A real wooden chariot turned to stone by lightning",
+  "A folly added to the site in the Mughal period"
+ ],
+ "hampi-musical-pillars": [
+  "Columns whose slim colonettes ring at different pitches",
+  "Hollow pipes hiding a water organ inside the stone",
+  "Metal rods set into sockets cut in the granite",
+  "An addition made by restorers in the nineteenth century"
+ ],
+ "hampi-virupaksha": [
+  "It is older than the empire and still in worship",
+  "It was built entirely after the battle of 1565",
+  "It is made of fired brick rather than granite",
+  "It was left unfinished and never consecrated"
+ ],
+ "hampi-canals": [
+  "Canals that still water fields near Kamalapura",
+  "The city walls guarding the royal centre and palace",
+  "The royal mint where coins were struck",
+  "The stables where war elephants were kept"
+ ],
+ "hampi-stepped-tank": [
+  "It was cut elsewhere and assembled like a kit",
+  "It records the names of the people who paid for it",
+  "It works as a calendar showing the months",
+  "It marks the water level through the year"
+ ],
+ "hampi-names": [
+  "Modern labels given by visitors; functions are argued",
+  "The original names, recorded in Vijayanagara inscriptions",
+  "Names that Krishnadevaraya himself gave the buildings",
+  "Names taken from Persian chronicles of the 1440s"
+ ],
+ "hampi-horses": [
+  "The region could not breed good cavalry horses",
+  "Horses were used as the empire's everyday currency",
+  "Horses were sacred and could not be ridden",
+  "Local horses were larger but much slower"
+ ],
+ "hampi-bazaar": [
+  "Temples were landowners, employers and investors",
+  "So priests could keep watch over the merchants",
+  "Temple land was the only flat ground in the city",
+  "To shelter traders from flooding in the monsoon"
+ ],
+ "hampi-sources": [
+  "Note motives, then cross-check with other evidence",
+  "Accept every figure they give as precise census data",
+  "Dismiss all of the accounts as complete invention",
+  "Use whichever account gives the larger number"
+ ],
+ "hampi-talikota": [
+  "An alliance of the Deccan sultanates",
+  "The Mughal empire under Akbar",
+  "The Portuguese from their base at Goa",
+  "The Marathas under Shivaji"
+ ],
+ "hampi-abandonment": [
+  "Fire in some quarters; worship at Virupaksha went on",
+  "Total, even destruction of the whole city within weeks",
+  "No change at all until the nineteenth century",
+  "Immediate resettlement as a Mughal garrison town"
+ ],
+ "agra-taj-for": [
+  "For Mumtaz Mahal, by Shah Jahan",
+  "For Nur Jahan, by her husband Jahangir",
+  "For Akbar, by his son Jahangir",
+  "For Jodha Bai, by her husband Akbar"
+ ],
+ "agra-marble": [
+  "Makrana, in Rajasthan",
+  "Carrara, in Italy",
+  "Quarries by the Yamuna",
+  "The Hindu Kush mountains"
+ ],
+ "agra-double-dome": [
+  "A skyline-height dome would feel oppressive inside",
+  "It halves the amount of marble the whole dome needs",
+  "It stops rainwater from pooling on the roof",
+  "It leaves room for a staircase inside the dome"
+ ],
+ "agra-minarets": [
+  "So that if they fell, they would fall away from the tomb",
+  "To correct a mistake the builders made in laying the foundations",
+  "To improve the sound of prayers in the courtyard",
+  "They were built upright and have sunk over time"
+ ],
+ "agra-calligraphy": [
+  "So they look the same size from the ground",
+  "Because the calligrapher ran out of space",
+  "To mark out the most important verses",
+  "To match the curve and taper of the dome"
+ ],
+ "agra-asymmetry": [
+  "Shah Jahan's own cenotaph, added off-centre",
+  "One of the four tall minarets at the corners",
+  "The great main gateway to the garden",
+  "The red sandstone mosque to the west"
+ ],
+ "agra-pietra-dura": [
+  "Semi-precious stones inlaid into marble",
+  "Painting with colours on wet lime plaster",
+  "Carving the marble in deep relief",
+  "Gilding with sheets of beaten gold"
+ ],
+ "agra-charbagh": [
+  "A square garden split into four by water channels",
+  "A circular garden laid around a central tomb",
+  "A garden cut in terraces up a steep hillside",
+  "A walled orchard planted without any formal plan"
+ ],
+ "agra-synthesis": [
+  "Central Asian domes with Indian brackets and craft",
+  "A pure import, built only by Persian craftsmen",
+  "Purely Indian, with no outside influence at all",
+  "A direct copy of an Ottoman mosque in Istanbul"
+ ],
+ "agra-sikri-abandoned": [
+  "It was left within about fifteen years",
+  "Every later emperor kept restoring it",
+  "Sand buried it completely until 1900",
+  "It was rebuilt in concrete in the 1950s"
+ ],
+ "agra-sulh-i-kul": [
+  "Peace with all: the state takes no side",
+  "All religions are secretly the same one",
+  "Islam is the only religion of the state",
+  "Religion is banned from all public life"
+ ],
+ "agra-jizya-limits": [
+  "Tolerance resting on one ruler can be reversed",
+  "Akbar's policy of tolerance had never really existed",
+  "The jizya was popular with every subject",
+  "Mughal policy never changed over time"
+ ],
+ "agra-razmnama": [
+  "A Persian Mahabharata made for Akbar",
+  "Akbar's own memoir of his reign",
+  "A manual for Mughal artillery officers",
+  "A revenue survey of the province of Bengal"
+ ],
+ "agra-hands": [
+  "Unsupported by any evidence; historians reject it",
+  "Recorded as plain fact in the Ain-i-Akbari chronicle",
+  "Confirmed by an order of Shah Jahan himself",
+  "Supported by skeletons dug up at Taj Ganj"
+ ],
+ "maratha-bent-gate": [
+  "So no elephant or ram can gather speed",
+  "To keep monsoon rain off the gate",
+  "To make the fort look larger from afar",
+  "To let carts turn around inside it"
+ ],
+ "maratha-bastion": [
+  "Defenders can shoot along the face of the wall",
+  "It adds storage space for food and gunpowder",
+  "It holds up a heavier roof over the gate",
+  "It makes the whole wall taller than before"
+ ],
+ "maratha-chittorgarh": [
+  "Chittorgarh",
+  "Mehrangarh",
+  "Golconda Fort",
+  "Gwalior Fort"
+ ],
+ "maratha-vijaya-stambha": [
+  "Rana Kumbha; it lists the rulers of his house",
+  "Maharana Pratap; it records the battle of Haldighati",
+  "Akbar; it records his siege of 1568",
+  "Shivaji; it records the Ashta Pradhan"
+ ],
+ "maratha-haldighati": [
+  "Inconclusive; Pratap escaped and later won back Mewar",
+  "A decisive Mughal victory that ended all resistance",
+  "A decisive Rajput victory that drove out the Mughals",
+  "A battle invented by later poets that never happened"
+ ],
+ "maratha-ganimi": [
+  "Mobility: hit supply lines, avoid pitched battles",
+  "A system for assessing and collecting land revenue",
+  "A code of flag signals used by the Maratha navy",
+  "A style of fort building on steep hilltops"
+ ],
+ "maratha-monsoon": [
+  "Heavy cavalry and guns bog down; infantry still walks",
+  "It flooded the plains and drove enemies into the hills",
+  "It made the sea routes safer for the Maratha ships",
+  "It gave cover of fog for night attacks all year round"
+ ],
+ "maratha-navy": [
+  "Enemies could land anywhere on an undefended coast",
+  "To open a direct and profitable sea trade with China",
+  "To move his army faster than marching by land",
+  "The Mughals had no land army anywhere nearby"
+ ],
+ "maratha-ashta-pradhan": [
+  "Shivaji's council of eight ministers",
+  "A tax of one-eighth on all produce",
+  "A line of eight forts guarding the ghats",
+  "A code of eight rules for every soldier"
+ ],
+ "maratha-chauth": [
+  "As assessed shares, with written receipts",
+  "By seizing whatever the army could carry",
+  "As a fixed yearly tribute paid in horses",
+  "Only from merchants, never from farmland"
+ ],
+ "maratha-language": [
+  "Records were kept in Marathi and Sanskrit, not Persian",
+  "All written records were abolished, to stop enemy spies",
+  "Records were kept in Portuguese to help trade",
+  "Nothing was written; records were kept only orally"
+ ],
+ "maratha-ahilyabai": [
+  "Ghats, wells, roads and temples across India",
+  "Conquering the rich provinces of Bengal and Odisha",
+  "Founding the Maratha navy on the coast",
+  "Writing a long treatise on statecraft"
+ ],
+ "maratha-panipat": [
+  "Supply lines cut far from home, no allies, worse guns",
+  "A sudden and violent change in the weather on the day itself",
+  "The Afghan army simply had far more soldiers",
+  "The death of the Peshwa in the middle of battle"
+ ],
+ "maratha-end": [
+  "Siege artillery and company finance, by 1818",
+  "A series of earthquakes across the Deccan",
+  "The silting up of the Konkan harbours",
+  "A treaty that banned the building of forts"
+ ],
+ "meluhha-ziggurat": [
+  "It is a solid platform for a temple, not a tomb",
+  "It is hollow, with burial chambers for the kings inside",
+  "It is built of granite rather than brick",
+  "It has no stairs or ramps of any kind"
+ ],
+ "kuru-rules": [
+  "Each involves breaking an agreed rule of engagement",
+  "Each is won with a clever new weapon nobody had seen",
+  "Each happens at dawn, before the conch is blown",
+  "Each is decided by a single duel fought fairly"
+ ],
+ "magadha-edict13": [
+  "It gives casualty figures and expresses the king's remorse",
+  "It is written in verse, to be sung at festivals across the empire",
+  "It lists the king's ancestors for twenty generations",
+  "It threatens neighbouring kingdoms with invasion"
+ ],
+ "magadha-megasthenes": [
+  "It survives only as quotations in later Greek writers",
+  "It was written a thousand years after the events it describes",
+  "It is written in a script that nobody has deciphered",
+  "It was proven to be a forgery in 1890"
+ ],
+ "konark-ram-yantra": [
+  "Altitude and azimuth of a celestial body",
+  "Local time, read from the shadow of a pillar",
+  "Ecliptic coordinates per zodiac sign",
+  "Declination and hour angle of a star"
+ ]
+}

@@ -2664,9 +2664,9 @@
    "stem": "What is the most distinctive feature of a Mature Harappan city plan?",
    "context": null,
    "options": [
-    "Streets laid out on a grid, meeting at right angles",
-    "A single ring road around a central palace",
-    "Houses radiating outward from a temple",
+    "Streets on a grid, meeting at right angles",
+    "A ring road circling a central royal palace",
+    "Houses radiating outward from a great temple",
     "Narrow winding lanes with no overall plan"
    ],
    "answer": 0,
@@ -2723,10 +2723,10 @@
    "stem": "How was the Great Bath at Mohenjo-daro made watertight?",
    "context": null,
    "options": [
-    "A layer of bitumen behind finely fitted sawn brick",
-    "Lime plaster over rubble",
-    "Glazed ceramic tiles",
-    "Sheets of beaten copper"
+    "Bitumen behind finely fitted brick",
+    "Lime plaster spread thickly over rubble",
+    "Glazed ceramic tiles set in clay mortar",
+    "Sheets of beaten copper nailed to timber"
    ],
    "answer": 0,
    "explain": "It is the earliest large-scale use of bitumen waterproofing in South Asia — and the bitumen is a fact, while the tank’s ritual purpose is an inference.",
@@ -2743,10 +2743,10 @@
    "stem": "What did Harappan cities spend their best engineering on?",
    "context": null,
    "options": [
-    "Covered street drains and household sanitation",
-    "Royal tombs",
-    "Defensive siege walls",
-    "Temple towers"
+    "Covered drains and household sanitation",
+    "Royal tombs filled with gold and servants",
+    "Massive siege walls with gate towers",
+    "Temple towers dedicated to a single god"
    ],
    "answer": 0,
    "explain": "No contemporary city in Mesopotamia or Egypt matches the systematic coverage of Harappan drainage, and nothing in the subcontinent matches it again for about two thousand years.",
@@ -2763,9 +2763,9 @@
    "stem": "Why has the Indus script resisted decipherment?",
    "context": null,
    "options": [
-    "No bilingual text, very short inscriptions, and the language is unknown",
-    "The tablets were all destroyed in antiquity",
-    "It was deciphered in 1952 but the results are classified",
+    "No bilingual text, short inscriptions, unknown language",
+    "Every tablet was deliberately destroyed in antiquity",
+    "It was read in 1952 but the results were kept secret",
     "The signs are purely decorative and encode nothing"
    ],
    "answer": 0,
@@ -2802,10 +2802,10 @@
    "stem": "Which animal is the commonest motif on Indus seals?",
    "context": null,
    "options": [
-    "A one-horned animal facing a standard or trough",
-    "The horse",
-    "The lion",
-    "The peacock"
+    "A one-horned animal facing a stand",
+    "A horse with a rider and a bridle",
+    "A lion attacking a herd of cattle",
+    "A peacock with its tail fanned out"
    ],
    "answer": 0,
    "explain": "The absence of the horse from Indus seals, and the absence of battle scenes, are two silences historians argue about to this day.",
@@ -2822,10 +2822,10 @@
    "stem": "Dholavira, in the Rann of Kutch, is best known for what?",
    "context": null,
    "options": [
-    "An elaborate system of dams, channels and reservoirs",
-    "The largest Harappan granary",
-    "A royal palace with a throne room",
-    "The only Harappan site with a defensive moat"
+    "Dams, channels and reservoirs",
+    "The largest granary of any Harappan city",
+    "A royal palace with a carved throne room",
+    "Being the only Harappan site with a moat"
    ],
    "answer": 0,
    "explain": "Dholavira sits in a near-desert between two seasonal streams, so its builders turned the city into a water-harvesting machine. It became a UNESCO site in 2021.",
@@ -2842,10 +2842,10 @@
    "stem": "The large brick basin at Lothal is usually described as a dockyard. What is the honest position?",
    "context": null,
    "options": [
-    "Its function is disputed — dockyard or water tank, and the evidence allows both",
-    "It is proven to be a dockyard by surviving ship timbers",
-    "It is proven to be a reservoir by an inscription",
-    "Archaeologists agree it was a swimming pool"
+    "Disputed: dockyard or tank, and the evidence allows both",
+    "Proven a dockyard by ship timbers found lying in the basin",
+    "Proven a reservoir by an inscription carved on its wall",
+    "Agreed by every archaeologist to be a public swimming pool"
    ],
    "answer": 0,
    "explain": "S. R. Rao read it as a tidal dock; later critics read it as irrigation storage. The structure is solid evidence; its purpose is contested interpretation.",
@@ -2865,7 +2865,7 @@
     "Meluhha",
     "Dilmun",
     "Magan",
-    "Elam"
+    "Marhashi"
    ],
    "answer": 0,
    "explain": "Dilmun is generally Bahrain and Magan is Oman. Meluhha lay further east and most scholars place it in the Indus world.",
@@ -2902,10 +2902,10 @@
    "stem": "Why did the Harappans maintain an outpost at Shortugai in northern Afghanistan?",
    "context": null,
    "options": [
-    "Access to lapis lazuli and tin sources",
-    "To guard a land route to Egypt",
-    "As a summer capital",
-    "To farm rice at altitude"
+    "Lapis lazuli and tin",
+    "To guard a land route all the way to Egypt",
+    "As a cool summer capital for the rulers",
+    "To grow rice on terraces at high altitude"
    ],
    "answer": 0,
    "explain": "Shortugai sits near the lapis sources. A trading network reaching from Gujarat to the Oxus is a serious logistical achievement for the third millennium BCE.",
@@ -2922,10 +2922,10 @@
    "stem": "What does current evidence suggest about the end of the Harappan cities?",
    "context": null,
    "options": [
-    "A weakening monsoon and shifting rivers led to de-urbanisation, not extinction",
+    "A weaker monsoon and shifting rivers emptied the cities",
     "A single invasion destroyed every city within a decade",
-    "A volcanic eruption buried the region",
-    "The population was wiped out by plague"
+    "A volcanic eruption buried the whole region under ash",
+    "A plague wiped out the entire population in a generation"
    ],
    "answer": 0,
    "explain": "Palaeoclimate records show the monsoon weakening after about 2200 BCE; settlement surveys show people moving east and south into smaller villages. There is no destruction layer.",
@@ -2942,10 +2942,10 @@
    "stem": "Mortimer Wheeler once read a group of Mohenjo-daro skeletons as evidence of a massacre. Why is that reading rejected now?",
    "context": null,
    "options": [
-    "The skeletons come from different periods and mostly show no battle injuries",
-    "The skeletons were later shown to be animal bones",
-    "The excavation records were forged",
-    "They were found to be a modern burial ground"
+    "The bones are from different periods, mostly without wounds",
+    "The skeletons were later shown to be the bones of cattle",
+    "Wheeler's excavation records were later proved to be forged",
+    "They turned out to be a modern burial ground dug into the site"
    ],
    "answer": 0,
    "explain": "It is a useful lesson in reading evidence: the bones were real, the dramatic interpretation was not supported by them.",
@@ -3001,10 +3001,10 @@
    "stem": "What have Harappan excavations conspicuously NOT produced?",
    "context": null,
    "options": [
-    "Clearly identifiable palaces, royal tombs or temples",
-    "Evidence of writing",
-    "Standardised weights",
-    "Evidence of long-distance trade"
+    "Palaces, royal tombs or temples",
+    "Any evidence of writing at all",
+    "Weights made to a common standard",
+    "Signs of trade with distant lands"
    ],
    "answer": 0,
    "explain": "We can see enormous coordinated public works but cannot identify who commanded them — one of the most interesting gaps in world archaeology.",
@@ -3021,10 +3021,10 @@
    "stem": "Why are cuneiform signs wedge-shaped?",
    "context": null,
    "options": [
-    "They were pressed into wet clay with a cut reed stylus",
-    "They were chiselled into granite",
-    "They were painted with a square-tipped brush",
-    "They were stamped with bronze dies"
+    "Pressed into wet clay with a reed",
+    "Chiselled into granite with bronze tools",
+    "Painted with a square-tipped reed brush",
+    "Stamped into clay with carved bronze dies"
    ],
    "answer": 0,
    "explain": "Latin cuneus means wedge. Pressing is faster than drawing and does not tear wet clay.",
@@ -3040,10 +3040,10 @@
    "stem": "Cuneiform was used to write which of the following?",
    "context": null,
    "options": [
-    "Several unrelated languages, including Sumerian, Akkadian and Old Persian",
-    "Only Sumerian",
-    "Only Akkadian",
-    "Only royal names, never full sentences"
+    "Several languages: Sumerian, Akkadian, Old Persian",
+    "Only Sumerian, for every one of its three thousand years",
+    "Only Akkadian, the language of the Babylonian kings",
+    "Only royal names and titles, never full sentences"
    ],
    "answer": 0,
    "explain": "Cuneiform is a writing technique, not a language — rather like the Latin alphabet serving English, Turkish and Vietnamese.",
@@ -3059,9 +3059,9 @@
    "stem": "Which inscription was the key to deciphering cuneiform?",
    "context": null,
    "options": [
-    "The Behistun inscription, in Old Persian, Elamite and Babylonian",
-    "The Rosetta Stone",
-    "The Great Signboard of Dholavira",
+    "The Behistun inscription",
+    "The Rosetta Stone of Egypt",
+    "The Dholavira signboard",
     "The Gwalior inscription"
    ],
    "answer": 0,
@@ -3078,10 +3078,10 @@
    "stem": "What were the earliest substantial written documents in Mesopotamia about?",
    "context": null,
    "options": [
-    "Accounting — quantities of barley, beer, sheep and labour",
-    "Hymns to the gods",
-    "The Epic of Gilgamesh",
-    "Astronomical predictions"
+    "Accounting: barley, beer, sheep and labour",
+    "Hymns praising the gods of each city",
+    "The Epic of Gilgamesh and other stories",
+    "Predictions of eclipses and planets"
    ],
    "answer": 0,
    "explain": "Writing was invented to count, not to tell stories. Literature arrives centuries later and takes over the house.",
@@ -3098,10 +3098,10 @@
    "stem": "Which everyday measurement still shows Mesopotamian base-60 counting?",
    "context": null,
    "options": [
-    "60 minutes in an hour and 360 degrees in a circle",
-    "The metric system",
+    "60 minutes in an hour",
+    "The metric system of measures",
     "100 paise in a rupee",
-    "The 7-day week"
+    "The 7-day week of the calendar"
    ],
    "answer": 0,
    "explain": "Sixty divides exactly by 2, 3, 4, 5, 6, 10, 12, 15, 20 and 30 — very convenient before decimal fractions were easy to write.",
@@ -3119,9 +3119,9 @@
    "context": null,
    "options": [
     "It is a solid platform for a temple, not a tomb",
-    "It is hollow, with burial chambers inside",
+    "It is hollow, with burial chambers for the kings inside",
     "It is built of granite rather than brick",
-    "It has no stairs"
+    "It has no stairs or ramps of any kind"
    ],
    "answer": 0,
    "explain": "A ziggurat raises a small shrine above a flat delta. It is an artificial mountain with no interior, and nobody is buried in it.",
@@ -3137,10 +3137,10 @@
    "stem": "Why does the facing of the Ziggurat of Ur have small holes through it?",
    "context": null,
    "options": [
-    "They are weeper holes, letting the mud-brick core dry out",
-    "They held wooden scaffolding permanently",
-    "They were arrow slits",
-    "They are damage from later quarrying"
+    "Weeper holes, so the mud-brick core could dry",
+    "Sockets that held permanent wooden scaffolding",
+    "Arrow slits for archers defending the temple",
+    "Damage from later builders quarrying the bricks"
    ],
    "answer": 0,
    "explain": "A baked-brick skin over a mud-brick core traps moisture, and trapped moisture destroys mud brick. The holes are a working solution to that.",
@@ -3156,10 +3156,10 @@
    "stem": "What is notable about the penalties in Hammurabi’s law collection?",
    "context": null,
    "options": [
-    "They are explicitly graded by the social rank of the victim",
-    "They are identical for everyone",
-    "They are all monetary fines",
-    "They apply only to priests"
+    "They depend on the victim's social rank",
+    "They are exactly the same for everyone",
+    "Every one of them is a fine paid in silver",
+    "They apply only to priests and temple staff"
    ],
    "answer": 0,
    "explain": "The stele is therefore a record of inequality as well as of law. Carving law publicly still matters: the rule is knowable in advance.",
@@ -3176,10 +3176,10 @@
    "stem": "What long-term agricultural problem did Mesopotamian irrigation create?",
    "context": null,
    "options": [
-    "Salt accumulation in the soil, pushing farmers from wheat to barley",
-    "Loss of all topsoil to wind erosion",
-    "Permanent flooding of the whole delta",
-    "Exhaustion of the fish stocks"
+    "Salty soil, pushing farmers from wheat to barley",
+    "Wind erosion stripping away all of the topsoil",
+    "Permanent flooding of the whole river delta",
+    "Overfishing that emptied the rivers of food"
    ],
    "answer": 0,
    "explain": "Irrigating a hot, flat basin with a high water table concentrates salt. Crop records show the shift to salt-tolerant barley and falling yields in the south.",
@@ -3198,7 +3198,7 @@
    "options": [
     "Bahrain",
     "Oman",
-    "Yemen",
+    "Socotra",
     "Cyprus"
    ],
    "answer": 0,
@@ -3216,10 +3216,10 @@
    "stem": "A Mesopotamian text refers to a \"Meluhhan interpreter\". Why does that detail matter?",
    "context": null,
    "options": [
-    "It implies sustained contact and a language barrier worth employing someone to bridge",
-    "It proves the Indus script has been read",
-    "It shows Meluhha spoke Sumerian",
-    "It dates the Indus civilisation precisely"
+    "Sustained contact across a real language barrier",
+    "The Indus script has been read and translated",
+    "The people of Meluhha spoke and wrote Sumerian",
+    "The Indus civilisation can now be dated exactly"
    ],
    "answer": 0,
    "explain": "An interpreter is evidence of regular dealings between people who could not understand each other — and a reminder that we still cannot read their script.",
@@ -3236,9 +3236,9 @@
    "stem": "Why have so many cuneiform tablets survived?",
    "context": null,
    "options": [
-    "Clay survives burial, and a burnt archive is baked rather than destroyed",
-    "They were all stored in sealed stone vaults",
-    "They were copied onto metal plates",
+    "Clay survives, and fire bakes it harder",
+    "They were all kept in sealed stone vaults",
+    "Scribes copied them onto metal plates",
     "Mesopotamia has no rainfall at all"
    ],
    "answer": 0,
@@ -3256,10 +3256,10 @@
    "stem": "Mesopotamia and the Indus were contemporaries. Why do we know so much more about Mesopotamian society?",
    "context": null,
    "options": [
-    "Mesopotamia left a readable archive; the Indus script cannot be read",
-    "Mesopotamian cities were much larger",
-    "The Indus left no material remains",
-    "Mesopotamia has been excavated only recently"
+    "Mesopotamia's writing can be read; the Indus script cannot",
+    "Mesopotamian cities were many times larger than Harappan ones",
+    "The Indus civilisation left almost no material remains behind",
+    "Mesopotamia was only discovered and excavated quite recently"
    ],
    "answer": 0,
    "explain": "We know Harappan cities through bricks, drains and weights rather than words. The difference in what we can say about each is a difference in evidence, not in sophistication.",
@@ -3334,10 +3334,10 @@
    "stem": "Which book of the Ramayana is most often recited on its own, and what does it cover?",
    "context": null,
    "options": [
-    "Sundara Kanda — Hanuman’s journey to Lanka and his meeting with Sita",
-    "Yuddha Kanda — the final battle",
-    "Bala Kanda — Rama’s childhood",
-    "Uttara Kanda — the events after the return"
+    "Sundara Kanda: Hanuman's journey to Lanka",
+    "Yuddha Kanda: the great battle at Lanka",
+    "Bala Kanda: the childhood of Rama in Ayodhya",
+    "Uttara Kanda: events after the return home"
    ],
    "answer": 0,
    "explain": "The tradition gives an entire book to reconnaissance rather than to battle, and then singles that book out for recitation. That tells you what it values.",
@@ -3412,10 +3412,10 @@
    "stem": "How did the Ramayana reach Southeast Asia?",
    "context": null,
    "options": [
-    "With traders, monks and scholars across the Bay of Bengal over centuries",
-    "Through military conquest by Indian empires",
-    "Through nineteenth-century colonial translation",
-    "It arose independently with no connection to India"
+    "With traders, monks and scholars over centuries",
+    "Through conquest by armies of Indian empires",
+    "Through colonial translations in the 1800s",
+    "It arose there independently, with no link to India"
    ],
    "answer": 0,
    "explain": "The monsoon made the crossing predictable and the story travelled with the cargo. Each culture then localised it — shared heritage rather than cultural export.",
@@ -3431,10 +3431,10 @@
    "stem": "How does the Jain Paumacariya differ in its treatment of Ravana?",
    "context": null,
    "options": [
-    "It presents him as a far more dignified, almost noble figure",
+    "As a dignified, almost noble figure",
     "It removes him from the story entirely",
-    "It makes him the narrator",
-    "It makes him Rama’s brother"
+    "It makes him the narrator of the tale",
+    "It makes him Rama's own elder brother"
    ],
    "answer": 0,
    "explain": "Retellings disagree deliberately. The useful question about any version is not \"is it accurate?\" but \"what is this teller trying to say?\"",
@@ -3451,10 +3451,10 @@
    "stem": "What is the point of the Shabari episode?",
    "context": null,
    "options": [
-    "That the intention behind an offering outranks its ritual form",
-    "That forest dwellers must be excluded from worship",
-    "That berries are sacred fruit",
-    "That hospitality must follow strict protocol"
+    "Intention matters more than ritual form",
+    "Forest dwellers must be kept out of worship",
+    "Berries are the most sacred of all fruits",
+    "Hospitality must follow a strict protocol"
    ],
    "answer": 0,
    "explain": "She tastes each berry first to check it is not sour, which would normally make the offering improper — and it is accepted anyway. Bhakti poets return to her constantly.",
@@ -3471,10 +3471,10 @@
    "stem": "Historians often connect the Ramayana’s forest setting to what real historical process?",
    "context": null,
    "options": [
-    "The eastward agricultural expansion into the forested Ganga valley in the first millennium BCE",
-    "The Harappan collapse",
-    "The arrival of the Portuguese",
-    "The spread of iron ploughs from China"
+    "Farming spreading into the forested Ganga valley",
+    "The collapse of the Harappan cities in the west",
+    "The arrival of Portuguese traders on the coast",
+    "Iron ploughs brought into India from China"
    ],
    "answer": 0,
    "explain": "The frontier between settled farming and forest was real and contested, and the literature of the period is full of it. The epic takes forest societies seriously as political actors.",
@@ -3510,10 +3510,10 @@
    "stem": "Which surgical technique travelled from India to Europe after British surgeons observed it in the eighteenth century?",
    "context": null,
    "options": [
-    "Nasal reconstruction using a skin flap",
-    "Appendectomy",
-    "Blood transfusion",
-    "Anaesthesia using ether"
+    "Rebuilding a nose with a skin flap",
+    "Removing an infected appendix",
+    "Transfusing blood from a donor",
+    "Putting patients to sleep with ether"
    ],
    "answer": 0,
    "explain": "The forehead or cheek flap method described in the Sushruta Samhita became the foundation of modern plastic surgery.",
@@ -3530,10 +3530,10 @@
    "stem": "Why do classical Indian medical texts spend so many verses on plant identification?",
    "context": null,
    "options": [
-    "Because misidentifying a plant can make a remedy useless or lethal",
-    "Because plants were worshipped individually",
-    "Because the texts were written for farmers",
-    "Because plant names were used as a secret code"
+    "A wrong plant can make a remedy useless or lethal",
+    "Each plant was worshipped as a separate god",
+    "The medical texts were written for farmers",
+    "Plant names were used as a secret code by healers"
    ],
    "answer": 0,
    "explain": "Oleander and datura look harvestable and are not. Identification is the first skill a healer learns.",
@@ -3550,10 +3550,10 @@
    "stem": "Dhanurveda is the treatise literature on what?",
    "context": null,
    "options": [
-    "Archery and the martial arts",
-    "Temple architecture",
-    "Music theory",
-    "Land revenue"
+    "Archery and martial arts",
+    "Temple design and building",
+    "The theory of music and rhythm",
+    "Collecting tax on farmland"
    ],
    "answer": 0,
    "explain": "It describes grips, draw lengths, foot positions and the training of the eye — archery as a disciplined craft, not a knack.",
@@ -3569,10 +3569,10 @@
    "stem": "Which best describes the scholarly view of the Ramayana tradition?",
    "context": null,
    "options": [
-    "A field of many tellings in conversation with each other, not one original with copies",
-    "A single authoritative text with minor copying errors",
-    "A modern invention with no pre-colonial history",
-    "A translation of a Greek original"
+    "Many tellings in conversation, not one original",
+    "A single fixed text with a few copying errors",
+    "A modern invention with no history before 1800",
+    "A translation of a lost original Greek poem"
    ],
    "answer": 0,
    "explain": "A. K. Ramanujan’s essay on this is the standard reference point, and the title everybody remembers is \"Three Hundred Ramayanas\".",
@@ -3589,10 +3589,10 @@
    "stem": "What do marine surveys show about the shoal chain between Rameswaram and Mannar?",
    "context": null,
    "options": [
-    "It is a natural chain of sandbanks, beach ridges and coral, far older than any human record",
-    "It is a continuous artificial causeway of dressed stone",
-    "It is a modern dredging spoil bank",
-    "It does not exist and appears only on old charts"
+    "A natural chain of sandbanks, ridges and coral",
+    "A continuous artificial causeway of dressed stone",
+    "A heap of spoil dredged up by modern shipping",
+    "Nothing at all: it appears only on old charts"
    ],
    "answer": 0,
    "explain": "The shoal is real and much of it is walkable at low tide. It is natural, and the epic account is culturally meaningful. Both can be true; they are different kinds of claim.",
@@ -3629,10 +3629,10 @@
    "stem": "What is the correct engineering order for building a causeway across a shoal?",
    "context": null,
    "options": [
-    "Sound the depths, drop a rubble core, bind it, fill the voids, then surface it",
+    "Sound the depths, drop a core, bind it, fill, then surface",
     "Lay the surface slabs first, then build down to the seabed",
-    "Fill with sand, then add stone on top with no binding",
-    "Drive piles the full width, then pour the surface"
+    "Pour in sand, then pile stone on top with nothing to bind it",
+    "Drive wooden piles across the whole width, then pave over"
    ],
    "answer": 0,
    "explain": "You cannot surface a road before something is under it. Load spreading matters more than the size of individual stones.",
@@ -3648,10 +3648,10 @@
    "stem": "What does Rama do with Lanka after the war?",
    "context": null,
    "options": [
-    "Installs Vibhishana as king rather than annexing it",
-    "Annexes it to Kosala",
-    "Destroys the city completely",
-    "Leaves it without a ruler"
+    "Crowns Vibhishana king of Lanka",
+    "Annexes Lanka to the kingdom of Kosala",
+    "Burns the city of Lanka to the ground",
+    "Leaves Lanka with no ruler at all"
    ],
    "answer": 0,
    "explain": "The settlement is designed to show the war’s stated aim was honest: to right a specific wrong, not to take territory.",
@@ -3668,10 +3668,10 @@
    "stem": "Kumbhakarna tells Ravana plainly that he is in the wrong — and then fights for him and dies. Why does the epic include him?",
    "context": null,
    "options": [
-    "As a warning: honesty without the courage to act on it changes nothing",
-    "As comic relief",
-    "To show that family loyalty is always correct",
-    "To prove Ravana was blameless"
+    "Honesty without courage to act changes nothing",
+    "He is there simply to make the audience laugh",
+    "It shows loyalty to family is always right",
+    "It proves that Ravana was free of all blame"
    ],
    "answer": 0,
    "explain": "He is set beside Vibhishana on purpose. Two people see the same wrong; the poem follows what each does about it, and judges accordingly.",
@@ -3688,10 +3688,10 @@
    "stem": "Why does Valmiki give Ravana a formidable education — Vedic scholar, musician, astrologer?",
    "context": null,
    "options": [
-    "So his fall is a tragedy about one ungoverned appetite, not a story about a stupid villain",
-    "To suggest that learning causes evil",
-    "Because Ravana wrote part of the epic",
-    "To pad out the narrative"
+    "So his fall is a tragedy of one ungoverned appetite",
+    "To suggest that too much learning will always cause evil",
+    "Because Ravana himself wrote part of the epic",
+    "Only to make the story longer and grander"
    ],
    "answer": 0,
    "explain": "An antagonist who is stupid teaches nothing. The poem builds him up carefully so the point lands.",
@@ -3708,10 +3708,10 @@
    "stem": "What does the term dharmasankata describe?",
    "context": null,
    "options": [
-    "A crisis where two genuine duties conflict and no option is clean",
-    "A formal legal court",
-    "A ritual of atonement",
-    "A military formation"
+    "A conflict between two genuine duties",
+    "A formal court of law hearing a case",
+    "A ritual performed to atone for a sin",
+    "A battle formation shaped like a wheel"
    ],
    "answer": 0,
    "explain": "Both epics are built around these. They dramatise the cost of each path rather than supplying a rule — which is why they still work as teaching texts.",
@@ -3748,10 +3748,10 @@
    "stem": "The Periplus of the Erythraean Sea is useful to historians because it...",
    "context": null,
    "options": [
-    "names Indian ports, goods and sailing seasons, letting us cross-check archaeology",
-    "is the oldest surviving Indian text",
-    "contains a map of the whole Indian Ocean",
-    "records the Ramayana in Greek"
+    "names Indian ports, goods and sailing seasons",
+    "is the oldest surviving text written in India",
+    "contains a map of the entire Indian Ocean",
+    "records the story of the Ramayana in Greek"
    ],
    "answer": 0,
    "explain": "It is a first-century working handbook for merchants, which makes it unusually concrete about trade.",
@@ -3768,10 +3768,10 @@
    "stem": "The Ramanathaswamy temple at Rameswaram illustrates which common pattern in Indian sacred architecture?",
    "context": null,
    "options": [
-    "An old sacred association with much later standing structures, grown by accretion",
-    "A single building completed in one campaign",
+    "An old sacred link, with later buildings added over time",
+    "A single great building completed in one short campaign",
     "A structure built entirely in the twentieth century",
-    "A temple with no later additions at all"
+    "A temple that has never had anything added to it"
    ],
    "answer": 0,
    "explain": "Dating \"the temple\" as one object is usually a mistake. Patrons kept adding halls, gateways and corridors over centuries.",
@@ -3788,10 +3788,10 @@
    "stem": "In what order does the Lanka campaign actually proceed in the epic?",
    "context": null,
    "options": [
-    "Alliance, reconnaissance, crossing, final embassy, then battle",
-    "Battle, then alliance, then crossing",
-    "Crossing, then reconnaissance, then alliance",
-    "Embassy, battle, then reconnaissance"
+    "Alliance, scouting, crossing, embassy, then battle",
+    "Battle first, then alliance, then the crossing",
+    "Crossing first, then scouting, then the alliance",
+    "Embassy first, then battle, then the scouting"
    ],
    "answer": 0,
    "explain": "Intelligence first, then diplomacy, then engineering, and only then fighting. The sequence is a comment in itself.",
@@ -3808,10 +3808,10 @@
    "stem": "A geologist and a devotee disagree about Adam’s Bridge. What is the historian’s job here?",
    "context": null,
    "options": [
-    "Keep the physical and the cultural claims in separate categories and assess each on its own evidence",
-    "Decide which one is lying",
+    "Judge the physical and cultural claims separately",
+    "Decide which of the two sides is simply lying",
     "Declare the question unanswerable and drop it",
-    "Accept whichever is more popular"
+    "Accept whichever of the claims is more popular"
    ],
    "answer": 0,
    "explain": "The shoal’s formation is a question for cores and surveys. The epic’s meaning is a question for literature and practice. Confusing the two serves neither.",
@@ -3828,10 +3828,10 @@
    "stem": "Roughly how long is the Mahabharata?",
    "context": null,
    "options": [
-    "About 100,000 shlokas — some ten times the Iliad and Odyssey combined",
-    "About 24,000 verses",
-    "About 700 verses",
-    "About 1,000 verses"
+    "About 100,000 verses, ten times the Iliad and Odyssey",
+    "About 24,000 verses, the same length as the Ramayana",
+    "About 700 verses, the length of the Bhagavad Gita",
+    "About 1,000 verses, the length of one Rigveda book"
    ],
    "answer": 0,
    "explain": "24,000 is the Ramayana; 700 is the Bhagavad Gita, which sits inside the Mahabharata.",
@@ -3847,10 +3847,10 @@
    "stem": "What does the Mahabharata say about its own composition?",
    "context": null,
    "options": [
-    "That it grew from a shorter work called Jaya, into Bharata, into Mahabharata",
-    "That it was written in a single night",
-    "That it was translated from Persian",
-    "That it has never changed since composition"
+    "It grew from Jaya, to Bharata, to Mahabharata",
+    "It was composed and written down in a single night",
+    "It was translated into Sanskrit from Persian",
+    "It has not changed at all since it was composed"
    ],
    "answer": 0,
    "explain": "The text is candid about being layered. That is normal for epic literature and it is a gift to historians.",
@@ -3866,10 +3866,10 @@
    "stem": "Where does the Bhagavad Gita sit within the Mahabharata?",
    "context": null,
    "options": [
-    "Inside the Bhishma Parva, on the eve of battle",
-    "At the very end, after the war",
-    "In a separate appendix",
-    "Before the dice game"
+    "In the Bhishma Parva, on the eve of battle",
+    "At the very end of the epic, after the war",
+    "In a separate appendix added to the epic",
+    "In the opening book, before the dice game"
    ],
    "answer": 0,
    "explain": "Eighteen chapters, about 700 verses, beginning from Arjuna’s collapse between the two armies.",
@@ -3886,10 +3886,10 @@
    "stem": "What is the Gita’s central ethical move?",
    "context": null,
    "options": [
-    "Do the work that is yours to do, without grasping at its results",
-    "Avoid all action in order to avoid all consequence",
-    "Always obey a promise regardless of outcome",
-    "Pursue victory by any available means"
+    "Do your work without grasping at its results",
+    "Avoid every action, to avoid every consequence",
+    "Keep every promise whatever the outcome may be",
+    "Pursue victory by whatever means are available"
    ],
    "answer": 0,
    "explain": "\"Yoga-sthah kuru karmani\" — established in steadiness, perform your actions. Equanimity sharpens judgement; it does not switch it off.",
@@ -3926,10 +3926,10 @@
    "stem": "Arjuna proposes walking away from the battle. How does the text treat that option?",
    "context": null,
    "options": [
-    "It takes it seriously, then argues that standing still is itself an act with consequences",
-    "It ignores the suggestion entirely",
-    "It accepts it and the war is called off",
-    "It treats it as the correct answer"
+    "It argues that standing still is itself an act",
+    "It ignores Arjuna's suggestion entirely",
+    "It accepts it, and the war is called off",
+    "It treats refusing to fight as the right answer"
    ],
    "answer": 0,
    "explain": "Chapter 3 is explicit: you cannot escape action merely by refusing to move. There is no neutral square on that board.",
@@ -3965,10 +3965,10 @@
    "stem": "Gandhi, Tilak and Ambedkar all read the Gita very differently. What does that tell you?",
    "context": null,
    "options": [
-    "Commentary and disagreement are part of the tradition, not a failure of it",
-    "That the text has no fixed meaning and says nothing",
-    "That only one of them read it correctly",
-    "That the text is a modern forgery"
+    "Commentary and disagreement are part of the tradition",
+    "The text has no fixed meaning and says nothing at all",
+    "Only one of those readers understood the text correctly",
+    "The text must be a modern forgery to allow such views"
    ],
    "answer": 0,
    "explain": "It has been commented on continuously for a thousand years — Shankara, Ramanuja, Madhva, Abhinavagupta, and then the moderns. Gandhi read the battlefield as allegory; others read it literally.",
@@ -3984,10 +3984,10 @@
    "stem": "How does the Gita reach the reader?",
    "context": null,
    "options": [
-    "As Sanjaya reporting a conversation to the blind king Dhritarashtra",
-    "As a direct first-person account by Arjuna",
-    "As a letter written after the war",
-    "As an inscription found at Kurukshetra"
+    "Sanjaya reporting it to the blind king Dhritarashtra",
+    "A first-person account written down by Arjuna himself",
+    "A letter that Krishna wrote some years after the war",
+    "An inscription discovered on a pillar at Kurukshetra"
    ],
    "answer": 0,
    "explain": "The epic is obsessively layered in narrators. It keeps reminding you that you are receiving an account, which is a free lesson in reading sources.",
@@ -4024,8 +4024,8 @@
    "context": null,
    "options": [
     "Each involves breaking an agreed rule of engagement",
-    "Each is won by a clever new weapon",
-    "Each happens at dawn",
+    "Each is won with a clever new weapon nobody had seen",
+    "Each happens at dawn, before the conch is blown",
     "Each is decided by a single duel fought fairly"
    ],
    "answer": 0,
@@ -4043,10 +4043,10 @@
    "stem": "Why is Abhimanyu trapped inside the Chakravyuha?",
    "context": null,
    "options": [
-    "He had learned how to enter the formation but not how to withdraw from it",
-    "He forgot his weapons",
-    "He was betrayed by his own charioteer",
-    "He entered deliberately to die"
+    "He knew how to enter the formation but not how to leave",
+    "He forgot to bring his weapons with him onto the battlefield",
+    "He was betrayed by his own charioteer to the enemy",
+    "He went in deliberately, intending to die a hero"
    ],
    "answer": 0,
    "explain": "The epic’s sharpest comment on partial education — and the point at which the war stops being a war and becomes a vendetta.",
@@ -4063,10 +4063,10 @@
    "stem": "What makes the Chakravyuha formation work defensively?",
    "context": null,
    "options": [
-    "Its rotational symmetry — a gap anywhere lets an attacker cut across the layers",
-    "Its height advantage",
-    "The use of elephants only",
-    "Its reliance on archers positioned behind a river"
+    "Its symmetry: a gap anywhere lets attackers cut through",
+    "Its position on high ground, looking down on the enemy army",
+    "It was made up of war elephants and nothing else",
+    "Its archers were stationed safely behind a river"
    ],
    "answer": 0,
    "explain": "Concentric rotating layers, easy to enter and designed to be impossible to leave. Symmetry is the whole mechanism.",
@@ -4083,10 +4083,10 @@
    "stem": "In Drona’s famous test, what makes Arjuna’s answer the right one?",
    "context": null,
    "options": [
-    "He reports seeing only the target — everything irrelevant has been excluded",
-    "He sees the whole tree and describes it in detail",
-    "He refuses to shoot at all",
-    "He asks for a better bow"
+    "He sees only the target and nothing else",
+    "He describes the whole tree in great detail",
+    "He refuses to shoot at the bird at all",
+    "He asks his teacher for a stronger bow"
    ],
    "answer": 0,
    "explain": "Asked again, he says he sees only the bird’s eye. The lesson is about attention at the moment of action.",
@@ -4103,10 +4103,10 @@
    "stem": "Why does the Ekalavya episode sit uncomfortably beside Drona’s test?",
    "context": null,
    "options": [
-    "It shows talent being deliberately throttled by social gatekeeping, and the epic does not soften it",
-    "It proves Drona was the better archer",
-    "It shows that self-teaching never works",
-    "It is a later addition with no manuscript support"
+    "Talent throttled by social gatekeeping, told plainly",
+    "Proof that Drona was the better archer of the two",
+    "Proof that teaching yourself a skill never works",
+    "A late addition with no support in the manuscripts"
    ],
    "answer": 0,
    "explain": "Refused instruction because of his birth, Ekalavya teaches himself and becomes better — and is made to give up his bow-thumb. Including that is the braver thing for a text to do.",
@@ -4123,10 +4123,10 @@
    "stem": "Why is Karna’s chariot wheel sinking a plausible detail rather than just a plot device?",
    "context": null,
    "options": [
-    "A light spoked chariot is fast on hard ground and useless on soft ground",
-    "Chariots had no wheels in this period",
-    "Chariots were made of stone",
-    "Chariots were only used for transport, never in battle"
+    "Light chariots are fast on hard ground, useless on soft",
+    "Chariots of this period were built without any wheels",
+    "Chariots of this period were carved out of solid stone",
+    "Chariots were used only for transport, never in battle"
    ],
    "answer": 0,
    "explain": "The epic praises the archer; the axle decides the battle. A chariot is a workshop someone decided to fight from.",
@@ -4143,10 +4143,10 @@
    "stem": "What did excavation at Hastinapura actually establish?",
    "context": null,
    "options": [
-    "A Painted Grey Ware settlement with evidence of flood damage",
-    "An inscription naming the Pandavas",
-    "The chariots used in the war",
-    "Nothing — the site has never been dug"
+    "A Painted Grey Ware settlement with flood damage",
+    "A stone inscription naming all five of the Pandavas",
+    "The remains of chariots buried after the war",
+    "Nothing, because the site has never been dug"
    ],
    "answer": 0,
    "explain": "Suggestive, since the epic also mentions a flood — but no archaeologist can confirm the war. What we can say is that the epic is set in a material culture that existed.",
@@ -4163,10 +4163,10 @@
    "stem": "What is the honest position on dating the Mahabharata war?",
    "context": null,
    "options": [
-    "It is unresolved; estimates range widely and most historians date only the material setting",
-    "It is firmly fixed at 3102 BCE by consensus",
-    "It has been dated precisely by radiocarbon",
-    "It is agreed to be entirely fictional with no setting"
+    "Unresolved: historians date only its material setting",
+    "Firmly fixed at 3102 BCE by the consensus of all scholars",
+    "Dated precisely to the year by radiocarbon tests",
+    "Agreed to be pure fiction with no real setting"
    ],
    "answer": 0,
    "explain": "Traditional reckoning gives 3102 BCE; astronomical reconstructions range from the 31st to the 9th century BCE; academic historians place the setting around 1000 BCE and decline to date the events.",
@@ -4183,10 +4183,10 @@
    "stem": "How does the Mahabharata handle the aftermath of the war?",
    "context": null,
    "options": [
-    "It gives an entire book to the women of both sides mourning, and the victors inherit an empty country",
-    "It ends immediately with a victory celebration",
-    "It skips to a golden age with no mention of losses",
-    "It does not mention the aftermath at all"
+    "Women of both sides mourn; the victors inherit ruin",
+    "It ends at once with a grand victory celebration",
+    "It skips straight to a golden age without losses",
+    "It does not describe what happened after the war"
    ],
    "answer": 0,
    "explain": "The Stri Parva is the answer to anyone who thinks this is a poem that glorifies war.",
@@ -4204,9 +4204,9 @@
    "context": null,
    "options": [
     "Prakrit, the spoken language",
-    "Classical Sanskrit",
-    "Pali only",
-    "Persian"
+    "Pali, of the Buddhist canon",
+    "Classical Sanskrit of the court",
+    "Tamil, the language of the south"
    ],
    "answer": 0,
    "explain": "Written in Brahmi across most of the subcontinent, Kharosthi in the north-west, and Greek and Aramaic at Kandahar. An order nobody can read is decoration.",
@@ -4223,9 +4223,9 @@
    "stem": "What makes Ashoka’s Major Rock Edict 13 unusual among ancient royal inscriptions?",
    "context": null,
    "options": [
-    "It gives casualty figures and expresses the king’s remorse",
-    "It is written in verse",
-    "It lists the king’s ancestors for twenty generations",
+    "It gives casualty figures and expresses the king's remorse",
+    "It is written in verse, to be sung at festivals across the empire",
+    "It lists the king's ancestors for twenty generations",
     "It threatens neighbouring kingdoms with invasion"
    ],
    "answer": 0,
@@ -4244,9 +4244,9 @@
    "context": null,
    "options": [
     "Do not praise your own sect while disparaging others",
-    "All subjects must become Buddhist",
-    "Brahmins are exempt from taxation",
-    "Temples must be built in every district"
+    "Every subject of the empire must become a Buddhist",
+    "Brahmins are exempt from all taxation in the empire",
+    "A temple must be built in every district of the land"
    ],
    "answer": 0,
    "explain": "It adds that whoever reviles another’s faith out of devotion damages the very thing they are devoted to. Ashoka funded Buddhist, Brahmanical, Jain and Ajivika establishments alike.",
@@ -4263,10 +4263,10 @@
    "stem": "What does dhamma mean in Ashoka’s edicts?",
    "context": null,
    "options": [
-    "Conduct — respect for elders, decent treatment of servants, generosity to all sects, non-injury",
-    "A specific set of Buddhist doctrines all subjects must profess",
-    "The king’s absolute legal authority",
-    "A tax levied for religious institutions"
+    "Good conduct: respect, generosity, non-injury",
+    "Buddhist doctrines all subjects must profess",
+    "The king's absolute authority in all law",
+    "A tax collected to support religious orders"
    ],
    "answer": 0,
    "explain": "He says he gave up the royal hunt, planted shade trees, dug wells, built rest-houses and appointed inspectors. Judge it by the wells.",
@@ -4283,10 +4283,10 @@
    "stem": "Which scripts descend from Brahmi?",
    "context": null,
    "options": [
-    "Devanagari, Tamil, Bengali, Telugu, Sinhala, Thai and Khmer among many others",
-    "Only Devanagari",
-    "Only the scripts of northern India",
-    "Arabic and Persian"
+    "Devanagari, Tamil, Bengali, Thai, Khmer and more",
+    "Devanagari alone, and no other script at all",
+    "Only the scripts used in northern India today",
+    "The Arabic and Persian scripts of West Asia"
    ],
    "answer": 0,
    "explain": "Brahmi is the ancestor of nearly every script used in South and Southeast Asia today — one of the most consequential inventions in the region.",
@@ -4302,10 +4302,10 @@
    "stem": "Brahmi is an abugida. What does that mean?",
    "context": null,
    "options": [
-    "Each consonant carries an inherent vowel, changed by attached marks",
-    "Each sign stands for a whole word",
-    "It has no vowels at all",
-    "It is written right to left"
+    "Each consonant has a vowel, changed by marks",
+    "Each sign stands for one whole word or idea",
+    "It is written without any vowels whatsoever",
+    "It is written from right to left, like Arabic"
    ],
    "answer": 0,
    "explain": "That is why Indian scripts look dense and compact compared with an alphabet writing every vowel as a separate letter.",
@@ -4322,10 +4322,10 @@
    "stem": "How did James Prinsep decipher Brahmi in 1837?",
    "context": null,
    "options": [
-    "By comparing bilingual Indo-Greek coins giving the same king’s name in Greek and Brahmi",
-    "By finding a Brahmi-Sanskrit dictionary",
-    "By using a computer concordance",
-    "By asking surviving readers of the script"
+    "Using coins naming the same king in Greek and Brahmi",
+    "Finding a Brahmi-Sanskrit dictionary in a monastery",
+    "Running the inscriptions through a computer program",
+    "Asking the last surviving readers of the old script"
    ],
    "answer": 0,
    "explain": "Once Brahmi could be read, Ashoka’s edicts became legible and the chronology of early India could be built. One decipherment reorganised a field.",
@@ -4341,10 +4341,10 @@
    "stem": "Why is the ritual at a stupa to walk around it rather than enter it?",
    "context": null,
    "options": [
-    "A stupa is solid — there is no interior to enter",
-    "Entry is reserved for monks",
-    "The interior floods seasonally",
-    "The entrance was lost in antiquity"
+    "A stupa is solid, with no inside",
+    "Entry is reserved for monks only",
+    "The inside floods every monsoon",
+    "The entrance was lost long ago"
    ],
    "answer": 0,
    "explain": "The railing, gateways and circumambulation path exist to organise that walk. The architecture follows from the solidity.",
@@ -4381,10 +4381,10 @@
    "stem": "The famous carved gateways at Sanchi date from which period?",
    "context": null,
    "options": [
-    "Satavahana, around the 1st century BCE — later than the Ashokan core",
-    "Ashokan, 3rd century BCE",
-    "Gupta, 5th century CE",
-    "Mughal, 17th century CE"
+    "Satavahana, about the 1st century BCE",
+    "Ashokan, in the middle of the 3rd century BCE",
+    "Gupta, in the 5th century CE",
+    "Mughal, in the 17th century CE"
    ],
    "answer": 0,
    "explain": "The brick core is Ashokan; it was encased in stone in the 2nd century BCE and the toranas came later still. Monuments are usually several buildings.",
@@ -4401,10 +4401,10 @@
    "stem": "How is the Buddha represented in Sanchi’s early carvings?",
    "context": null,
    "options": [
-    "Only by symbols — a footprint, an empty seat, a wheel, a tree",
-    "As a standing figure in robes",
-    "As a seated figure under an umbrella",
-    "He is not referred to at all"
+    "By symbols: footprint, empty seat, wheel, tree",
+    "As a standing figure dressed in monk's robes",
+    "As a seated figure under a royal umbrella",
+    "He is not referred to anywhere on the gates"
    ],
    "answer": 0,
    "explain": "Figural images appear later, at Mathura and Gandhara. The symbolic phase is a real art-historical stage, not a shortage of skill.",
@@ -4420,10 +4420,10 @@
    "stem": "What do Sanchi’s hundreds of short donor inscriptions reveal?",
    "context": null,
    "options": [
-    "Much of it was paid for by women, merchants and ordinary monks, not only kings",
-    "All funding came from the Mauryan treasury",
-    "The site was built by forced labour",
-    "The donors were all foreign"
+    "Women, merchants and monks, not only kings",
+    "The Mauryan treasury paid for all of it",
+    "Forced labourers built it without pay",
+    "Foreign kings were the only donors"
    ],
    "answer": 0,
    "explain": "Individual railings and panels carry individual names. It is one of the best windows we have onto non-royal patronage in early India.",
@@ -4460,10 +4460,10 @@
    "stem": "How should the Arthashastra be read?",
    "context": null,
    "options": [
-    "As accumulated statecraft compiled over centuries, not a Mauryan policy document",
-    "As Chandragupta’s personal diary",
-    "As a religious text",
-    "As a nineteenth-century forgery"
+    "Statecraft compiled over centuries, not one policy",
+    "The personal diary kept by Chandragupta Maurya himself",
+    "A religious text about rituals and worship",
+    "A forgery written in the nineteenth century"
    ],
    "answer": 0,
    "explain": "The surviving text reached its final form some centuries after the Mauryas. It is a manual of what works for a ruler — which is why reading it beside Ashoka’s edicts is so instructive.",
@@ -4480,10 +4480,10 @@
    "stem": "What was the backbone of Mauryan state revenue?",
    "context": null,
    "options": [
-    "Land revenue — a share of the harvest on surveyed land",
-    "Customs duties on sea trade",
-    "Tribute from foreign kings",
-    "Temple donations"
+    "Land revenue: a share of the harvest",
+    "Customs duties on goods arriving by sea",
+    "Tribute paid by foreign kings",
+    "Donations made to the temples"
    ],
    "answer": 0,
    "explain": "Conventionally around one-sixth but variable, plus tolls, mint and mining royalties, irrigation cess and taxes on crafts.",
@@ -4500,8 +4500,8 @@
    "context": null,
    "options": [
     "It survives only as quotations in later Greek writers",
-    "It was written a thousand years after the events",
-    "It is written in an undeciphered script",
+    "It was written a thousand years after the events it describes",
+    "It is written in a script that nobody has deciphered",
     "It was proven to be a forgery in 1890"
    ],
    "answer": 0,
@@ -4519,10 +4519,10 @@
    "stem": "What did Nalanda teach besides Buddhist doctrine?",
    "context": null,
    "options": [
-    "Logic and debate, grammar, medicine, metaphysics, mathematics and astronomy",
-    "Only scripture recitation",
-    "Only medicine",
-    "Military strategy exclusively"
+    "Logic, grammar, medicine, maths, astronomy",
+    "Only the recitation of Buddhist scripture",
+    "Only medicine, for training monk-healers",
+    "Only military strategy, for royal princes"
    ],
    "answer": 0,
    "explain": "Students came from Tibet, China, Korea, Central Asia, Sri Lanka and Southeast Asia, and admission involved an oral examination at the gate.",
@@ -4539,9 +4539,9 @@
    "context": null,
    "options": [
     "Xuanzang, who studied there in the 630s",
-    "Megasthenes",
-    "Abdur Razzaq",
-    "Domingo Paes"
+    "Megasthenes, the Greek envoy to the Mauryas",
+    "Abdur Razzaq, the Persian envoy to Vijayanagara",
+    "Domingo Paes, the Portuguese horse-trader"
    ],
    "answer": 0,
    "explain": "Nalanda ran for roughly seven hundred years from the fifth century and was sacked around 1193 during the Ghurid campaigns in Bihar.",
@@ -4558,10 +4558,10 @@
    "stem": "What is the main caution about calling the Gupta period a \"golden age\"?",
    "context": null,
    "options": [
-    "The same period shows hardening caste restrictions and declining women’s property rights in the legal literature",
-    "There were no scientific achievements",
-    "The Guptas never existed",
-    "The period lasted only ten years"
+    "Caste rules hardened and women's property rights fell",
+    "There were no scientific achievements in the period",
+    "The Guptas never existed and are a later invention",
+    "The whole period lasted only about ten years"
    ],
    "answer": 0,
    "explain": "Gupta gold coinage is superb, and gold coinage is not a measure of how most people lived. Golden ages are usually golden for somebody in particular.",
@@ -4578,10 +4578,10 @@
    "stem": "What holds the tower of the Brihadeeswarar temple together?",
    "context": null,
    "options": [
-    "Nothing but weight and geometry — the granite blocks interlock, with no mortar",
-    "Lime mortar between every course",
-    "Iron cramps set in lead",
-    "A concrete core"
+    "Weight and geometry: interlocking granite, no mortar",
+    "Lime mortar spread between every course of stone",
+    "Iron cramps set in molten lead between the blocks",
+    "A poured concrete core hidden inside the granite"
    ],
    "answer": 0,
    "explain": "A 66 m tower completed in 1010 CE, standing through earthquakes for over a thousand years. Interlocking cut stone, no mortar in the vimana.",
@@ -4598,9 +4598,9 @@
    "stem": "How was the roughly 80-tonne capstone raised 66 m?",
    "context": null,
    "options": [
-    "Up a very long earth ramp on timber rollers, later dug away",
-    "By a system of iron cranes",
-    "By flooding the site and floating it up",
+    "Up a long earth ramp on rollers, later dug away",
+    "Lifted into place by a system of iron cranes",
+    "By flooding the site and floating the stone up",
     "It was cast in place from molten stone"
    ],
    "answer": 0,
@@ -4618,10 +4618,10 @@
    "stem": "Dravida towers of this period are corbelled rather than arched. What does that require?",
    "context": null,
    "options": [
-    "A very thick base, because load travels down through the mass",
-    "A lightweight timber frame",
-    "Flying buttresses",
-    "A keystone at the apex"
+    "A very thick base carrying the load down",
+    "A lightweight timber frame inside the walls",
+    "Flying buttresses propping up the sides",
+    "A keystone locking an arch at the top"
    ],
    "answer": 0,
    "explain": "Each course steps slightly inward and the stones must be dressed to fit precisely, because any gap concentrates stress.",
@@ -4637,10 +4637,10 @@
    "stem": "How does the Thanjavur temple cope with soft alluvial soil?",
    "context": null,
    "options": [
-    "A broad compacted platform spreads the load, rather than a deep foundation",
-    "Deep stone piles driven to bedrock",
-    "A floating raft of timber",
-    "It sits on natural granite bedrock at the surface"
+    "A broad compacted platform spreads the load",
+    "Deep stone piles driven down to the bedrock",
+    "A floating raft of timber beneath the temple",
+    "Granite bedrock lying right at the surface"
    ],
    "answer": 0,
    "explain": "The same principle as a snowshoe. There is no deep foundation in the modern sense.",
@@ -4656,10 +4656,10 @@
    "stem": "What is the correct order of the lost-wax process?",
    "context": null,
    "options": [
-    "Wax model, clay investment, burn out the wax, pour the bronze, break the mould, finish",
-    "Clay model, pour the bronze, add wax, polish",
-    "Pour the bronze, carve it, then coat in wax",
-    "Carve the bronze from a solid block, then wax it"
+    "Wax model, clay coat, melt wax, pour bronze, break mould",
+    "Clay model, pour the bronze, add a wax layer, then polish it",
+    "Pour bronze, carve it, then coat it in wax",
+    "Carve the bronze from a block, then wax it"
    ],
    "answer": 0,
    "explain": "The wax has to leave before the metal arrives. Madhuchchhishta vidhana — the lost beeswax method.",
@@ -4676,10 +4676,10 @@
    "stem": "Why is every solid-cast Chola bronze unique?",
    "context": null,
    "options": [
-    "The mould must be broken to release the casting",
+    "The mould is broken to free the casting",
     "Each was signed by a different artist",
-    "Each used a different metal",
-    "The temple forbade copies"
+    "Each was cast from a different metal",
+    "The temple priests forbade any copies"
    ],
    "answer": 0,
    "explain": "There is no reusable mould in this technique. Bronze casting continues today around Swamimalai using the same method.",
@@ -4695,10 +4695,10 @@
    "stem": "Why do Chola bronzes have lugs and carefully balanced poses?",
    "context": null,
    "options": [
-    "They are processional images, carried out of the temple on poles",
-    "They were designed to hang from ceilings",
-    "They were weighed for tax purposes",
-    "They were mounted on chariot wheels"
+    "They are carried out of the temple in processions",
+    "They were designed to hang from temple ceilings",
+    "They were weighed to calculate the temple's tax",
+    "They were mounted on the wheels of war chariots"
    ],
    "answer": 0,
    "explain": "The Nataraja balancing on one foot inside a ring of flame is theology and statics at the same time.",
@@ -4715,10 +4715,10 @@
    "stem": "In the Uttaramerur system, how was a committee member finally selected?",
    "context": null,
    "options": [
-    "By lot — palm-leaf tickets drawn from a pot by a boy who could not read",
-    "By a show of hands in the assembly",
-    "By the king’s appointment",
-    "By hereditary succession"
+    "By lot: palm-leaf tickets drawn from a pot",
+    "By a show of hands in the village assembly",
+    "By appointment from the king's own officers",
+    "By inheritance, passed from father to son"
    ],
    "answer": 0,
    "explain": "Kudavolai, the pot-ticket. The boy could not read, so he could not favour anyone — and the whole assembly watched.",
@@ -4735,10 +4735,10 @@
    "stem": "What is the most striking feature of the Uttaramerur disqualification rules?",
    "context": null,
    "options": [
-    "Anyone who has not submitted his accounts — or whose relatives have not — is barred",
-    "Only men over seventy could serve",
-    "Candidates had to be unmarried",
-    "Only priests were eligible"
+    "Anyone, or whose relatives, failed to submit accounts",
+    "Anyone under the age of seventy at the time of the draw",
+    "Anyone who was married or had children",
+    "Anyone who was not a temple priest"
    ],
    "answer": 0,
    "explain": "Audit first, then eligibility, plus a three-year bar on repeat terms. The achievement is accountability and rotation, not universal suffrage.",
@@ -4754,10 +4754,10 @@
    "stem": "Why is \"ancient Indian democracy\" an overstatement for Uttaramerur?",
    "context": null,
    "options": [
-    "There were property and literacy qualifications, and the franchise was narrow",
-    "The inscriptions are forgeries",
-    "The assembly never actually met",
-    "The rules applied only to one year"
+    "Property and literacy rules kept the franchise narrow",
+    "The inscriptions describing it are later forgeries",
+    "The assembly described in them never actually met",
+    "The rules were in force for only a single year"
    ],
    "answer": 0,
    "explain": "The genuine achievement is rule-bound, auditable, rotating local government — written on a wall where anyone could check it.",
@@ -4774,10 +4774,10 @@
    "stem": "What was the strategic target of Rajendra I’s naval expedition around 1025 CE?",
    "context": null,
    "options": [
-    "The Strait of Malacca, the chokepoint for China trade",
-    "The Persian Gulf oil ports",
-    "The Red Sea route to Egypt",
-    "The Maldives fisheries"
+    "The Strait of Malacca, chokepoint of the China trade",
+    "The Persian Gulf ports, gateway to Baghdad's markets",
+    "The Red Sea route, the road to Egypt and the Romans",
+    "The Maldives fisheries and their cowrie-shell trade"
    ],
    "answer": 0,
    "explain": "The ports taken are listed in the Thanjavur inscriptions, which is how we know the campaign happened at all. It was about leverage, not settlement.",
@@ -4794,10 +4794,10 @@
    "stem": "How did the monsoon shape Indian Ocean voyages?",
    "context": null,
    "options": [
-    "Winds reverse twice a year, so voyages had fixed seasons and crews wintered in foreign ports",
-    "Winds blow constantly from the west all year",
-    "There is no seasonal pattern",
-    "Ships could only sail at night"
+    "Winds reverse twice a year, so voyages had set seasons",
+    "Winds blow steadily from the west all year round, without a break",
+    "There is no seasonal pattern in the winds at all",
+    "Ships could sail safely only during the night"
    ],
    "answer": 0,
    "explain": "South-westerly roughly June to September, north-easterly November to February. Months spent in foreign ports is how scripts, religions and epics travelled.",
@@ -4814,10 +4814,10 @@
    "stem": "Whose inscriptions turn up as far away as Sumatra, showing the reach of South Indian trade?",
    "context": null,
    "options": [
-    "The Ayyavole and Manigramam merchant guilds",
-    "The Chola royal navy only",
-    "Portuguese trading companies",
-    "Buddhist monastic orders"
+    "The Ayyavole and Manigramam guilds",
+    "The Chola royal navy and nobody else",
+    "Portuguese and Dutch trading companies",
+    "Buddhist monastic orders from Sri Lanka"
    ],
    "answer": 0,
    "explain": "The guilds traded across the Bay of Bengal and knew every harbour — which is also where a campaign got its intelligence.",
@@ -4834,10 +4834,10 @@
    "stem": "What do Chola temple inscriptions tell us that most sources do not?",
    "context": null,
    "options": [
-    "Exact allowances and wages for priests, accountants, musicians, dancers and watchmen",
-    "The personal letters of the kings",
-    "The texts of lost epics",
-    "The military casualty figures of every battle"
+    "Exact wages for priests, musicians and watchmen",
+    "The personal letters written by the Chola kings",
+    "The complete texts of epics now otherwise lost",
+    "Casualty figures from every battle of the reign"
    ],
    "answer": 0,
    "explain": "A big temple is legible as an economic institution — employer, landowner, bank and granary — as much as a religious one.",
@@ -4854,10 +4854,10 @@
    "stem": "What systematic bias do temple-wall inscriptions carry?",
    "context": null,
    "options": [
-    "They record what donors wanted remembered, and are silent on famines, revolts and the poor",
-    "They systematically exaggerate rainfall",
-    "They were written centuries after the events",
-    "They are written in an undeciphered script"
+    "They record what donors wanted, not famines or the poor",
+    "They systematically exaggerate the yearly rainfall",
+    "They were written centuries after the events they describe",
+    "They are written in a script nobody can read today"
    ],
    "answer": 0,
    "explain": "Dated and precise about grants; blind to everything a donor had no reason to carve. Knowing a source’s silences is half of using it.",
@@ -4874,10 +4874,10 @@
    "stem": "Why does peninsular India rely on tanks rather than large river canals?",
    "context": null,
    "options": [
-    "A seasonal monsoon and hard rock geology make storing rain more important than diverting rivers",
-    "There are no rivers at all",
-    "Canals were forbidden by law",
-    "The soil cannot hold water"
+    "Seasonal rain and hard rock make storing rain vital",
+    "The region has no rivers of any kind, large or small, at all",
+    "Building canals was forbidden by royal law",
+    "The soil there cannot hold any water"
    ],
    "answer": 0,
    "explain": "Bunded tanks across shallow valleys, often chained so one overflows into the next. Inscriptions record desilting duties and penalties for neglect.",
@@ -4894,10 +4894,10 @@
    "stem": "The Sun Temple at Konark is designed as what?",
    "context": null,
    "options": [
-    "The sun god’s chariot, with twenty-four wheels and seven horses",
-    "A stepped pyramid",
-    "A fortified palace",
-    "A Buddhist stupa"
+    "The sun god's chariot, with wheels and horses",
+    "A stepped pyramid of diminishing terraces",
+    "A fortified palace with walls and towers",
+    "A Buddhist stupa with four carved gateways"
    ],
    "answer": 0,
    "explain": "Built under Narasimhadeva I of the Eastern Ganga dynasty around 1250 CE. European sailors called it the Black Pagoda and used it as a landmark.",
@@ -4914,9 +4914,9 @@
    "stem": "How do Konark’s wheels function as sundials?",
    "context": null,
    "options": [
-    "Eight major spokes divide the daylight into roughly three-hour parts, halved again by minor spokes",
-    "The wheels rotate once per day",
-    "Water poured into the hub drains at a fixed rate",
+    "Spokes divide the daylight into three-hour parts",
+    "The wheels turn once a day, like a clock's hand",
+    "Water poured into each hub drains at a fixed rate",
     "The wheels cast no shadow and mark only noon"
    ],
    "answer": 0,
@@ -4934,10 +4934,10 @@
    "stem": "What is the state of Konark’s main tower today?",
    "context": null,
    "options": [
-    "Collapsed, with causes debated; the porch survives and was filled in to stabilise it",
-    "Fully intact",
-    "Never built beyond the plinth",
-    "Dismantled and re-erected in Delhi"
+    "Collapsed; the porch survives, filled in to stabilise it",
+    "Fully intact, standing exactly as it did when it was first built",
+    "Never built at all beyond the stone plinth",
+    "Taken apart and rebuilt in a museum in Delhi"
    ],
    "answer": 0,
    "explain": "Structural failure, subsidence and later damage are all argued. A nineteenth-century intervention filled the jagamohana to stop it following the tower down.",
@@ -4953,10 +4953,10 @@
    "stem": "What distinguishes the Kalinga (Odishan) rekha deul silhouette?",
    "context": null,
    "options": [
-    "Walls rise nearly vertically, then turn in sharply near the top",
-    "A stepped pyramid of diminishing storeys",
-    "A bulbous onion dome",
-    "A flat roof with no tower"
+    "Walls rise nearly vertical, then curve in near the top",
+    "A stepped pyramid of storeys that shrink as they rise",
+    "A bulbous onion dome set on a drum of arches",
+    "A flat roof with no tower rising above the shrine"
    ],
    "answer": 0,
    "explain": "Compare Dravida in the south, where the tower is a stepped pyramid, and the gentler curve of Khajuraho. Odisha also preserves unusually rich builders’ manuals.",
@@ -4992,10 +4992,10 @@
    "stem": "How did Aryabhata explain eclipses?",
    "context": null,
    "options": [
-    "As shadows: the Earth’s on the Moon, and the Moon’s on us",
-    "As a demon swallowing the Sun",
-    "As clouds of unusual density",
-    "As the Moon changing its own brightness"
+    "As shadows: Earth's on the Moon, the Moon's on us",
+    "As a demon that swallows the Sun and spits it out",
+    "As clouds of unusual thickness blocking the light",
+    "As the Moon changing how brightly it shines"
    ],
    "answer": 0,
    "explain": "Because it is geometry, it can be computed in advance — and he gives methods for the size and duration of the shadow.",
@@ -5011,10 +5011,10 @@
    "stem": "Aryabhata gives π as 3.1416 and attaches the word asanna. Why does that word matter?",
    "context": null,
    "options": [
-    "It means \"approximate\" — he does not claim the value is exact",
-    "It means \"sacred\", marking the number as divine",
-    "It means \"measured\", claiming experimental proof",
-    "It is the name of his teacher"
+    "It means \"approximate\": the value is not exact",
+    "It means \"sacred\": the number is divine and must not change",
+    "It means \"measured\": proven by experiment",
+    "It is the name of Aryabhata's own teacher"
    ],
    "answer": 0,
    "explain": "Labelling the limits of your own result is what distinguishes a scientific claim from a pronouncement.",
@@ -5031,10 +5031,10 @@
    "stem": "Which text first sets out the arithmetic of zero and negative numbers?",
    "context": null,
    "options": [
-    "Brahmagupta’s Brahmasphutasiddhanta, 628 CE",
-    "Aryabhata’s Aryabhatiya, 499 CE",
-    "Bhaskara II’s Lilavati, 1150 CE",
-    "The Bakhshali manuscript"
+    "Brahmagupta's Brahmasphutasiddhanta, 628",
+    "Aryabhata's Aryabhatiya, written in 499",
+    "Bhaskara II's Lilavati, written in 1150",
+    "The Bakhshali manuscript, found in 1881"
    ],
    "answer": 0,
    "explain": "He explains negatives as debts and fortunes, and notes that dividing by zero gives nothing usable.",
@@ -5070,10 +5070,10 @@
    "stem": "What did Madhava of Sangamagrama achieve around 1400 CE?",
    "context": null,
    "options": [
-    "Infinite series for π, sine and cosine — calculus-adjacent results",
-    "The first telescope",
+    "Infinite series for pi, sine and cosine",
+    "The first working telescope built anywhere in Asia",
     "A mechanical calculating machine",
-    "The decimal point"
+    "The decimal point for fractions"
    ],
    "answer": 0,
    "explain": "In Europe these results are associated with Newton, Leibniz, Gregory and Taylor two to three centuries later.",
@@ -5090,10 +5090,10 @@
    "stem": "What makes Jyeshthadeva’s Yuktibhasha (c. 1530) remarkable?",
    "context": null,
    "options": [
-    "It gives derivations rather than only results, and is written in Malayalam",
-    "It is the oldest Sanskrit mathematical text",
-    "It was commissioned by the Mughal court",
-    "It proves Fermat’s Last Theorem"
+    "It gives derivations, and is written in Malayalam",
+    "It is the oldest of all Sanskrit mathematical texts",
+    "It was commissioned and paid for by the Mughal court",
+    "It contains a proof of Fermat's Last Theorem"
    ],
    "answer": 0,
    "explain": "Something close to proof, including an early treatment of what we would call term-by-term integration.",
@@ -5110,9 +5110,9 @@
    "stem": "What does the Samrat Yantra at Jaipur measure, and how accurately?",
    "context": null,
    "options": [
-    "Local solar time, to within a couple of seconds",
+    "Local solar time, to within seconds",
     "Rainfall, to the nearest millimetre",
-    "Star brightness, in magnitudes",
+    "The brightness of stars, in magnitudes",
     "Latitude only, to the nearest degree"
    ],
    "answer": 0,
@@ -5130,10 +5130,10 @@
    "stem": "Jai Singh II owned European telescopes and tables. Why did he still build huge masonry instruments?",
    "context": null,
    "options": [
-    "A longer arc can be subdivided more finely, so size buys precision",
-    "He did not trust foreign instruments at all",
-    "Masonry was cheaper than brass",
-    "Telescopes were banned by the court"
+    "A longer arc can be divided more finely",
+    "He did not trust instruments from abroad",
+    "Stone masonry was cheaper than brass",
+    "Telescopes were banned by the Mughal court"
    ],
    "answer": 0,
    "explain": "He had Euclid and Ptolemy translated and compared Indian, Islamic and European tables, publishing where they disagreed. That habit is the science.",
@@ -5150,10 +5150,10 @@
    "stem": "How many observatories did Sawai Jai Singh II build?",
    "context": null,
    "options": [
-    "Five — Delhi, Jaipur, Ujjain, Mathura and Varanasi",
-    "One, at Jaipur",
-    "Two, at Delhi and Agra",
-    "Twelve, one per zodiac sign"
+    "Five: Delhi, Jaipur, Ujjain, Mathura, Varanasi",
+    "One, at Jaipur, right beside his own city palace",
+    "Two, one at Delhi and a second one at Agra",
+    "Twelve, one for each sign of the zodiac"
    ],
    "answer": 0,
    "explain": "The Jaipur one survives best, with about twenty instruments, and was inscribed by UNESCO in 2010.",
@@ -5171,7 +5171,7 @@
    "context": null,
    "options": [
     "Altitude and azimuth of a celestial body",
-    "Local time from a shadow",
+    "Local time, read from the shadow of a pillar",
     "Ecliptic coordinates per zodiac sign",
     "Declination and hour angle of a star"
    ],
@@ -5189,10 +5189,10 @@
    "stem": "What working habits characterised the siddhanta tradition?",
    "context": null,
    "options": [
-    "Compressed verse for memorisation, commentaries that corrected predecessors, and models checked against observation",
-    "Secrecy, with results never written down",
-    "Reliance on a single unchallenged authority",
-    "Rejection of all foreign astronomy"
+    "Verse for memory, corrections, and checking the sky",
+    "Secrecy, with results never written down for anyone",
+    "Trust in a single authority that nobody ever questioned",
+    "Rejection of every idea from foreign astronomy"
    ],
    "answer": 0,
    "explain": "Brahmagupta attacked parts of Aryabhata’s system and some of those criticisms were right. That argument is the evidence it was a working science.",
@@ -5209,10 +5209,10 @@
    "stem": "Vijayanagara was founded in 1336 CE by whom?",
    "context": null,
    "options": [
-    "Harihara I and Bukka I of the Sangama line",
+    "Harihara and Bukka",
     "Krishnadevaraya",
-    "Rajaraja Chola",
-    "Rana Kumbha"
+    "Rajaraja Chola I",
+    "Rana Kumbha of Mewar"
    ],
    "answer": 0,
    "explain": "Krishnadevaraya is the best-remembered ruler but reigned much later, 1509–1529, and belonged to the Tuluva line.",
@@ -5228,9 +5228,9 @@
    "stem": "Why is the landscape at Hampi full of enormous rounded granite boulders?",
    "context": null,
    "options": [
-    "Exfoliation — the outer shells of ancient granite peel away over millions of years",
-    "They were carried there by glaciers",
-    "They were quarried and abandoned by Vijayanagara masons",
+    "Weathering peels off ancient granite in shells",
+    "Glaciers carried them there during an ancient ice age",
+    "Masons quarried them and then left them",
     "They are the remains of a meteorite impact"
    ],
    "answer": 0,
@@ -5247,10 +5247,10 @@
    "stem": "What is the famous Stone Chariot at Hampi, actually?",
    "context": null,
    "options": [
-    "A shrine to Garuda, assembled from several granite blocks",
-    "A single monolithic block carved in place",
-    "A real chariot petrified by lightning",
-    "A Mughal-era folly"
+    "A Garuda shrine built from several granite blocks",
+    "A single giant boulder carved where it stood",
+    "A real wooden chariot turned to stone by lightning",
+    "A folly added to the site in the Mughal period"
    ],
    "answer": 0,
    "explain": "The joints are visible once you know to look, and its wheels once turned. It was never meant to move.",
@@ -5267,10 +5267,10 @@
    "stem": "What are the \"musical pillars\" in the Vittala temple?",
    "context": null,
    "options": [
-    "Structural columns whose slender colonettes ring at different pitches when struck",
-    "Hollow pipes with an internal water organ",
-    "Metal rods set into stone sockets",
-    "A nineteenth-century addition"
+    "Columns whose slim colonettes ring at different pitches",
+    "Hollow pipes hiding a water organ inside the stone",
+    "Metal rods set into sockets cut in the granite",
+    "An addition made by restorers in the nineteenth century"
    ],
    "answer": 0,
    "explain": "The pitch depends on each colonette’s dimensions. Decades of visitors striking them with coins caused real damage, so access is now restricted.",
@@ -5287,10 +5287,10 @@
    "stem": "What is unusual about Virupaksha temple among the Hampi monuments?",
    "context": null,
    "options": [
-    "It is older than the empire and has never stopped being worshipped",
-    "It was built entirely after 1565",
-    "It is made of brick rather than granite",
-    "It was never finished"
+    "It is older than the empire and still in worship",
+    "It was built entirely after the battle of 1565",
+    "It is made of fired brick rather than granite",
+    "It was left unfinished and never consecrated"
    ],
    "answer": 0,
    "explain": "A shrine existed here before 1336 and it was enlarged under Krishnadevaraya. Continuity is itself a historical fact worth noticing.",
@@ -5307,10 +5307,10 @@
    "stem": "What is the most durable legacy of Vijayanagara’s engineering?",
    "context": null,
    "options": [
-    "Irrigation canals that still water the fields around Kamalapura",
-    "The city walls",
-    "The royal mint",
-    "The elephant stables"
+    "Canals that still water fields near Kamalapura",
+    "The city walls guarding the royal centre and palace",
+    "The royal mint where coins were struck",
+    "The stables where war elephants were kept"
    ],
    "answer": 0,
    "explain": "A diversion weir on the Tungabhadra fed gravity canals, some cut through solid rock. For a city famous for being destroyed, the plumbing outlasted everything.",
@@ -5327,10 +5327,10 @@
    "stem": "What does the numbering on the blocks of Hampi’s stepped tank tell us?",
    "context": null,
    "options": [
-    "It was cut elsewhere and assembled on site like a kit of parts",
-    "It records the names of donors",
-    "It is a calendar",
-    "It marks water levels through the year"
+    "It was cut elsewhere and assembled like a kit",
+    "It records the names of the people who paid for it",
+    "It works as a calendar showing the months",
+    "It marks the water level through the year"
    ],
    "answer": 0,
    "explain": "The tank was excavated in the 1980s. Mason’s marks are one of the most direct kinds of evidence about how a building was actually organised.",
@@ -5347,10 +5347,10 @@
    "stem": "What should you know about names like \"Lotus Mahal\" and \"Queen’s Bath\"?",
    "context": null,
    "options": [
-    "They are modern labels invented by later visitors, and the functions are argued",
-    "They are the original Vijayanagara names, recorded in inscriptions",
-    "They were coined by Krishnadevaraya himself",
-    "They come from Persian chronicles of the 1440s"
+    "Modern labels given by visitors; functions are argued",
+    "The original names, recorded in Vijayanagara inscriptions",
+    "Names that Krishnadevaraya himself gave the buildings",
+    "Names taken from Persian chronicles of the 1440s"
    ],
    "answer": 0,
    "explain": "Nineteenth-century coinages. Archaeologists argue function from plan, position and inscription — and sometimes change their minds.",
@@ -5366,10 +5366,10 @@
    "stem": "Why were imported warhorses so politically important in the Deccan?",
    "context": null,
    "options": [
-    "The region cannot breed good cavalry mounts, so supply was a strategic lever",
-    "Horses were used as currency",
-    "Horses were sacred and could not be bred locally",
-    "Local horses were larger but slower"
+    "The region could not breed good cavalry horses",
+    "Horses were used as the empire's everyday currency",
+    "Horses were sacred and could not be ridden",
+    "Local horses were larger but much slower"
    ],
    "answer": 0,
    "explain": "Climate, fodder and disease all work against it. When the Portuguese took Goa in 1510 they used horse-trade licensing as a diplomatic instrument with every Deccan power.",
@@ -5406,10 +5406,10 @@
    "stem": "Why were Vijayanagara’s bazaars built right in front of major temples?",
    "context": null,
    "options": [
-    "Temples were economic institutions — landowners, employers and holders of endowments",
-    "To keep merchants under priestly surveillance",
-    "Because temple land was the only flat ground",
-    "To shelter traders from monsoon flooding"
+    "Temples were landowners, employers and investors",
+    "So priests could keep watch over the merchants",
+    "Temple land was the only flat ground in the city",
+    "To shelter traders from flooding in the monsoon"
    ],
    "answer": 0,
    "explain": "Long colonnaded streets with stone platforms and pillared shop fronts have been excavated in front of the temples.",
@@ -5426,10 +5426,10 @@
    "stem": "Razzaq and Paes both describe Vijayanagara as enormous. What is the right way to use them?",
    "context": null,
    "options": [
-    "Note their motives, then cross-check against inscriptions and archaeology",
-    "Accept the figures as precise census data",
-    "Dismiss them as pure invention",
-    "Use whichever gives the larger number"
+    "Note motives, then cross-check with other evidence",
+    "Accept every figure they give as precise census data",
+    "Dismiss all of the accounts as complete invention",
+    "Use whichever account gives the larger number"
    ],
    "answer": 0,
    "explain": "Razzaq reports to a court assessing a rival; Paes writes for people deciding whether to invest. Neither is lying, exactly. Both have reason to exaggerate.",
@@ -5446,9 +5446,9 @@
    "stem": "Who defeated Vijayanagara at Talikota in 1565?",
    "context": null,
    "options": [
-    "A coalition of the Deccan sultanates — Bijapur, Ahmadnagar, Golconda and Bidar",
+    "An alliance of the Deccan sultanates",
     "The Mughal empire under Akbar",
-    "The Portuguese at Goa",
+    "The Portuguese from their base at Goa",
     "The Marathas under Shivaji"
    ],
    "answer": 0,
@@ -5465,10 +5465,10 @@
    "stem": "What does the archaeology show about Vijayanagara after 1565?",
    "context": null,
    "options": [
-    "Burning in some quarters, continuity in others, and worship at Virupaksha never stopping",
-    "Total, uniform destruction within weeks",
+    "Fire in some quarters; worship at Virupaksha went on",
+    "Total, even destruction of the whole city within weeks",
     "No change at all until the nineteenth century",
-    "The site was immediately resettled as a Mughal garrison"
+    "Immediate resettlement as a Mughal garrison town"
    ],
    "answer": 0,
    "explain": "The abandonment of the capital was real and it was a process. History usually runs slower than the story told about it afterwards.",
@@ -5486,9 +5486,9 @@
    "context": null,
    "options": [
     "For Mumtaz Mahal, by Shah Jahan",
-    "For Nur Jahan, by Jahangir",
-    "For Akbar, by Jahangir",
-    "For Jodha Bai, by Akbar"
+    "For Nur Jahan, by her husband Jahangir",
+    "For Akbar, by his son Jahangir",
+    "For Jodha Bai, by her husband Akbar"
    ],
    "answer": 0,
    "explain": "Mumtaz died in 1631 at Burhanpur; building ran roughly 1632–1653. The chief architect is generally credited as Ustad Ahmad Lahauri.",
@@ -5504,10 +5504,10 @@
    "stem": "Where did the Taj’s white marble come from?",
    "context": null,
    "options": [
-    "Makrana in Rajasthan, about 400 km away",
-    "Carrara in Italy",
-    "Local quarries beside the Yamuna",
-    "The Hindu Kush"
+    "Makrana, in Rajasthan",
+    "Carrara, in Italy",
+    "Quarries by the Yamuna",
+    "The Hindu Kush mountains"
    ],
    "answer": 0,
    "explain": "Makrana marble does not yellow and glows at dusk, which is why it was worth hauling that far.",
@@ -5523,10 +5523,10 @@
    "stem": "What problem does a double dome solve?",
    "context": null,
    "options": [
-    "A dome tall enough for the skyline would feel oppressive inside, and vice versa",
-    "It halves the amount of marble needed",
-    "It prevents rainwater pooling",
-    "It allows a staircase inside the dome"
+    "A skyline-height dome would feel oppressive inside",
+    "It halves the amount of marble the whole dome needs",
+    "It stops rainwater from pooling on the roof",
+    "It leaves room for a staircase inside the dome"
    ],
    "answer": 0,
    "explain": "An inner shell proportioned to the chamber, an outer shell proportioned to the silhouette, and a void between. You never see both at once.",
@@ -5543,10 +5543,10 @@
    "stem": "Why do the Taj’s minarets lean very slightly outward?",
    "context": null,
    "options": [
-    "So that if they ever failed they would fall away from the tomb",
-    "To correct an error in the foundations",
-    "To improve the acoustics of the courtyard",
-    "They have subsided over time and were built vertical"
+    "So that if they fell, they would fall away from the tomb",
+    "To correct a mistake the builders made in laying the foundations",
+    "To improve the sound of prayers in the courtyard",
+    "They were built upright and have sunk over time"
    ],
    "answer": 0,
    "explain": "A deliberate engineering decision, like the foundations of timber and rubble kept permanently wet beside the Yamuna.",
@@ -5562,10 +5562,10 @@
    "stem": "Why do the letters in the Taj’s calligraphic panels grow taller as they rise?",
    "context": null,
    "options": [
-    "So they appear a uniform size when read from the ground",
+    "So they look the same size from the ground",
     "Because the calligrapher ran out of space",
-    "To mark the most important verses",
-    "To match the taper of the dome"
+    "To mark out the most important verses",
+    "To match the curve and taper of the dome"
    ],
    "answer": 0,
    "explain": "Amanat Khan signed his work on the building — either confidence or impertinence, and probably both.",
@@ -5582,10 +5582,10 @@
    "stem": "What single element breaks the Taj’s otherwise perfect bilateral symmetry?",
    "context": null,
    "options": [
-    "Shah Jahan’s cenotaph, added later off the central axis",
-    "One of the four minarets",
-    "The main gateway",
-    "The western mosque"
+    "Shah Jahan's own cenotaph, added off-centre",
+    "One of the four tall minarets at the corners",
+    "The great main gateway to the garden",
+    "The red sandstone mosque to the west"
    ],
    "answer": 0,
    "explain": "Mumtaz’s cenotaph sits on the axis; his does not. The asymmetry is the one thing that tells you the building outlived its plan.",
@@ -5601,10 +5601,10 @@
    "stem": "What is parchin kari?",
    "context": null,
    "options": [
-    "Stone inlay — semi-precious stones cut and fitted into recesses in marble",
-    "Painting on wet plaster",
-    "Carving marble in relief",
-    "Gilding with beaten gold leaf"
+    "Semi-precious stones inlaid into marble",
+    "Painting with colours on wet lime plaster",
+    "Carving the marble in deep relief",
+    "Gilding with sheets of beaten gold"
    ],
    "answer": 0,
    "explain": "Known in Europe as pietra dura. A single flower spray can contain dozens of pieces, fitted so the joints are invisible to a fingertip.",
@@ -5621,10 +5621,10 @@
    "stem": "What is a charbagh?",
    "context": null,
    "options": [
-    "A square garden quartered by raised walkways carrying water channels",
-    "A circular garden around a central tomb",
-    "A terraced hillside garden",
-    "A walled orchard with no formal plan"
+    "A square garden split into four by water channels",
+    "A circular garden laid around a central tomb",
+    "A garden cut in terraces up a steep hillside",
+    "A walled orchard planted without any formal plan"
    ],
    "answer": 0,
    "explain": "Each quadrant is often quartered again, so the pattern repeats at smaller scale. It is irrigation as much as symbolism.",
@@ -5681,10 +5681,10 @@
    "stem": "Which best describes Mughal architecture?",
    "context": null,
    "options": [
-    "A synthesis: Central Asian arches and domes with Indian brackets, chhatris and craft labour",
-    "A pure import, built entirely by Persian craftsmen",
-    "Purely indigenous, with no outside influence",
-    "A direct copy of Ottoman mosque design"
+    "Central Asian domes with Indian brackets and craft",
+    "A pure import, built only by Persian craftsmen",
+    "Purely Indian, with no outside influence at all",
+    "A direct copy of an Ottoman mosque in Istanbul"
    ],
    "answer": 0,
    "explain": "Fatehpur Sikri is the clearest single place to see the two traditions being argued out in stone.",
@@ -5701,9 +5701,9 @@
    "stem": "Why is Fatehpur Sikri so well preserved?",
    "context": null,
    "options": [
-    "It was abandoned within about fifteen years, so nobody kept rebuilding it",
-    "It was continuously restored by every later emperor",
-    "It was buried by sand until 1900",
+    "It was left within about fifteen years",
+    "Every later emperor kept restoring it",
+    "Sand buried it completely until 1900",
     "It was rebuilt in concrete in the 1950s"
    ],
    "answer": 0,
@@ -5721,10 +5721,10 @@
    "stem": "What does sulh-i-kul mean as Akbar used it?",
    "context": null,
    "options": [
-    "Peace with all — the state takes no side and no one may revile another’s faith",
-    "All religions are secretly the same",
-    "Islam is the only permitted religion of state",
-    "Religion is banned from public life"
+    "Peace with all: the state takes no side",
+    "All religions are secretly the same one",
+    "Islam is the only religion of the state",
+    "Religion is banned from all public life"
    ],
    "answer": 0,
    "explain": "He abolished the pilgrimage tax and the jizya, and appointed Hindus including Todar Mal and Man Singh to the highest offices.",
@@ -5741,10 +5741,10 @@
    "stem": "What does Aurangzeb’s reimposition of the jizya in 1679 illustrate?",
    "context": null,
    "options": [
-    "A tolerance resting on one ruler’s character is reversible by the next",
-    "That Akbar’s policy had never existed",
-    "That the jizya was popular with all subjects",
-    "That Mughal policy never changed"
+    "Tolerance resting on one ruler can be reversed",
+    "Akbar's policy of tolerance had never really existed",
+    "The jizya was popular with every subject",
+    "Mughal policy never changed over time"
    ],
    "answer": 0,
    "explain": "The limits matter as much as the achievement. This was court policy, not a constitutional settlement.",
@@ -5761,10 +5761,10 @@
    "stem": "What is the Razmnama?",
    "context": null,
    "options": [
-    "A Persian translation of the Mahabharata made under Akbar",
-    "Akbar’s own memoir",
-    "A manual of Mughal artillery",
-    "A revenue survey of Bengal"
+    "A Persian Mahabharata made for Akbar",
+    "Akbar's own memoir of his reign",
+    "A manual for Mughal artillery officers",
+    "A revenue survey of the province of Bengal"
    ],
    "answer": 0,
    "explain": "Akbar’s maktab khana also translated the Ramayana, the Atharva Veda, the Yoga Vasistha, the Panchatantra and Bhaskara’s Lilavati. Badauni, who thought Akbar a heretic, worked on it.",
@@ -5781,10 +5781,10 @@
    "stem": "The story that the Taj’s workers had their hands cut off afterwards is...",
    "context": null,
    "options": [
-    "Unsupported by any contemporary evidence and rejected by historians",
-    "Recorded in the Ain-i-Akbari",
-    "Confirmed by Shah Jahan’s own farman",
-    "Supported by skeletal evidence from Taj Ganj"
+    "Unsupported by any evidence; historians reject it",
+    "Recorded as plain fact in the Ain-i-Akbari chronicle",
+    "Confirmed by an order of Shah Jahan himself",
+    "Supported by skeletons dug up at Taj Ganj"
    ],
    "answer": 0,
    "explain": "A workforce of roughly twenty thousand over two decades, some named in surviving ledgers, lived in the settlement still called Taj Ganj. Famous buildings attract invented stories.",
@@ -5801,10 +5801,10 @@
    "stem": "Why is the gateway of an Indian hill fort usually set at a right angle inside a passage?",
    "context": null,
    "options": [
-    "So nothing — elephant or ram — can build momentum against the doors",
-    "To shelter the gate from monsoon rain",
-    "To make the fort look larger",
-    "To allow carts to turn around inside"
+    "So no elephant or ram can gather speed",
+    "To keep monsoon rain off the gate",
+    "To make the fort look larger from afar",
+    "To let carts turn around inside it"
    ],
    "answer": 0,
    "explain": "Combined with bastions that shoot along the wall rather than out from it, and a long exposed approach climb.",
@@ -5820,10 +5820,10 @@
    "stem": "Why do bastions project out from a fort wall?",
    "context": null,
    "options": [
-    "So defenders can shoot along the face of the wall, covering the ground attackers must cross",
-    "To add storage space",
-    "To hold heavier roofs",
-    "To make the wall taller"
+    "Defenders can shoot along the face of the wall",
+    "It adds storage space for food and gunpowder",
+    "It holds up a heavier roof over the gate",
+    "It makes the whole wall taller than before"
    ],
    "answer": 0,
    "explain": "Flanking fire is the whole idea. A flat wall leaves a blind strip at its base exactly where an attacker wants to be.",
@@ -5860,9 +5860,9 @@
    "context": null,
    "options": [
     "Chittorgarh",
-    "Raigad",
-    "Golconda",
-    "Gwalior"
+    "Mehrangarh",
+    "Golconda Fort",
+    "Gwalior Fort"
    ],
    "answer": 0,
    "explain": "About 280 hectares on a plateau. Kumbhalgarh, also in Mewar, has one of the longest perimeter walls in the world at around 36 km.",
@@ -5879,10 +5879,10 @@
    "stem": "Who built the Vijaya Stambha at Chittorgarh, and what else does it record?",
    "context": null,
    "options": [
-    "Rana Kumbha — and inscriptions inside list the rulers of his house",
-    "Maharana Pratap — and it records the battle of Haldighati",
-    "Akbar — and it records the 1568 siege",
-    "Shivaji — and it records the Ashta Pradhan"
+    "Rana Kumbha; it lists the rulers of his house",
+    "Maharana Pratap; it records the battle of Haldighati",
+    "Akbar; it records his siege of 1568",
+    "Shivaji; it records the Ashta Pradhan"
    ],
    "answer": 0,
    "explain": "Nine storeys, around 37 m, raised in 1448 to commemorate a victory over the Sultan of Malwa.",
@@ -5899,10 +5899,10 @@
    "stem": "What is the most defensible summary of Haldighati in 1576?",
    "context": null,
    "options": [
-    "Tactically inconclusive; Pratap escaped and then recovered most of Mewar from the hills",
-    "A decisive Mughal victory that ended Mewar’s resistance",
-    "A decisive Rajput victory that expelled the Mughals from Rajasthan",
-    "A battle that never took place"
+    "Inconclusive; Pratap escaped and later won back Mewar",
+    "A decisive Mughal victory that ended all resistance",
+    "A decisive Rajput victory that drove out the Mughals",
+    "A battle invented by later poets that never happened"
    ],
    "answer": 0,
    "explain": "Rajput bardic sources remember a heroic stand, Mughal chronicles a victory. Reading both is the honest approach — and the long campaign that followed matters more than the day.",
@@ -5919,10 +5919,10 @@
    "stem": "What is ganimi kava?",
    "context": null,
    "options": [
-    "A doctrine of mobility: strike supply lines, use the ghats and the monsoon, never give a set-piece battle",
-    "A system of land revenue",
-    "A naval signalling code",
-    "A style of fort construction"
+    "Mobility: hit supply lines, avoid pitched battles",
+    "A system for assessing and collecting land revenue",
+    "A code of flag signals used by the Maratha navy",
+    "A style of fort building on steep hilltops"
    ],
    "answer": 0,
    "explain": "It is not a substitute for organisation but a product of it: intelligence, a fort network, and infantry drawn from the Mawal valleys.",
@@ -5939,10 +5939,10 @@
    "stem": "How did the monsoon favour the Marathas in the Western Ghats?",
    "context": null,
    "options": [
-    "Heavy cavalry and artillery bog down from June to September while light infantry still walks",
-    "It flooded the plains, forcing enemies into the hills",
-    "It made the sea routes safer for Maratha ships",
-    "It provided cover of fog for night attacks year-round"
+    "Heavy cavalry and guns bog down; infantry still walks",
+    "It flooded the plains and drove enemies into the hills",
+    "It made the sea routes safer for the Maratha ships",
+    "It gave cover of fog for night attacks all year round"
    ],
    "answer": 0,
    "explain": "Terrain and season were the general. Local men knowing every goat track is not a tactic — it is a home.",
@@ -5959,10 +5959,10 @@
    "stem": "Why did Shivaji build sea forts and a fleet?",
    "context": null,
    "options": [
-    "Because the Siddis, Portuguese and English could land anywhere on an undefended coast",
-    "To trade directly with China",
-    "To transport his army faster than by land",
-    "Because the Mughals had no land army nearby"
+    "Enemies could land anywhere on an undefended coast",
+    "To open a direct and profitable sea trade with China",
+    "To move his army faster than marching by land",
+    "The Mughals had no land army anywhere nearby"
    ],
    "answer": 0,
    "explain": "Sindhudurg and Vijaydurg sit on offshore rock. A kingdom with a coast and no fleet has a door with no latch.",
@@ -5998,10 +5998,10 @@
    "stem": "What was the Ashta Pradhan?",
    "context": null,
    "options": [
-    "Shivaji’s council of eight ministers, from Peshwa to Panditrao",
+    "Shivaji's council of eight ministers",
     "A tax of one-eighth on all produce",
-    "An eight-fort defensive line",
-    "A code of eight rules for soldiers"
+    "A line of eight forts guarding the ghats",
+    "A code of eight rules for every soldier"
    ],
    "answer": 0,
    "explain": "Intended as offices rather than hereditary gifts. Within two generations the Peshwa’s post had become hereditary and the real power — institutions drift.",
@@ -6017,10 +6017,10 @@
    "stem": "How were chauth and sardeshmukhi collected?",
    "context": null,
    "options": [
-    "As assessed shares against land measurement, with written receipts",
-    "By seizing whatever an army could carry",
-    "As a fixed annual tribute paid in horses",
-    "Only from merchants, never from land"
+    "As assessed shares, with written receipts",
+    "By seizing whatever the army could carry",
+    "As a fixed yearly tribute paid in horses",
+    "Only from merchants, never from farmland"
    ],
    "answer": 0,
    "explain": "Shivaji’s standing orders forbid touching the standing crop, the cattle or the women of a village. A soldier who burns a village destroys next year’s revenue — that is arithmetic, not mercy.",
@@ -6037,10 +6037,10 @@
    "stem": "What change did Shivaji make to official record-keeping?",
    "context": null,
    "options": [
-    "Court records were kept in Marathi and Sanskrit rather than Persian",
-    "Records were abolished to prevent espionage",
-    "All records were kept in Portuguese for trade",
-    "Records were kept only orally"
+    "Records were kept in Marathi and Sanskrit, not Persian",
+    "All written records were abolished, to stop enemy spies",
+    "Records were kept in Portuguese to help trade",
+    "Nothing was written; records were kept only orally"
    ],
    "answer": 0,
    "explain": "A deliberate statement about whose state it was, and a practical one about who could read it.",
@@ -6057,10 +6057,10 @@
    "stem": "Ahilyabai Holkar is chiefly remembered for what?",
    "context": null,
    "options": [
-    "Public works — ghats, wells, roads, rest-houses and temples across India",
-    "Conquering Bengal",
-    "Founding the Maratha navy",
-    "Writing a treatise on statecraft"
+    "Ghats, wells, roads and temples across India",
+    "Conquering the rich provinces of Bengal and Odisha",
+    "Founding the Maratha navy on the coast",
+    "Writing a long treatise on statecraft"
    ],
    "answer": 0,
    "explain": "She ruled Malwa from Maheshwar for nearly thirty years and rebuilt the Kashi Vishwanath temple in 1780. Battles are remembered; wells are used.",
@@ -6077,10 +6077,10 @@
    "stem": "What best explains the Maratha defeat at Panipat in 1761?",
    "context": null,
    "options": [
-    "Supply lines cut a thousand kilometres from base, absent allies, and better enemy artillery",
-    "A sudden change of weather on the day",
-    "Superior numbers on the Afghan side alone",
-    "The death of the Peshwa during the battle"
+    "Supply lines cut far from home, no allies, worse guns",
+    "A sudden and violent change in the weather on the day itself",
+    "The Afghan army simply had far more soldiers",
+    "The death of the Peshwa in the middle of battle"
    ],
    "answer": 0,
    "explain": "The Rajputs, Jats and Awadh were largely absent or hostile, partly because of how chauth had been collected from them. Logistics and diplomacy lost it before the fighting started.",
@@ -6097,10 +6097,10 @@
    "stem": "What finally ended the hill-fort system that cavalry had never beaten?",
    "context": null,
    "options": [
-    "Sustained siege artillery and company finance, by 1818",
-    "A series of earthquakes",
-    "The silting of the Konkan harbours",
-    "A treaty banning fortification"
+    "Siege artillery and company finance, by 1818",
+    "A series of earthquakes across the Deccan",
+    "The silting up of the Konkan harbours",
+    "A treaty that banned the building of forts"
    ],
    "answer": 0,
    "explain": "Both the Rajput and Maratha fort traditions lost to logistics and heavy guns, not to any failure of courage.",

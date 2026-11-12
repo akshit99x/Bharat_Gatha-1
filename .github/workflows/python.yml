@@ -4,9 +4,9 @@ name: Python tests
 
 on:
   push:
-    paths: ['server/**', 'tools/**', 'tests/**', 'api/**', 'requirements*.txt', 'pyproject.toml', 'public/teacher/**']
+    paths: ['server/**', 'tools/**', 'tests/**', 'api/**', 'requirements*.txt', 'pyproject.toml', 'public/teacher/**', 'src/content/**', 'scripts/export-content.mjs', 'scripts/content-export.ts']
   pull_request:
-    paths: ['server/**', 'tools/**', 'tests/**', 'api/**', 'requirements*.txt', 'pyproject.toml', 'public/teacher/**']
+    paths: ['server/**', 'tools/**', 'tests/**', 'api/**', 'requirements*.txt', 'pyproject.toml', 'public/teacher/**', 'src/content/**', 'scripts/export-content.mjs', 'scripts/content-export.ts']
 
 permissions:
   contents: read
@@ -24,5 +24,11 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
           cache-dependency-path: requirements-dev.txt
+      # Node lets the drift test re-export the game's content and compare it with server/data/content.json.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest

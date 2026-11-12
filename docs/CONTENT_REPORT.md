@@ -10,23 +10,23 @@ syllables, and a name like *Mohenjo-daro* makes a plain sentence look harder tha
 - **11** regions, **104** codex entries, **175** authored questions, **33** plaques.
 - Codex median reading grade **12.3**; **87** of 104 entries are above 10.
 - Question median reading grade **12.1**; **139** of 175 are above 10.
-- **Answer length:** the longest option is the correct one in **152** of 175 questions (87%); pure chance would give about 25%. A student can do well by choosing the longest answer without knowing the history, so this is worth fixing.
+- **Answer length:** the longest option is the correct one in **55** of 175 questions (31%); pure chance would give about 25%. In **0** the correct option is clearly longer (by more than 15%) than every other. That is close to chance, so option length does not give the answer away.
 
 ## Questions by region
 
 | Region | Questions | Easy (1) | Medium (2) | Hard (3) | Median grade |
 |---|---:|---:|---:|---:|---:|
-| Sindhu-Sarasvati | 18 | 2 | 10 | 6 | 12.3 |
-| Sumer & Dilmun | 14 | 2 | 9 | 3 | 12.0 |
-| Kosala & Dandaka | 15 | 2 | 7 | 6 | 12.8 |
-| The Setu & Lanka | 12 | 0 | 8 | 4 | 12.7 |
-| Kurukshetra | 19 | 2 | 8 | 9 | 11.8 |
-| Magadha | 19 | 1 | 8 | 10 | 11.9 |
-| The Chola Country | 16 | 0 | 8 | 8 | 10.6 |
-| Konark & the Observatory | 16 | 1 | 6 | 9 | 12.3 |
+| Sindhu-Sarasvati | 18 | 2 | 10 | 6 | 13.0 |
+| Sumer & Dilmun | 14 | 2 | 9 | 3 | 11.8 |
+| Kosala & Dandaka | 15 | 2 | 7 | 6 | 12.1 |
+| The Setu & Lanka | 12 | 0 | 8 | 4 | 11.9 |
+| Kurukshetra | 19 | 2 | 8 | 9 | 12.3 |
+| Magadha | 19 | 1 | 8 | 10 | 12.1 |
+| The Chola Country | 16 | 0 | 8 | 8 | 11.5 |
+| Konark & the Observatory | 16 | 1 | 6 | 9 | 12.7 |
 | Vijayanagara | 14 | 1 | 7 | 6 | 12.3 |
-| Agra & Sikri | 16 | 1 | 7 | 8 | 12.6 |
-| The Hill Forts | 16 | 0 | 8 | 8 | 11.9 |
+| Agra & Sikri | 16 | 1 | 7 | 8 | 12.4 |
+| The Hill Forts | 16 | 0 | 8 | 8 | 11.4 |
 
 Regions with fewer than 12 authored questions lean on generated questions more: none.
 
@@ -83,69 +83,7 @@ Regions with fewer than 12 authored questions lean on generated questions more: 
 
 ## Questions worth a second look
 
-- `sindhu-greatbath-seal`: the correct option is much longer than the others, which gives it away.
-- `sindhu-drains`: the correct option is much longer than the others, which gives it away.
-- `sindhu-seal-motif`: the correct option is much longer than the others, which gives it away.
-- `meluhha-cuneiform-languages`: the correct option is much longer than the others, which gives it away.
-- `meluhha-behistun`: the correct option is much longer than the others, which gives it away.
-- `meluhha-writing-purpose`: the correct option is much longer than the others, which gives it away.
-- `meluhha-base60`: the correct option is much longer than the others, which gives it away.
-- `meluhha-hammurabi`: the correct option is much longer than the others, which gives it away.
-- `meluhha-rivers`: the correct option is much longer than the others, which gives it away.
-- `meluhha-interpreter`: the correct option is much longer than the others, which gives it away.
-- `kosala-forest`: the correct option is much longer than the others, which gives it away.
-- `setu-vibhishana`: the correct option is much longer than the others, which gives it away.
-- `setu-ravana`: the correct option is much longer than the others, which gives it away.
-- `setu-dharmasankata`: the correct option is much longer than the others, which gives it away.
-- `setu-periplus`: the correct option is much longer than the others, which gives it away.
-- `setu-two-truths`: the correct option is much longer than the others, which gives it away.
-- `kuru-length`: the correct option is much longer than the others, which gives it away.
-- `kuru-inaction`: the correct option is much longer than the others, which gives it away.
-- `kuru-abhimanyu`: the correct option is much longer than the others, which gives it away.
-- `kuru-ekalavya`: the correct option is much longer than the others, which gives it away.
-- `kuru-aftermath`: the correct option is much longer than the others, which gives it away.
-- `magadha-brahmi-descendants`: the correct option is much longer than the others, which gives it away.
-- `magadha-brahmi-abugida`: the correct option is much longer than the others, which gives it away.
-- `magadha-prinsep`: the correct option is much longer than the others, which gives it away.
-- `magadha-sanchi-dates`: the correct option is much longer than the others, which gives it away.
-- `magadha-sanchi-donors`: the correct option is much longer than the others, which gives it away.
-- `magadha-arthashastra`: the correct option is much longer than the others, which gives it away.
-- `magadha-revenue`: the correct option is much longer than the others, which gives it away.
-- `magadha-nalanda-curriculum`: the correct option is much longer than the others, which gives it away.
-- `magadha-gupta-caveat`: the correct option is much longer than the others, which gives it away.
-- `chola-no-mortar`: the correct option is much longer than the others, which gives it away.
-- `chola-corbel`: the correct option is much longer than the others, which gives it away.
-- `chola-kudavolai`: the correct option is much longer than the others, which gives it away.
-- `chola-disqualify`: the correct option is much longer than the others, which gives it away.
-- `chola-not-democracy`: the correct option is much longer than the others, which gives it away.
-- `chola-srivijaya`: the correct option is much longer than the others, which gives it away.
-- `chola-monsoon`: the correct option is much longer than the others, which gives it away.
-- `chola-temple-economy`: the correct option is much longer than the others, which gives it away.
-- `chola-inscription-bias`: the correct option is much longer than the others, which gives it away.
-- `chola-tanks`: the correct option is much longer than the others, which gives it away.
-- `konark-chariot`: the correct option is much longer than the others, which gives it away.
-- `konark-sundial`: the correct option is much longer than the others, which gives it away.
-- `konark-deul`: the correct option is much longer than the others, which gives it away.
-- `konark-madhava`: the correct option is much longer than the others, which gives it away.
-- `konark-observatories`: the correct option is much longer than the others, which gives it away.
-- `konark-siddhanta-method`: the correct option is much longer than the others, which gives it away.
-- `hampi-founded`: the correct option is much longer than the others, which gives it away.
-- `hampi-musical-pillars`: the correct option is much longer than the others, which gives it away.
-- `hampi-canals`: the correct option is much longer than the others, which gives it away.
-- `hampi-bazaar`: the correct option is much longer than the others, which gives it away.
-- `hampi-talikota`: the correct option is much longer than the others, which gives it away.
-- `agra-double-dome`: the correct option is much longer than the others, which gives it away.
-- `agra-asymmetry`: the correct option is much longer than the others, which gives it away.
-- `agra-pietra-dura`: the correct option is much longer than the others, which gives it away.
-- `agra-synthesis`: the correct option is much longer than the others, which gives it away.
-- `agra-razmnama`: the correct option is much longer than the others, which gives it away.
-- `maratha-bent-gate`: the correct option is much longer than the others, which gives it away.
-- `maratha-bastion`: the correct option is much longer than the others, which gives it away.
-- `maratha-ganimi`: the correct option is much longer than the others, which gives it away.
-- `maratha-navy`: the correct option is much longer than the others, which gives it away.
-- `maratha-ashta-pradhan`: the correct option is much longer than the others, which gives it away.
-- `maratha-ahilyabai`: the correct option is much longer than the others, which gives it away.
-- `maratha-panipat`: the correct option is much longer than the others, which gives it away.
+No duplicates, giveaways or malformed questions found.
 
-Hardest to read (grade more than two above the target): `kuru-dating` (20), `magadha-nalanda-curriculum` (19), `chola-not-democracy` (18), `kosala-rhinoplasty` (17), `chola-temple-economy` (17), `sindhu-nopalace` (16), `agra-sikri-abandoned` (16), `konark-brahmagupta-zero` (16), `setu-periplus` (16), `sindhu-grid` (16).
+Hardest to read (grade more than two above the target): `kuru-dating` (19), `chola-not-democracy` (18), `magadha-nalanda-curriculum` (17), `sindhu-drains` (17), `meluhha-cuneiform-languages` (17), `konark-brahmagupta-zero` (17), `kuru-abhimanyu` (16), `chola-temple-economy` (16), `kosala-rhinoplasty` (16), `sindhu-grid` (16).
 

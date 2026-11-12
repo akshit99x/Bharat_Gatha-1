@@ -69,6 +69,20 @@ def question_issues(content) -> list[str]:
     return out
 
 
+def length_bias(questions: list[dict]) -> dict:
+    """How often the correct option is the longest one, against what guessing would give."""
+    total = len(questions)
+    longest = clear = 0
+    for q in questions:
+        lens = [len(o) for o in q["options"]]
+        right = lens[q["answer"]]
+        others = max((n for i, n in enumerate(lens) if i != q["answer"]), default=0)
+        longest += right == max(lens)
+        clear += right > 1.15 * others
+    chance = sum(1 / len(q["options"]) for q in questions) / max(1, total)
+    return {"total": total, "longest": longest, "clear": clear, "rate": longest / max(1, total), "chance": chance}
+
+
 def _fmt(x) -> str:
     return "n/a" if x is None else f"{x:.1f}"
 
@@ -92,9 +106,13 @@ def build_report() -> str:
     w(f"- Codex median reading grade **{statistics.median(graded):.1f}**; **{sum(1 for g in graded if g > TARGET_GRADE)}** of {len(graded)} entries are above {TARGET_GRADE:.0f}.")
     qg = [r["grade"] for r in qs if r["grade"] is not None]
     w(f"- Question median reading grade **{statistics.median(qg):.1f}**; **{sum(1 for g in qg if g > TARGET_GRADE)}** of {len(qg)} are above {TARGET_GRADE:.0f}.")
-    longest = sum(1 for q in c.questions if len(q["options"][q["answer"]]) == max(len(o) for o in q["options"]))
-    chance = sum(1 / len(q["options"]) for q in c.questions) / max(1, len(c.questions))
-    w(f"- **Answer length:** the longest option is the correct one in **{longest}** of {len(c.questions)} questions ({longest / max(1, len(c.questions)):.0%}); pure chance would give about {chance:.0%}. A student can do well by choosing the longest answer without knowing the history, so this is worth fixing.")
+    bias = length_bias(c.questions)
+    verdict = (
+        "A student can do well by choosing the longest answer without knowing the history, so this is worth fixing."
+        if bias["rate"] > bias["chance"] + 0.15 or bias["clear"]
+        else "That is close to chance, so option length does not give the answer away."
+    )
+    w(f"- **Answer length:** the longest option is the correct one in **{bias['longest']}** of {bias['total']} questions ({bias['rate']:.0%}); pure chance would give about {bias['chance']:.0%}. In **{bias['clear']}** the correct option is clearly longer (by more than 15%) than every other. {verdict}")
     w("")
     w("## Questions by region")
     w("")

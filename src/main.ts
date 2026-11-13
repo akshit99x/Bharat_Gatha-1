@@ -44,6 +44,7 @@ import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
 import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
 import { Diyas } from './creative/Diyas';
 import { placeRangolis } from './creative/Rangoli';
+import { Kites } from './creative/Kites';
 import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
@@ -140,6 +141,7 @@ class Game {
   private aksharas!: Aksharas;
   private pillars!: MusicalPillars;
   private diyas!: Diyas;
+  private kites!: Kites;
   /** Set by P; the frame is captured right after it has been rendered. */
   private photoPending = false;
   /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
@@ -309,6 +311,10 @@ class Game {
     // Letters hidden around the island.
     this.aksharas = new Aksharas(this.world, save.profile.creative.aksharas);
     this.scene.add(this.aksharas.group);
+
+    // Kites over Agra.
+    this.kites = new Kites(this.world);
+    this.scene.add(this.kites.group);
 
     // Rangoli on every landing terrace (a kolam in the Chola Country).
     placeRangolis(this.world, this.scene);
@@ -536,6 +542,7 @@ class Game {
 
     this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
     this.diyas.update(dt, this.elapsed, this.player.position);
+    this.kites.update(this.elapsed, this.player.position);
     this.camera.getWorldDirection(_look);
     audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
     this.updateGuide(dt, blocked);

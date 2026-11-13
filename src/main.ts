@@ -41,6 +41,7 @@ import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
 import { Aksharas } from './creative/Aksharas';
 import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
+import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
 import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
@@ -135,6 +136,7 @@ class Game {
   private hasFlown = false;
   private combat!: Combat;
   private aksharas!: Aksharas;
+  private pillars!: MusicalPillars;
   /** Set by P; the frame is captured right after it has been rendered. */
   private photoPending = false;
   /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
@@ -304,6 +306,29 @@ class Game {
     // Letters hidden around the island.
     this.aksharas = new Aksharas(this.world, save.profile.creative.aksharas);
     this.scene.add(this.aksharas.group);
+
+    // Hampi's ringing pillars, beside the Stone Chariot.
+    this.pillars = new MusicalPillars(this.world, [
+      ...this.combat.sitePositions(),
+      ...this.world.interactables.map((i) => i.position),
+      ...this.aksharas.positions().map((a) => a.position),
+    ]);
+    this.scene.add(this.pillars.group);
+    this.pillars.onMelody = (m) => {
+      const fresh = save.learnMelody(m.id);
+      if (fresh) {
+        save.addVidya(30);
+        bus.emit('vidya:gain', { amount: 30, reason: `Played ${m.name}` });
+      }
+      audio.success(3);
+      const learned = save.profile.creative.melodies.length;
+      this.hud.toast('good', `${m.name}${fresh ? '' : ' (again)'}`, `${m.note} ${fresh ? `Melodies learned: ${learned} of ${MELODIES.length}.` : ''}`, '🎶', 8000);
+      if (fresh && learned === MELODIES.length) {
+        void this.narration.say([
+          this.narrationLine({ who: 'maitri', text: 'Stone that sings. Nobody wrote down how the masons tuned it, so all we have is the sound. Sometimes that is the whole record.' }),
+        ]);
+      }
+    };
 
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
@@ -490,6 +515,7 @@ class Game {
       this.updateVehicle(dt);
       this.player.update(dt);
       this.updateInteraction(dt);
+      this.pillars.update(dt);
       const letter = this.aksharas.update(dt, this.elapsed, this.player.position);
       if (letter) this.foundAkshara(letter);
     } else {
@@ -707,6 +733,23 @@ class Game {
       if (this.input.justPressed('interact') || this.input.justPressed('mount')) this.dismountChariot();
       const zone = this.world.zoneAt(this.player.position.x, this.player.position.z);
       if (zone && zone.id !== this.currentZone?.id) this.enterZone(zone, false);
+      return;
+    }
+
+    // --- the musical pillars at Hampi.
+    if (this.pillars.firstVisit(this.player.position)) {
+      this.hud.toast(
+        'info',
+        'The Sangita Mandapa',
+        'These pillars ring. Walk up to one and press E to strike it. Try the scale up (Sa Re Ga Ma Pa Dha Ni), then down, and listen for a raga hidden in five of them.',
+        '🎶',
+        10000,
+      );
+    }
+    const pillar = this.pillars.nearest(this.player.position);
+    if (pillar) {
+      this.hud.setInteractPrompt(this.pillars.promptFor(pillar));
+      if (this.input.justPressed('interact')) this.pillars.strike(pillar);
       return;
     }
 

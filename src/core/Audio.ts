@@ -338,6 +338,49 @@ export class AudioEngine {
   }
 
   /**
+   * A struck stone colonette: a clear fundamental over the inharmonic partials of a solid bar, with a tick
+   * at the strike. Used by Hampi's musical pillars.
+   */
+  stoneNote(hz: number, level = 0.32): void {
+    const ctx = this.ctx;
+    const dest = this.sfxBus;
+    if (!ctx || !dest) return;
+    const now = ctx.currentTime;
+    for (const [mult, lv, decay] of [
+      [1, 1, 2.6],
+      [2.0, 0.22, 1.6],
+      [2.76, 0.18, 1.1],
+      [5.4, 0.07, 0.6],
+    ] as Array<[number, number, number]>) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = hz * mult;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0, now);
+      env.gain.linearRampToValueAtTime(level * lv, now + 0.004);
+      env.gain.exponentialRampToValueAtTime(0.0004, now + decay);
+      osc.connect(env).connect(dest);
+      osc.start(now);
+      osc.stop(now + decay + 0.05);
+    }
+    // The tick of the strike: a very short burst of filtered noise.
+    const len = Math.floor(ctx.sampleRate * 0.03);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = hz * 4;
+    bp.Q.value = 1.2;
+    const g = ctx.createGain();
+    g.gain.value = level * 0.6;
+    src.connect(bp).connect(g).connect(dest);
+    src.start(now);
+  }
+
+  /**
    * The shankh. Played rarely on purpose: once when a journey begins, and once for each chapter whose
    * panel is restored. Heard every few minutes it stops meaning anything.
    *

@@ -40,6 +40,7 @@ import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
 import { Aksharas } from './creative/Aksharas';
+import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
 import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
@@ -134,6 +135,8 @@ class Game {
   private hasFlown = false;
   private combat!: Combat;
   private aksharas!: Aksharas;
+  /** Set by P; the frame is captured right after it has been rendered. */
+  private photoPending = false;
   /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
   private tool = 2;
 
@@ -512,6 +515,10 @@ class Game {
 
     const sunDir = _sunDir.copy(this.world.sky.sun.position).sub(this.camera.position).normalize();
     this.post.render(dt, this.elapsed, sunDir, this.world.sky.sun.color);
+    if (this.photoPending) {
+      this.photoPending = false;
+      this.takePhoto();
+    }
     // If the post chain has had to step down, the machine is struggling: thin the grass too.
     if (this.post.currentTier !== this.lastTier) {
       this.lastTier = this.post.currentTier;
@@ -519,6 +526,19 @@ class Game {
     }
     this.input.endFrame();
   };
+
+  // ------------------------------------------------------------- photo mode
+
+  private takePhoto(): void {
+    const shot = captureFrame(this.renderer.domElement);
+    shutter();
+    const zone = this.world.zoneAt(this.player.position.x, this.player.position.z);
+    // A moment for the flash, then the darkroom.
+    setTimeout(() => {
+      this.input.releaseLock();
+      openDarkroom(shot, zone, save.profile.playerName, () => save.countPhoto());
+    }, 350);
+  }
 
   // ------------------------------------------------------------- aksharas
 
@@ -549,6 +569,10 @@ class Game {
   // ------------------------------------------------------------- interaction
 
   private handleHotkeys(): void {
+    if (this.input.justPressed('photo')) {
+      this.photoPending = true;
+      return;
+    }
     if (this.input.justPressed('pause')) {
       this.togglePause();
       return;
@@ -1687,6 +1711,7 @@ const CONTROLS: Array<[string, string[]]> = [
   ['Map and fast travel', ['M']],
   ['Codex', ['J']],
   ['The Gatha — panels, plaques, the story', ['K']],
+  ['Photograph and postcard', ['P']],
   ['Pause and settings', ['Esc']],
   ['This help', ['F1']],
   ['Answer a question', ['1', '2', '3', '4']],

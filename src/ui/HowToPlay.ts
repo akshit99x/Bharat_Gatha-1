@@ -152,6 +152,7 @@ function pages(): Page[] {
               ['Drive a chariot', keys('W', 'S', 'A', 'D')],
               ['Answer a question', keys('1', '2', '3', '4')],
               ['Continue or skip a line of speech', keys('Enter')],
+              ['Take a photograph and make a postcard', keys('P')],
             ],
           ],
           [
@@ -159,7 +160,7 @@ function pages(): Page[] {
             [
               ['Map, roadmap and what to do next', keys('M')],
               ['Codex: everything you have scanned', keys('J')],
-              ['The Gatha: your scroll, plaques and story', keys('K')],
+              ['The Gatha: your scroll, plaques, story and the letters you have found', keys('K')],
               ['This guide', keys('F1')],
               ['Pause, settings, volume', keys('Esc')],
             ],

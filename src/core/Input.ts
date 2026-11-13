@@ -31,7 +31,8 @@ export type Action =
   | 'cameraToggle'
   | 'mount'
   | 'journalNext'
-  | 'track';
+  | 'track'
+  | 'photo';
 
 const KEY_BINDINGS: Record<string, Action> = {
   KeyW: 'forward',
@@ -55,6 +56,7 @@ const KEY_BINDINGS: Record<string, Action> = {
   KeyJ: 'codex',
   KeyK: 'scroll',
   KeyT: 'track',
+  KeyP: 'photo',
   Escape: 'pause',
   F1: 'help',
   Slash: 'help',

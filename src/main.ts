@@ -42,6 +42,7 @@ import { MiniGames } from './minigames/MiniGames';
 import { Aksharas } from './creative/Aksharas';
 import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
 import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
+import { Diyas } from './creative/Diyas';
 import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
@@ -137,6 +138,7 @@ class Game {
   private combat!: Combat;
   private aksharas!: Aksharas;
   private pillars!: MusicalPillars;
+  private diyas!: Diyas;
   /** Set by P; the frame is captured right after it has been rendered. */
   private photoPending = false;
   /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
@@ -306,6 +308,11 @@ class Game {
     // Letters hidden around the island.
     this.aksharas = new Aksharas(this.world, save.profile.creative.aksharas);
     this.scene.add(this.aksharas.group);
+
+    // Lamps on the water off every landing terrace; a flotilla more for each restored panel.
+    this.diyas = new Diyas(this.world, CHAPTERS.filter((c) => this.story.panelRestored(c.zoneId)).map((c) => c.zoneId));
+    this.scene.add(this.diyas.group);
+    bus.on('story:panel', ({ zoneId }) => this.diyas.release(zoneId));
 
     // Hampi's ringing pillars, beside the Stone Chariot.
     this.pillars = new MusicalPillars(this.world, [
@@ -524,6 +531,7 @@ class Game {
     }
 
     this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
+    this.diyas.update(dt, this.elapsed, this.player.position);
     this.camera.getWorldDirection(_look);
     audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
     this.updateGuide(dt, blocked);

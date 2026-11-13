@@ -337,6 +337,34 @@ export class AudioEngine {
     }
   }
 
+  /** A peacock's call: two loud nasal wails that leap up and fall back, "may-awe, may-awe". */
+  peacock(): void {
+    const ctx = this.ctx;
+    const dest = this.sfxBus;
+    if (!ctx || !dest) return;
+    const now = ctx.currentTime;
+    for (const start of [0, 0.62]) {
+      const t = now + start;
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(620, t);
+      osc.frequency.exponentialRampToValueAtTime(1180, t + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(820, t + 0.42);
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1500;
+      bp.Q.value = 2.2;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.16, t + 0.04);
+      env.gain.setValueAtTime(0.16, t + 0.3);
+      env.gain.exponentialRampToValueAtTime(0.0005, t + 0.5);
+      osc.connect(bp).connect(env).connect(dest);
+      osc.start(t);
+      osc.stop(t + 0.55);
+    }
+  }
+
   /**
    * A struck stone colonette: a clear fundamental over the inharmonic partials of a solid bar, with a tick
    * at the strike. Used by Hampi's musical pillars.

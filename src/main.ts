@@ -43,6 +43,7 @@ import { Aksharas } from './creative/Aksharas';
 import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
 import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
 import { Diyas } from './creative/Diyas';
+import { placeRangolis } from './creative/Rangoli';
 import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
@@ -308,6 +309,9 @@ class Game {
     // Letters hidden around the island.
     this.aksharas = new Aksharas(this.world, save.profile.creative.aksharas);
     this.scene.add(this.aksharas.group);
+
+    // Rangoli on every landing terrace (a kolam in the Chola Country).
+    placeRangolis(this.world, this.scene);
 
     // Lamps on the water off every landing terrace; a flotilla more for each restored panel.
     this.diyas = new Diyas(this.world, CHAPTERS.filter((c) => this.story.panelRestored(c.zoneId)).map((c) => c.zoneId));

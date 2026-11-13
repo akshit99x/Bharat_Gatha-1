@@ -11,6 +11,9 @@ for (const zoneId of zones) {
   const rows = await page.evaluate((zoneId) => {
     const g = window.game; g.running = false; const w = g.world; const boxes = w.collision.boxes; const T = w.terrain;
     const its = w.interactables.filter((i) => i.zoneId === zoneId); const pad = its.find((i) => i.kind === 'pad');
+    // The creative side: hidden letters (floating 1.35 m above where you stand) and the musical pillars.
+    for (const a of g.aksharas.positions().filter((a) => a.zoneId === zoneId)) its.push({ id: a.id, kind: 'akshara', zoneId, position: { x: a.position.x, y: a.position.y - 1.35, z: a.position.z } });
+    if (zoneId === 'hampi') for (const p of g.pillars.pillars) its.push({ id: `pillar-${p.index}`, kind: 'pillar', zoneId, position: { x: p.world.x, y: p.world.y - 1.4, z: p.world.z } });
     const CELL = 0.8, H = 1.75, SEA = -36;
     let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
     for (const i of its) { x0 = Math.min(x0, i.position.x); x1 = Math.max(x1, i.position.x); z0 = Math.min(z0, i.position.z); z1 = Math.max(z1, i.position.z); }
@@ -49,7 +52,7 @@ for (const zoneId of zones) {
   all.push(...rows.map((r) => ({ zoneId, ...r })));
 }
 const n = all.length;
-console.log(`${n} people, challenges and plaques`);
+console.log(`${n} people, challenges, plaques, hidden letters and musical pillars`);
 console.log(`  reachable on foot (steps only): ${all.filter((r) => r.walk).length}`);
 console.log(`  + with the automatic hop:       ${all.filter((r) => r.hop).length}`);
 console.log(`  + with climbing:                ${all.filter((r) => r.climb).length}`);

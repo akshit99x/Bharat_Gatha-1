@@ -6,6 +6,10 @@ import type { StoryEngine } from '../story/StoryEngine';
 import { findNpc } from '../story/StoryEngine';
 import { drawPanel, revealPanel } from './panelArt';
 import { buildPanel, button, closeOverlay, el, mountOverlay } from './overlay';
+import { AKSHARAS, aksharasIn } from '../content/aksharas';
+import { ZONES } from '../content/zones';
+import { save } from '../core/Save';
+import { drawGlyph } from '../creative/glyphArt';
 
 /**
  * The Gatha, as the player sees it: eleven panels, restored or clouded, the
@@ -21,7 +25,7 @@ export interface ScrollActions {
   playerName(): string;
 }
 
-type View = { kind: 'panels' } | { kind: 'detail'; zoneId: string } | { kind: 'log' };
+type View = { kind: 'panels' } | { kind: 'detail'; zoneId: string } | { kind: 'log' } | { kind: 'letters' };
 
 export class ScrollModal {
   constructor(
@@ -30,7 +34,7 @@ export class ScrollModal {
   ) {}
 
   /** `reveal` plays the haze-lifting animation on `openOn`, for a panel that has just been restored. */
-  present(openOn?: string, reveal = false): void {
+  present(openOn?: string, reveal = false, tab?: 'letters'): void {
     const { panel, body, foot } = buildPanel({
       title: 'The Gatha',
       subtitle: '',
@@ -40,7 +44,7 @@ export class ScrollModal {
     });
     const subtitle = panel.querySelector('.ph-sub') as HTMLElement | null;
 
-    let view: View = openOn ? { kind: 'detail', zoneId: openOn } : { kind: 'panels' };
+    let view: View = tab === 'letters' ? { kind: 'letters' } : openOn ? { kind: 'detail', zoneId: openOn } : { kind: 'panels' };
     let pendingReveal = reveal && openOn !== undefined;
 
     const render = (): void => {
@@ -57,12 +61,17 @@ export class ScrollModal {
         b.type = 'button';
         b.textContent = label;
         b.addEventListener('click', () => {
-          view = target === 'log' ? { kind: 'log' } : { kind: 'panels' };
+          view = target === 'log' ? { kind: 'log' } : target === 'letters' ? { kind: 'letters' } : { kind: 'panels' };
           render();
         });
         return b;
       };
-      tabs.append(tab('Panels', 'panels', view.kind !== 'log'), tab('Keeper’s Log', 'log', view.kind === 'log'));
+      const found = save.profile.creative.aksharas.length;
+      tabs.append(
+        tab('Panels', 'panels', view.kind === 'panels' || view.kind === 'detail'),
+        tab(`Varnamala · ${found}/${AKSHARAS.length}`, 'letters', view.kind === 'letters'),
+        tab('Keeper’s Log', 'log', view.kind === 'log'),
+      );
       body.appendChild(tabs);
 
       if (view.kind === 'panels') this.renderGallery(body, (zoneId) => {
@@ -77,6 +86,7 @@ export class ScrollModal {
           render();
         }, animate);
       }
+      else if (view.kind === 'letters') this.renderLetters(body);
       else this.renderLog(body);
 
       // Footer: the two late-game doors, then close.
@@ -216,6 +226,69 @@ export class ScrollModal {
   }
 
   // --------------------------------------------------------------------- log
+
+  /** The Varnamala: every letter hidden on the island, found or not. */
+  private renderLetters(into: HTMLElement): void {
+    const have = new Set(save.profile.creative.aksharas);
+    const c = save.profile.creative;
+    into.appendChild(
+      el(
+        'p',
+        'sc-intro',
+        `Letters are hidden all over the island, three in every region: signs from the scripts people wrote there, or carried its stories in. Walk into a glowing medallion to collect it. ${have.size} of ${AKSHARAS.length} found · ${c.photos} postcard${c.photos === 1 ? '' : 's'} made · ${c.melodies.length} melod${c.melodies.length === 1 ? 'y' : 'ies'} learned on the pillars.`,
+      ),
+    );
+    const list = el('div', 'vm-list');
+    for (const zone of ZONES) {
+      const row = el('section', 'vm-row');
+      const letters = aksharasIn(zone.id);
+      const got = letters.filter((a) => have.has(a.id)).length;
+      const head = el('div', 'vm-head');
+      head.append(el('strong', undefined, `${zone.chapter}. ${zone.name}`), el('span', 'vm-local', zone.nameLocal), el('span', 'vm-count', `${got}/${letters.length}`));
+      row.appendChild(head);
+      const cards = el('div', 'vm-cards');
+      for (const a of letters) {
+        const card = el('div', have.has(a.id) ? 'vm-card found' : 'vm-card');
+        const art = document.createElement('canvas');
+        art.width = art.height = 120;
+        art.className = 'vm-glyph';
+        const ctx = art.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = have.has(a.id) ? '#f3e3bd' : 'rgba(255,255,255,0.06)';
+          ctx.beginPath();
+          ctx.arc(60, 60, 54, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = have.has(a.id) ? '#c38b22' : 'rgba(255,255,255,0.18)';
+          ctx.stroke();
+          if (have.has(a.id)) drawGlyph(ctx, a.glyph, 60, 60, 70, '#6a1d12');
+          else {
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.font = '600 44px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('?', 60, 62);
+          }
+        }
+        const text = el('div', 'vm-text');
+        if (have.has(a.id)) {
+          text.append(
+            el('div', 'vm-title', `${a.script} · ${a.sound}`),
+            el('div', 'vm-note', a.note),
+            el('span', 'vm-src', SOURCE_LABEL[a.source]),
+          );
+        } else {
+          const lm = zone.landmarks[a.near % zone.landmarks.length];
+          text.append(el('div', 'vm-title', 'Not yet found'), el('div', 'vm-note', `Somewhere around ${lm ? lm.name : zone.name}. Listen for a shimmer.`));
+        }
+        card.append(art, text);
+        cards.appendChild(card);
+      }
+      row.appendChild(cards);
+      list.appendChild(row);
+    }
+    into.appendChild(list);
+  }
 
   private renderLog(into: HTMLElement): void {
     const sealed = !this.story.state.sabhaDone;

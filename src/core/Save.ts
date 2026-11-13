@@ -126,6 +126,17 @@ export interface Profile {
   /** Last position so "Continue" drops the player back where they were. */
   lastPosition: [number, number, number] | null;
   lastZone: string | null;
+  /** The creative side of the island: letters found, photographs taken, songs played on the pillars. */
+  creative: CreativeState;
+}
+
+export interface CreativeState {
+  /** Akshara ids collected (see content/aksharas.ts). */
+  aksharas: string[];
+  /** Postcards saved from photo mode. */
+  photos: number;
+  /** Melodies completed on Hampi's musical pillars. */
+  melodies: string[];
 }
 
 export interface Settings {
@@ -201,6 +212,7 @@ function emptyProfile(): Profile {
     settings: { ...DEFAULT_SETTINGS },
     lastPosition: null,
     lastZone: null,
+    creative: { aksharas: [], photos: 0, melodies: [] },
   };
 }
 
@@ -252,6 +264,27 @@ export class SaveStore {
   unlockCodex(id: string): boolean {
     if (this.hasCodex(id)) return false;
     this.data.codex.push(id);
+    this.markDirty();
+    return true;
+  }
+
+  /** Record a found akshara. False if it was already in the collection. */
+  collectAkshara(id: string): boolean {
+    if (this.data.creative.aksharas.includes(id)) return false;
+    this.data.creative.aksharas.push(id);
+    this.markDirty();
+    return true;
+  }
+
+  countPhoto(): void {
+    this.data.creative.photos += 1;
+    this.markDirty();
+  }
+
+  /** Record a melody played through on the pillars. False if it was already learned. */
+  learnMelody(id: string): boolean {
+    if (this.data.creative.melodies.includes(id)) return false;
+    this.data.creative.melodies.push(id);
     this.markDirty();
     return true;
   }
@@ -376,6 +409,11 @@ function migrate(input: Partial<Profile>): Profile {
     story: { ...base.story, ...(input.story ?? {}) },
     questions: input.questions ?? {},
     codex: Array.isArray(input.codex) ? input.codex : [],
+    creative: {
+      aksharas: Array.isArray(input.creative?.aksharas) ? input.creative.aksharas : [],
+      photos: typeof input.creative?.photos === 'number' ? input.creative.photos : 0,
+      melodies: Array.isArray(input.creative?.melodies) ? input.creative.melodies : [],
+    },
     version: SAVE_VERSION,
   };
   return merged;

@@ -39,6 +39,8 @@ import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
+import { Aksharas } from './creative/Aksharas';
+import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
 import { validateMiniGames } from './minigames/validate';
@@ -131,6 +133,7 @@ class Game {
   private coach!: Coach;
   private hasFlown = false;
   private combat!: Combat;
+  private aksharas!: Aksharas;
   /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
   private tool = 2;
 
@@ -294,6 +297,10 @@ class Game {
     });
     this.combat.setEnabled(save.settings.combat);
     this.scene.add(this.combat.group);
+
+    // Letters hidden around the island.
+    this.aksharas = new Aksharas(this.world, save.profile.creative.aksharas);
+    this.scene.add(this.aksharas.group);
 
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
@@ -480,6 +487,8 @@ class Game {
       this.updateVehicle(dt);
       this.player.update(dt);
       this.updateInteraction(dt);
+      const letter = this.aksharas.update(dt, this.elapsed, this.player.position);
+      if (letter) this.foundAkshara(letter);
     } else {
       // Menu keys still work while an overlay is up.
       if (this.input.justPressed('pause') && !overlayOpen() && !this.dialogue.isOpen) this.togglePause();
@@ -510,6 +519,32 @@ class Game {
     }
     this.input.endFrame();
   };
+
+  // ------------------------------------------------------------- aksharas
+
+  private foundAkshara(a: Akshara): void {
+    if (!save.collectAkshara(a.id)) return;
+    save.addVidya(25);
+    bus.emit('vidya:gain', { amount: 25, reason: `Found an akshara: ${a.script}` });
+    const glyph = 'text' in a.glyph ? a.glyph.text : '✦';
+    const total = save.profile.creative.aksharas.length;
+    this.hud.toast('good', `Akshara found · ${a.script} · ${a.sound}`, `${a.note} (${total} of ${AKSHARAS.length} — see the Varnamala in the Gatha, K)`, glyph, 9000);
+    const here = aksharasIn(a.zoneId);
+    const got = here.filter((x) => save.profile.creative.aksharas.includes(x.id)).length;
+    if (total === 1) {
+      void this.narration.say([
+        this.narrationLine({ who: 'maitri', text: 'A letter! Somebody shaped that once and meant it to be read. There are more, hidden all over the island. Look near the monuments.' }),
+      ]);
+    } else if (total === AKSHARAS.length) {
+      void this.narration.say([
+        this.narrationLine({ who: 'maitri', text: 'Every letter, from the unread fish of the Indus to the clerk\'s Modi hand. Five thousand years of people wanting to be understood. Open the Varnamala and read it through.' }),
+      ]);
+      audio.success(5);
+    } else if (got === here.length) {
+      const zone = getZone(a.zoneId);
+      this.hud.toast('info', `All three letters of ${zone?.name ?? 'this region'}`, 'Their page of the Varnamala is complete.', '📜', 6000);
+    }
+  }
 
   // ------------------------------------------------------------- interaction
 

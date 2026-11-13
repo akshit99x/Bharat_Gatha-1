@@ -77,6 +77,7 @@ actually requires.
 | How to play (the guide) | `F1` |
 | Show or hide the gold marker | `T` |
 | Answer a question | `1` `2` `3` `4` |
+| Take a photograph, make a postcard | `P` |
 
 ---
 
@@ -119,6 +120,25 @@ the rectangles they are; sunken tanks (stepwells, the Great Bath) are real cut-o
 levelled under each monument; the view eases over steps and the camera stops short of hillsides.
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
+
+**The creative side.**
+
+- **Aksharas.** Thirty-three letters are hidden around the island, three per region, each a sign from a script
+  written there: Indus signs, cuneiform wedges and Ashokan Brahmi (drawn stroke by stroke, since no ordinary device
+  has a font for them), then Devanagari, Tamil, Sinhala, Thai, Odia, Kannada, Telugu, Persian and Marathi. Walk into
+  a glowing medallion to collect it; a shimmer plays when one is near. Each joins the **Varnamala**, a page of the
+  Gatha (`K`) with a note on its script, its evidence type, and a hint for every letter still missing.
+- **Photo mode (`P`).** Capture the view and open the **Chitrashala**, a darkroom with five looks (as seen,
+  Pattachitra, Mughal miniature, an old survey plate, a sketchbook). Write a line, and save a postcard with the
+  region's name, script and era, a stamp painted from its panel of the Gatha, and a postmark.
+- **The Sangita Mandapa.** Beside Hampi's Stone Chariot, a hall of seven ringing pillars tuned Sa to Ni. Press `E`
+  to strike one. Three melodies are waiting to be found: the scale up, the scale down, and a phrase in raga Durga.
+- **Deepa-daan.** Clay lamps float on the swell off every landing terrace, and restoring a region's panel sets a
+  flotilla more on the water.
+- **Rangoli and kolam.** Every landing terrace carries a generated rangoli mandala, different in each region; the
+  Chola Country has a white rice-flour kolam round a grid of dots.
+- **Life.** Paper kites fly over Agra, and peacocks wander Kosala, Agra's charbagh and Hampi. Come close and one may
+  raise its train and call.
 
 **For classrooms (optional Python backend).** Teachers can make a class, students join with a class code and a nickname,
 and a dashboard shows who has finished which chapters, which skills need practice and which claims students find hardest.

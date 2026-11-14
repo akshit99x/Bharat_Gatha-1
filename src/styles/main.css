@@ -6309,3 +6309,13 @@ body.high-contrast .coach {
 .dk-blurb { font-size: 0.85em; opacity: 0.75; margin: 2px 0; line-height: 1.4; }
 .dk-input { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; }
 @media (max-width: 760px) { .dk-layout { grid-template-columns: 1fr; min-width: 0; } }
+
+/* ------------------------------------------------------------ Hindi interface */
+/* Letter-spacing breaks Devanagari conjuncts, and Cinzel has no Devanagari: use a Devanagari face for headings. */
+html.lang-hi * { letter-spacing: 0 !important; }
+html.lang-hi h1, html.lang-hi h2, html.lang-hi h3, html.lang-hi h4,
+html.lang-hi .panel-head h2, html.lang-hi .zone-banner, html.lang-hi .zb-name {
+  font-family: 'Tiro Devanagari Hindi', 'Mukta', serif;
+  text-transform: none;
+}
+html.lang-hi body { font-family: 'Mukta', 'Tiro Devanagari Hindi', system-ui, sans-serif; }

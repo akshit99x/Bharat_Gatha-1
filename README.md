@@ -121,6 +121,13 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
+**Hindi interface.** The **हिन्दी** button on the title screen (and in the pause menu) switches the whole interface to
+Hindi: menus, HUD, How to play, the Journey map and roadmap, settings, the codex, plaque and quiz screens, the
+mini-games, and region names in Devanagari, including on the map. It is a dictionary of interface strings
+(`src/i18n/hi.ts`) applied by a small watcher (`src/i18n/index.ts`), so no interface code had to change. History
+content (codex text, questions, dialogue) is still in English. The Hindi was written with AI assistance and should be
+reviewed by a fluent speaker.
+
 **The creative side.**
 
 - **Aksharas.** Thirty-three letters are hidden around the island, three per region, each a sign from a script

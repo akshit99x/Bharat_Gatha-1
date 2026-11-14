@@ -87,6 +87,11 @@ export class Combat {
   engaged = false;
 
   private readonly sites: Site[] = [];
+
+  /** Where the haze columns stand, so other things can be placed clear of them. */
+  sitePositions(): THREE.Vector3[] {
+    return this.sites.map((s) => s.pos.clone());
+  }
   private readonly arrows: Arrow[] = [];
   private readonly arrowGeo: THREE.BufferGeometry;
   private readonly arrowMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2a, roughness: 0.7 });

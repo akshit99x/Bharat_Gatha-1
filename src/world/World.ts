@@ -314,7 +314,7 @@ export class World {
    * when it is a broad platform (a fort's terrace, a temple plinth), and otherwise at the nearest clear
    * place beside it. Without this, anyone whose spot fell inside a mound or a hall was buried in it.
    */
-  private standPoint(wx: number, wz: number, search: number): { x: number; y: number; z: number } {
+  standPoint(wx: number, wz: number, search: number): { x: number; y: number; z: number } {
     const ground = this.terrain.findGround(wx, wz, search);
     const base = this.terrain.heightAt(ground.x, ground.z);
     /** The lowest place to stand in the column at a point: clear ground, else a broad platform with headroom. */

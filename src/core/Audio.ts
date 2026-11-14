@@ -337,6 +337,77 @@ export class AudioEngine {
     }
   }
 
+  /** A peacock's call: two loud nasal wails that leap up and fall back, "may-awe, may-awe". */
+  peacock(): void {
+    const ctx = this.ctx;
+    const dest = this.sfxBus;
+    if (!ctx || !dest) return;
+    const now = ctx.currentTime;
+    for (const start of [0, 0.62]) {
+      const t = now + start;
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(620, t);
+      osc.frequency.exponentialRampToValueAtTime(1180, t + 0.12);
+      osc.frequency.exponentialRampToValueAtTime(820, t + 0.42);
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1500;
+      bp.Q.value = 2.2;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.16, t + 0.04);
+      env.gain.setValueAtTime(0.16, t + 0.3);
+      env.gain.exponentialRampToValueAtTime(0.0005, t + 0.5);
+      osc.connect(bp).connect(env).connect(dest);
+      osc.start(t);
+      osc.stop(t + 0.55);
+    }
+  }
+
+  /**
+   * A struck stone colonette: a clear fundamental over the inharmonic partials of a solid bar, with a tick
+   * at the strike. Used by Hampi's musical pillars.
+   */
+  stoneNote(hz: number, level = 0.32): void {
+    const ctx = this.ctx;
+    const dest = this.sfxBus;
+    if (!ctx || !dest) return;
+    const now = ctx.currentTime;
+    for (const [mult, lv, decay] of [
+      [1, 1, 2.6],
+      [2.0, 0.22, 1.6],
+      [2.76, 0.18, 1.1],
+      [5.4, 0.07, 0.6],
+    ] as Array<[number, number, number]>) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = hz * mult;
+      const env = ctx.createGain();
+      env.gain.setValueAtTime(0, now);
+      env.gain.linearRampToValueAtTime(level * lv, now + 0.004);
+      env.gain.exponentialRampToValueAtTime(0.0004, now + decay);
+      osc.connect(env).connect(dest);
+      osc.start(now);
+      osc.stop(now + decay + 0.05);
+    }
+    // The tick of the strike: a very short burst of filtered noise.
+    const len = Math.floor(ctx.sampleRate * 0.03);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = hz * 4;
+    bp.Q.value = 1.2;
+    const g = ctx.createGain();
+    g.gain.value = level * 0.6;
+    src.connect(bp).connect(g).connect(dest);
+    src.start(now);
+  }
+
   /**
    * The shankh. Played rarely on purpose: once when a journey begins, and once for each chapter whose
    * panel is restored. Heard every few minutes it stops meaning anything.

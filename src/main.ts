@@ -39,6 +39,14 @@ import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
+import { Aksharas } from './creative/Aksharas';
+import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
+import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
+import { Diyas } from './creative/Diyas';
+import { placeRangolis } from './creative/Rangoli';
+import { Kites } from './creative/Kites';
+import { Peacocks } from './creative/Peacocks';
+import { AKSHARAS, aksharasIn, type Akshara } from './content/aksharas';
 import { buildSkyline } from './ui/skyline';
 import type { MiniGameResult } from './minigames/types';
 import { validateMiniGames } from './minigames/validate';
@@ -131,6 +139,13 @@ class Game {
   private coach!: Coach;
   private hasFlown = false;
   private combat!: Combat;
+  private aksharas!: Aksharas;
+  private pillars!: MusicalPillars;
+  private diyas!: Diyas;
+  private kites!: Kites;
+  private peacocks!: Peacocks;
+  /** Set by P; the frame is captured right after it has been rendered. */
+  private photoPending = false;
   /** Which tool is in hand: 0 the bow, 1 the Shilpa hammer, 2 the Pramana lens. */
   private tool = 2;
 
@@ -294,6 +309,49 @@ class Game {
     });
     this.combat.setEnabled(save.settings.combat);
     this.scene.add(this.combat.group);
+
+    // Letters hidden around the island.
+    this.aksharas = new Aksharas(this.world, save.profile.creative.aksharas);
+    this.scene.add(this.aksharas.group);
+
+    // Peacocks in the gardens and forests.
+    this.peacocks = new Peacocks(this.world);
+    this.scene.add(this.peacocks.group);
+
+    // Kites over Agra.
+    this.kites = new Kites(this.world);
+    this.scene.add(this.kites.group);
+
+    // Rangoli on every landing terrace (a kolam in the Chola Country).
+    placeRangolis(this.world, this.scene);
+
+    // Lamps on the water off every landing terrace; a flotilla more for each restored panel.
+    this.diyas = new Diyas(this.world, CHAPTERS.filter((c) => this.story.panelRestored(c.zoneId)).map((c) => c.zoneId));
+    this.scene.add(this.diyas.group);
+    bus.on('story:panel', ({ zoneId }) => this.diyas.release(zoneId));
+
+    // Hampi's ringing pillars, beside the Stone Chariot.
+    this.pillars = new MusicalPillars(this.world, [
+      ...this.combat.sitePositions(),
+      ...this.world.interactables.map((i) => i.position),
+      ...this.aksharas.positions().map((a) => a.position),
+    ]);
+    this.scene.add(this.pillars.group);
+    this.pillars.onMelody = (m) => {
+      const fresh = save.learnMelody(m.id);
+      if (fresh) {
+        save.addVidya(30);
+        bus.emit('vidya:gain', { amount: 30, reason: `Played ${m.name}` });
+      }
+      audio.success(3);
+      const learned = save.profile.creative.melodies.length;
+      this.hud.toast('good', `${m.name}${fresh ? '' : ' (again)'}`, `${m.note} ${fresh ? `Melodies learned: ${learned} of ${MELODIES.length}.` : ''}`, '🎶', 8000);
+      if (fresh && learned === MELODIES.length) {
+        void this.narration.say([
+          this.narrationLine({ who: 'maitri', text: 'Stone that sings. Nobody wrote down how the masons tuned it, so all we have is the sound. Sometimes that is the whole record.' }),
+        ]);
+      }
+    };
 
     // Lift the haze from plaques already corrected in a previous session.
     for (const chapter of CHAPTERS) for (const p of chapter.plaques) if (this.story.plaqueDone(p.id)) this.world.setPlaqueCleared(p.id, true);
@@ -480,12 +538,18 @@ class Game {
       this.updateVehicle(dt);
       this.player.update(dt);
       this.updateInteraction(dt);
+      this.pillars.update(dt);
+      const letter = this.aksharas.update(dt, this.elapsed, this.player.position);
+      if (letter) this.foundAkshara(letter);
     } else {
       // Menu keys still work while an overlay is up.
       if (this.input.justPressed('pause') && !overlayOpen() && !this.dialogue.isOpen) this.togglePause();
     }
 
     this.world.update(dt, this.camera, this.elapsed, this.player.position, this.talkingTo);
+    this.diyas.update(dt, this.elapsed, this.player.position);
+    this.kites.update(this.elapsed, this.player.position);
+    this.peacocks.update(blocked ? 0 : dt, this.elapsed, this.player.position);
     this.camera.getWorldDirection(_look);
     audio.listen(this.camera.position.x, this.camera.position.y, this.camera.position.z, _look.x, _look.y, _look.z);
     this.updateGuide(dt, blocked);
@@ -503,6 +567,10 @@ class Game {
 
     const sunDir = _sunDir.copy(this.world.sky.sun.position).sub(this.camera.position).normalize();
     this.post.render(dt, this.elapsed, sunDir, this.world.sky.sun.color);
+    if (this.photoPending) {
+      this.photoPending = false;
+      this.takePhoto();
+    }
     // If the post chain has had to step down, the machine is struggling: thin the grass too.
     if (this.post.currentTier !== this.lastTier) {
       this.lastTier = this.post.currentTier;
@@ -511,9 +579,52 @@ class Game {
     this.input.endFrame();
   };
 
+  // ------------------------------------------------------------- photo mode
+
+  private takePhoto(): void {
+    const shot = captureFrame(this.renderer.domElement);
+    shutter();
+    const zone = this.world.zoneAt(this.player.position.x, this.player.position.z);
+    // A moment for the flash, then the darkroom.
+    setTimeout(() => {
+      this.input.releaseLock();
+      openDarkroom(shot, zone, save.profile.playerName, () => save.countPhoto());
+    }, 350);
+  }
+
+  // ------------------------------------------------------------- aksharas
+
+  private foundAkshara(a: Akshara): void {
+    if (!save.collectAkshara(a.id)) return;
+    save.addVidya(25);
+    bus.emit('vidya:gain', { amount: 25, reason: `Found an akshara: ${a.script}` });
+    const glyph = 'text' in a.glyph ? a.glyph.text : '✦';
+    const total = save.profile.creative.aksharas.length;
+    this.hud.toast('good', `Akshara found · ${a.script} · ${a.sound}`, `${a.note} (${total} of ${AKSHARAS.length} — see the Varnamala in the Gatha, K)`, glyph, 9000);
+    const here = aksharasIn(a.zoneId);
+    const got = here.filter((x) => save.profile.creative.aksharas.includes(x.id)).length;
+    if (total === 1) {
+      void this.narration.say([
+        this.narrationLine({ who: 'maitri', text: 'A letter! Somebody shaped that once and meant it to be read. There are more, hidden all over the island. Look near the monuments.' }),
+      ]);
+    } else if (total === AKSHARAS.length) {
+      void this.narration.say([
+        this.narrationLine({ who: 'maitri', text: 'Every letter, from the unread fish of the Indus to the clerk\'s Modi hand. Five thousand years of people wanting to be understood. Open the Varnamala and read it through.' }),
+      ]);
+      audio.success(5);
+    } else if (got === here.length) {
+      const zone = getZone(a.zoneId);
+      this.hud.toast('info', `All three letters of ${zone?.name ?? 'this region'}`, 'Their page of the Varnamala is complete.', '📜', 6000);
+    }
+  }
+
   // ------------------------------------------------------------- interaction
 
   private handleHotkeys(): void {
+    if (this.input.justPressed('photo')) {
+      this.photoPending = true;
+      return;
+    }
     if (this.input.justPressed('pause')) {
       this.togglePause();
       return;
@@ -648,6 +759,23 @@ class Game {
       if (this.input.justPressed('interact') || this.input.justPressed('mount')) this.dismountChariot();
       const zone = this.world.zoneAt(this.player.position.x, this.player.position.z);
       if (zone && zone.id !== this.currentZone?.id) this.enterZone(zone, false);
+      return;
+    }
+
+    // --- the musical pillars at Hampi.
+    if (this.pillars.firstVisit(this.player.position)) {
+      this.hud.toast(
+        'info',
+        'The Sangita Mandapa',
+        'These pillars ring. Walk up to one and press E to strike it. Try the scale up (Sa Re Ga Ma Pa Dha Ni), then down, and listen for a raga hidden in five of them.',
+        '🎶',
+        10000,
+      );
+    }
+    const pillar = this.pillars.nearest(this.player.position);
+    if (pillar) {
+      this.hud.setInteractPrompt(this.pillars.promptFor(pillar));
+      if (this.input.justPressed('interact')) this.pillars.strike(pillar);
       return;
     }
 
@@ -1652,6 +1780,7 @@ const CONTROLS: Array<[string, string[]]> = [
   ['Map and fast travel', ['M']],
   ['Codex', ['J']],
   ['The Gatha — panels, plaques, the story', ['K']],
+  ['Photograph and postcard', ['P']],
   ['Pause and settings', ['Esc']],
   ['This help', ['F1']],
   ['Answer a question', ['1', '2', '3', '4']],

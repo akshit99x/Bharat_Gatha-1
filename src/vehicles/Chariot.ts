@@ -105,7 +105,11 @@ export class Chariot {
     this.group.scale.setScalar(SCALE);
     this.position.set(x, terrain.heightAt(x, z), z);
     this.group.position.copy(this.position);
-    this.group.rotation.y = yaw;
+    // The model is built facing local +Z (prow, horses, standard). A group turned
+    // by plain `yaw` sends local +Z to (+sin, +cos) — the exact opposite of
+    // forward(), which is (-sin, -cos). Hence the half turn: without it the team
+    // is harnessed to the back of the cart, facing the driver.
+    this.group.rotation.y = yaw + Math.PI;
     this.updateRider();
   }
 
@@ -208,11 +212,13 @@ export class Chariot {
     this.bodyRoll = THREE.MathUtils.lerp(this.bodyRoll, Math.atan2(hLeft - hRight, 2.6), Math.min(1, dt * 7));
 
     this.group.position.copy(this.position);
-    this.group.rotation.set(this.bodyPitch, this.yaw, this.bodyRoll, 'YXZ');
     this.group.rotation.order = 'YXZ';
-    this.group.rotation.y = this.yaw;
+    this.group.rotation.y = this.yaw + Math.PI;
+    // Pitch is unaffected by the half turn: a Y rotation leaves the nose's
+    // vertical component alone. Roll is not — the half turn swaps which side of
+    // the model is the world's right — so it inverts.
     this.group.rotation.x = this.bodyPitch;
-    this.group.rotation.z = this.bodyRoll;
+    this.group.rotation.z = -this.bodyRoll;
 
     this.wheelL.rotation.x = this.wheelSpin;
     this.wheelR.rotation.x = this.wheelSpin;

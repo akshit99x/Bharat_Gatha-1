@@ -40,6 +40,7 @@ import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
+import { currentLang, setLang, startI18n } from './i18n';
 import { Aksharas } from './creative/Aksharas';
 import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
 import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
@@ -1781,13 +1782,17 @@ class Game {
       await this.runQuiz(this.currentZone?.id ?? null, 'practice', 6, 'Practice round');
     });
 
+    const langSwitch = button(currentLang() === 'hi' ? 'English' : 'हिन्दी', 'btn btn-ghost');
+    langSwitch.setAttribute('data-no-i18n', '');
+    langSwitch.title = currentLang() === 'hi' ? 'Switch to English (returns to the title screen; your progress is saved)' : 'हिन्दी में बदलें (मुख्य स्क्रीन पर लौटेंगे; आपकी प्रगति सहेजी रहती है)';
+    langSwitch.addEventListener('click', () => setLang(currentLang() === 'hi' ? 'en' : 'hi'));
     const exportBtn = button('Export learning record', 'btn btn-ghost');
     exportBtn.addEventListener('click', () => this.exportReport());
 
     const resume = button('Resume', 'btn btn-primary');
     resume.addEventListener('click', () => this.resume());
 
-    foot.append(practice, exportBtn, resume);
+    foot.append(practice, exportBtn, langSwitch, resume);
     mountOverlay('pause', panel, { onEscape: () => this.resume() });
     resume.focus();
   }
@@ -2229,6 +2234,15 @@ async function boot(): Promise<void> {
   const creditsBtn = document.getElementById('btn-credits');
 
   if (!viewport || !bootScreen) throw new Error('[boot] page markup is missing');
+
+  // Interface language: Hindi translates the page as it is built; the title-screen button switches.
+  startI18n();
+  const langBtn = document.getElementById('btn-lang');
+  if (langBtn) {
+    langBtn.textContent = currentLang() === 'hi' ? 'English' : 'हिन्दी';
+    langBtn.setAttribute('data-no-i18n', '');
+    langBtn.addEventListener('click', () => setLang(currentLang() === 'hi' ? 'en' : 'hi'));
+  }
 
   // WebGL 2 check, with an honest message rather than a blank screen.
   const probe = document.createElement('canvas');

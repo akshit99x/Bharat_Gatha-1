@@ -1,3 +1,4 @@
+import { zoneLabel } from '../i18n';
 import type { Profile } from '../core/Save';
 import { audio } from '../core/Audio';
 import { ZONES } from '../content/zones';
@@ -405,7 +406,8 @@ export class JourneyScreen {
       // The name, on a plate so it is readable over any terrain.
       ctx.setLineDash([]);
       ctx.font = '600 12px Mukta, sans-serif';
-      const label = z.name.length > 20 ? `${z.name.slice(0, 19)}…` : z.name;
+      const nm = zoneLabel(z);
+      const label = nm.length > 20 ? `${nm.slice(0, 19)}…` : nm;
       const w = ctx.measureText(label).width + 12;
       ctx.fillStyle = 'rgba(14,12,22,0.78)';
       ctx.beginPath();

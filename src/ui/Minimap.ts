@@ -1,3 +1,4 @@
+import { zoneLabel } from '../i18n';
 import type { Terrain } from '../world/Terrain';
 import { WORLD_SIZE, WORLD_HALF, SEA_LEVEL } from '../world/Terrain';
 import { ZONES } from '../content/zones';
@@ -137,7 +138,7 @@ export class Minimap {
       const zy = r + (zone.center[1] - pz) * scale;
       if (zx < -40 || zx > size + 40 || zy < -20 || zy > size + 20) continue;
       ctx.fillStyle = 'rgba(255, 240, 210, 0.62)';
-      ctx.fillText(zone.name.toUpperCase(), zx, zy);
+      ctx.fillText(zoneLabel(zone).toUpperCase(), zx, zy);
     }
 
     // Markers.

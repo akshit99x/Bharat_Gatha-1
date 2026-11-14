@@ -565,6 +565,12 @@ export class World {
       dist = near.radius + 9 + (tries % 6) * 2.5;
       ground = this.terrain.findGround(near.position.x + Math.cos(angle) * dist, near.position.z + Math.sin(angle) * dist, 60);
     }
+    // Some monuments stand on top of another (the Tower of Victory, on the hill fort): every spot round
+    // them is inside something built. Then stand the stele where a person would stand: on the terrace.
+    if (this.collision.columnAt(ground.x, ground.z).length > 0) {
+      const p = this.standPoint(ground.x, ground.z, 40);
+      ground = { x: p.x, z: p.z, y: p.y };
+    }
     const stone = zone.palette.stone;
 
     const kit = new Kit();

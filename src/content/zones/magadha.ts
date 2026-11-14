@@ -254,7 +254,7 @@ export const magadha: Zone = {
       name: 'From Pataliputra to Nalanda',
       brief: 'Order fifteen centuries of Magadha.',
       teaches: 'Chronology of the Mauryan, Gupta and post-Gupta periods in the same river valley.',
-      offset: [120, 80],
+      offset: [120, 97],
       vidya: 140,
       quizAfter: 2,
       prompt: 'Study the dynastic record',

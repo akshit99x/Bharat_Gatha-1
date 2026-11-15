@@ -405,7 +405,7 @@ entries are the ones to read first — they are where the interesting history is
 
 ## Testing movement
 
-`scripts/tests/` holds three Playwright scripts that drive the real player controller (`npm i -D playwright`, run
+`scripts/tests/` holds Playwright scripts that drive the real player controller (`npm i -D playwright`, run
 `npm run dev`, then `node scripts/tests/walk.mjs`): **walk** (walks 8 directions from every interactable and a
 grid of land, and reports trapped or popping spots), **climb** (approaches every landmark) and **vault**
 (ledges of several heights, rotated and not), **wallclimb** (walls from 1 to 11 m), **stairs** (every flight must

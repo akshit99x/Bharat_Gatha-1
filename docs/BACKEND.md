@@ -27,7 +27,7 @@ npm run dev            # the game; it passes /api through to the API
 Open the game, choose **Join a class** on the title screen. Open `http://localhost:5178/teacher/` for the dashboard.
 (The page it prints may use another port; use that one.)
 
-Run the tests: `npm run api:test` (36 tests: the API, the analytics, the tools).
+Run the tests: `npm run api:test` (40 tests: the API, the analytics, the tools).
 
 ## Putting it on Vercel
 

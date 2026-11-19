@@ -140,7 +140,7 @@ export interface CreativeState {
 }
 
 export interface Settings {
-  lang: 'en' | 'hi';
+  lang: 'en' | 'hi' | 'bn' | 'mr' | 'ta';
   mouseSensitivity: number;
   invertY: boolean;
   musicVolume: number;

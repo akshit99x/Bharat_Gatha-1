@@ -40,7 +40,7 @@ import { ScrollModal } from './ui/ScrollModal';
 import { SabhaModal } from './ui/SabhaModal';
 import { TwelfthModal } from './ui/TwelfthModal';
 import { MiniGames } from './minigames/MiniGames';
-import { currentLang, setLang, startI18n } from './i18n';
+import { currentLang, languagePicker, LANGS, startI18n } from './i18n';
 import { Aksharas } from './creative/Aksharas';
 import { captureFrame, openDarkroom, shutter } from './creative/PhotoMode';
 import { MELODIES, MusicalPillars } from './creative/MusicalPillars';
@@ -1782,17 +1782,21 @@ class Game {
       await this.runQuiz(this.currentZone?.id ?? null, 'practice', 6, 'Practice round');
     });
 
-    const langSwitch = button(currentLang() === 'hi' ? 'English' : 'हिन्दी', 'btn btn-ghost');
-    langSwitch.setAttribute('data-no-i18n', '');
-    langSwitch.title = currentLang() === 'hi' ? 'Switch to English (returns to the title screen; your progress is saved)' : 'हिन्दी में बदलें (मुख्य स्क्रीन पर लौटेंगे; आपकी प्रगति सहेजी रहती है)';
-    langSwitch.addEventListener('click', () => setLang(currentLang() === 'hi' ? 'en' : 'hi'));
+    // Interface language: choosing one saves, then reloads in that language at the title screen.
+    const langRow = document.createElement('div');
+    langRow.className = 'lang-row';
+    const langLabel = document.createElement('span');
+    langLabel.className = 'lang-row-label';
+    langLabel.textContent = 'Language';
+    langRow.append(langLabel, languagePicker());
+    body.appendChild(langRow);
     const exportBtn = button('Export learning record', 'btn btn-ghost');
     exportBtn.addEventListener('click', () => this.exportReport());
 
     const resume = button('Resume', 'btn btn-primary');
     resume.addEventListener('click', () => this.resume());
 
-    foot.append(practice, exportBtn, langSwitch, resume);
+    foot.append(practice, exportBtn, resume);
     mountOverlay('pause', panel, { onEscape: () => this.resume() });
     resume.focus();
   }
@@ -2235,13 +2239,40 @@ async function boot(): Promise<void> {
 
   if (!viewport || !bootScreen) throw new Error('[boot] page markup is missing');
 
-  // Interface language: Hindi translates the page as it is built; the title-screen button switches.
+  // Interface language: the page is translated as it is built; the title-screen button opens the picker.
   startI18n();
   const langBtn = document.getElementById('btn-lang');
   if (langBtn) {
-    langBtn.textContent = currentLang() === 'hi' ? 'English' : 'हिन्दी';
+    const now = LANGS.find((l) => l.code === currentLang()) ?? LANGS[0]!;
+    langBtn.textContent = `${now.label} ▾`;
+    langBtn.title = 'Language · भाषा · ভাষা · மொழி';
     langBtn.setAttribute('data-no-i18n', '');
-    langBtn.addEventListener('click', () => setLang(currentLang() === 'hi' ? 'en' : 'hi'));
+    langBtn.setAttribute('aria-haspopup', 'true');
+    langBtn.setAttribute('aria-expanded', 'false');
+    let pop: HTMLElement | null = null;
+    const close = (): void => {
+      pop?.remove();
+      pop = null;
+      langBtn.setAttribute('aria-expanded', 'false');
+    };
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (pop) return close();
+      pop = languagePicker();
+      pop.classList.add('lang-pop');
+      langBtn.parentElement?.appendChild(pop);
+      langBtn.setAttribute('aria-expanded', 'true');
+      (pop.querySelector('[aria-pressed="true"]') as HTMLElement | null)?.focus();
+    });
+    document.addEventListener('click', (e) => {
+      if (pop && !pop.contains(e.target as Node)) close();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (pop && e.key === 'Escape') {
+        close();
+        langBtn.focus();
+      }
+    });
   }
 
   // WebGL 2 check, with an honest message rather than a blank screen.

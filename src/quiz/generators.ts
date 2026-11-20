@@ -1,5 +1,5 @@
 import { Rng } from '../core/Rng';
-import type { Question } from '../content/types';
+import type { Question, Zone } from '../content/types';
 import { SOURCE_LABEL, type SourceType } from '../content/types';
 import { TIMELINE, centuryLabel, type TimelineEvent } from '../content/timeline';
 import { CODEX } from '../content/codex';
@@ -38,10 +38,14 @@ function eventPool(zoneId: string | null): TimelineEvent[] {
   return local.length >= 2 ? [...local, ...TIMELINE] : TIMELINE;
 }
 
-/** Pick n events whose years are all at least MIN_GAP apart. */
+/**
+ * Pick n events whose years are all at least MIN_GAP apart. Events whose date historians dispute are left out: a
+ * "which came first" question built on one would mark a student wrong on a date nobody agrees on.
+ */
 function spreadEvents(rng: Rng, pool: TimelineEvent[], n: number, tries = 40): TimelineEvent[] | null {
+  const dated = dedupe(pool).filter((e) => !e.contested);
   for (let t = 0; t < tries; t++) {
-    const picked = rng.sample(dedupe(pool), n);
+    const picked = rng.sample(dated, n);
     if (picked.length < n) return null;
     const years = picked.map((e) => e.year).sort((a, b) => a - b);
     let ok = true;
@@ -237,8 +241,12 @@ const eraOrder: Generator = {
   label: 'Periodisation — oldest region',
   skill: 'Dating and periodisation',
   generate(rng) {
-    if (ZONES.length < 4) return null;
-    const picked = rng.sample(ZONES, 4);
+    // Regions that start in the same year (the two epic regions share their text's date) would give two right
+    // answers, so at most one region per start year goes into a question.
+    const byStart = new Map<number, Zone>();
+    for (const z of rng.shuffled(ZONES)) if (!byStart.has(z.eraStart)) byStart.set(z.eraStart, z);
+    if (byStart.size < 4) return null;
+    const picked = rng.sample([...byStart.values()], 4);
     const sorted = [...picked].sort((a, b) => a.eraStart - b.eraStart);
     const answer = sorted[0]!;
     const options = picked.map((z) => `${z.name} (${z.era})`);

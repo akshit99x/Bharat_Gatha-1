@@ -354,7 +354,7 @@ export class SaveStore {
 
   /** Replace the whole profile (restoring from the cloud). */
   replaceProfile(profile: Profile): void {
-    this.data = { ...emptyProfile(), ...profile, settings: { ...DEFAULT_SETTINGS, ...(profile.settings ?? {}) } };
+    this.data = migrateProfile(profile);
     this.flush();
   }
 
@@ -389,34 +389,133 @@ function load(): Profile {
   }
   if (!raw) return emptyProfile();
   try {
-    const parsed = JSON.parse(raw) as Partial<Profile>;
-    return migrate(parsed);
+    return migrateProfile(JSON.parse(raw));
   } catch {
     console.warn('[Save] corrupt profile, starting fresh');
     return emptyProfile();
   }
 }
 
-function migrate(input: Partial<Profile>): Profile {
-  const base = emptyProfile();
-  const merged: Profile = {
-    ...base,
-    ...input,
-    stats: { ...base.stats, ...(input.stats ?? {}) },
-    settings: { ...base.settings, ...(input.settings ?? {}) },
-    zones: input.zones ?? {},
-    quests: input.quests ?? {},
-    story: { ...base.story, ...(input.story ?? {}) },
-    questions: input.questions ?? {},
-    codex: Array.isArray(input.codex) ? input.codex : [],
-    creative: {
-      aksharas: Array.isArray(input.creative?.aksharas) ? input.creative.aksharas : [],
-      photos: typeof input.creative?.photos === 'number' ? input.creative.photos : 0,
-      melodies: Array.isArray(input.creative?.melodies) ? input.creative.melodies : [],
-    },
-    version: SAVE_VERSION,
+// ------------------------------------------------------------------ loading
+
+/*
+ * A save comes back from this browser or from the class server, and may be from an older version, half written, or
+ * edited by hand. Everything below keeps what is the right shape and replaces the rest with a default, so a bad
+ * field costs that field and never stops the game from starting.
+ */
+
+type Loose = Record<string, unknown>;
+const isRecord = (v: unknown): v is Loose => typeof v === 'object' && v !== null && !Array.isArray(v);
+const record = (v: unknown): Loose => (isRecord(v) ? v : {});
+const num = (v: unknown, fallback: number, min = -Infinity): number => (typeof v === 'number' && Number.isFinite(v) && v >= min ? v : fallback);
+const bool = (v: unknown, fallback: boolean): boolean => (typeof v === 'boolean' ? v : fallback);
+const str = (v: unknown, fallback: string): string => (typeof v === 'string' ? v : fallback);
+const strings = (v: unknown): string[] => (Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string'))] : []);
+/** A record whose values all pass `ok`; anything else is dropped. */
+function recordOf<T>(v: unknown, ok: (x: unknown) => T | null): Record<string, T> {
+  const out: Record<string, T> = {};
+  for (const [k, x] of Object.entries(record(v))) {
+    const y = ok(x);
+    if (y !== null) out[k] = y;
+  }
+  return out;
+}
+
+/** Languages a save may name; keep in step with Settings['lang']. */
+const SAVED_LANGS: ReadonlyArray<Settings['lang']> = ['en', 'hi', 'bn', 'mr', 'ta'];
+const VOICE_SOURCES: ReadonlyArray<Settings['voiceSource']> = ['auto', 'indian', 'neutral', 'device'];
+
+function migrateSettings(v: unknown): Settings {
+  const input = record(v);
+  const out = { ...DEFAULT_SETTINGS } as Record<string, unknown>;
+  for (const [key, def] of Object.entries(DEFAULT_SETTINGS)) {
+    const x = input[key];
+    if (typeof def === 'number') out[key] = num(x, def, 0);
+    else if (typeof def === 'boolean') out[key] = bool(x, def);
+  }
+  const settings = out as unknown as Settings;
+  if (SAVED_LANGS.includes(input.lang as Settings['lang'])) settings.lang = input.lang as Settings['lang'];
+  if (VOICE_SOURCES.includes(input.voiceSource as Settings['voiceSource'])) settings.voiceSource = input.voiceSource as Settings['voiceSource'];
+  return settings;
+}
+
+function migrateZone(v: unknown): ZoneProgress | null {
+  if (!isRecord(v)) return null;
+  return {
+    discovered: bool(v.discovered, false),
+    challenges: strings(v.challenges),
+    sealed: bool(v.sealed, false),
+    bestSeal: num(v.bestSeal, 0, 0),
+    timeSpent: num(v.timeSpent, 0, 0),
   };
-  return merged;
+}
+
+function migrateStory(v: unknown): StoryState {
+  const input = record(v);
+  const base = emptyStory();
+  const twelfth = record(input.twelfth);
+  return {
+    prologueSeen: bool(input.prologueSeen, false),
+    firstZone: typeof input.firstZone === 'string' ? input.firstZone : null,
+    seen: strings(input.seen),
+    met: strings(input.met),
+    plaques: recordOf(input.plaques, (x) => (isRecord(x) ? { done: bool(x.done, false), tries: num(x.tries, 0, 0) } : null)),
+    panels: strings(input.panels),
+    trails: recordOf(input.trails, (x) => (typeof x === 'number' && Number.isFinite(x) ? x : null)),
+    choices: recordOf(input.choices, (x) => (x === 'open' || x === 'comfort' ? x : null)),
+    comfortPicks: num(input.comfortPicks, 0, 0),
+    openPicks: num(input.openPicks, 0, 0),
+    sabhaSettled: strings(input.sabhaSettled),
+    sabhaDone: bool(input.sabhaDone, base.sabhaDone),
+    twelfth: isRecord(input.twelfth)
+      ? {
+          sure: strings(twelfth.sure),
+          tradition: str(twelfth.tradition, ''),
+          open: str(twelfth.open, ''),
+          remembered: str(twelfth.remembered, ''),
+          writtenAt: num(twelfth.writtenAt, 0, 0),
+        }
+      : null,
+  };
+}
+
+export function migrateProfile(raw: unknown): Profile {
+  const input = record(raw);
+  const base = emptyProfile();
+  const stats = record(input.stats);
+  const creative = record(input.creative);
+  const pos = input.lastPosition;
+  return {
+    version: SAVE_VERSION,
+    createdAt: num(input.createdAt, base.createdAt, 0),
+    updatedAt: num(input.updatedAt, base.updatedAt, 0),
+    playerName: str(input.playerName, base.playerName),
+    worldSeed: str(input.worldSeed, base.worldSeed),
+    vidya: num(input.vidya, 0, 0),
+    codex: strings(input.codex),
+    zones: recordOf(input.zones, migrateZone),
+    quests: recordOf(input.quests, (x) => (Array.isArray(x) ? strings(x) : null)),
+    story: migrateStory(input.story),
+    questions: recordOf(input.questions, (x) =>
+      isRecord(x) ? { seen: num(x.seen, 0, 0), right: num(x.right, 0, 0), streak: num(x.streak, 0, 0), last: num(x.last, 0, 0) } : null,
+    ),
+    stats: {
+      quizAsked: num(stats.quizAsked, 0, 0),
+      quizRight: num(stats.quizRight, 0, 0),
+      challengesDone: num(stats.challengesDone, 0, 0),
+      distanceWalked: num(stats.distanceWalked, 0, 0),
+      playSeconds: num(stats.playSeconds, 0, 0),
+      landmarksScanned: num(stats.landmarksScanned, 0, 0),
+    },
+    settings: migrateSettings(input.settings),
+    lastPosition: Array.isArray(pos) && pos.length === 3 && pos.every((n) => typeof n === 'number' && Number.isFinite(n)) ? (pos as [number, number, number]) : null,
+    lastZone: typeof input.lastZone === 'string' ? input.lastZone : null,
+    creative: {
+      aksharas: strings(creative.aksharas),
+      photos: num(creative.photos, 0, 0),
+      melodies: strings(creative.melodies),
+    },
+  };
 }
 
 export const save = new SaveStore();

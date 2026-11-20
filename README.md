@@ -406,6 +406,19 @@ inscriptions, Ashoka's Major Rock Edicts 12 and 13, the Thanjavur construction, 
 `asanna`, the Jantar Mantar instrument functions, and the Vijayanagara survey. The `debate`-tagged
 entries are the ones to read first — they are where the interesting history is.
 
+## Game checks
+
+`npm run check` runs fast tests of the game's data and logic with no browser (Node's own test runner, with the
+TypeScript bundled by esbuild, so nothing extra to install), and the **Game checks** workflow runs it with the
+typecheck and the build on every push and pull request. `npm run check -- save` runs one file.
+
+| File | What it catches |
+|---|---|
+| `tests/game/content.test.ts` | The game's four validators as hard failures; codex entries nothing unlocks; dialogue nodes that cannot be reached or conversations that cannot end; sequence puzzles whose "correct" order is not chronological; duplicate ids; things placed outside their region; timeline dates that disagree with their text |
+| `tests/game/quiz.test.ts` | Thousands of generated questions per region: well formed, exactly one right answer, no disputed dates in "which came first", no ties in "which begins earliest", rounds that always fill; century labels |
+| `tests/game/save.test.ts` | Old, half-written and hand-edited saves: each must load into a profile the game can use rather than stop it starting |
+| `tests/game/i18n.test.ts` | Every language covers every interface string and pattern with the same parts, keeps numbers and key names, is in its own script, and names every region; no pattern is hidden by a broader one |
+
 ## Testing movement
 
 `scripts/tests/` holds Playwright scripts that drive the real player controller (`npm i -D playwright`, run

@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview --port 4173",
     "typecheck": "tsc --noEmit",
+    "check": "node scripts/check-game.mjs",
     "voices:script": "node scripts/voices.mjs script",
     "voices:import": "node scripts/voices.mjs import",
     "voices:manifest": "node scripts/voices.mjs manifest",

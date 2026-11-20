@@ -12,13 +12,10 @@
  */
 
 import type { Zone } from '../content/types';
-import { ZONES } from '../content/zones';
 import { save } from '../core/Save';
-import { PACK as BN } from './bn';
-import { EXACT as HI_EXACT, PATTERNS as HI_PATTERNS } from './hi';
-import { PACK as MR } from './mr';
+import { PATTERNS } from './hi';
 import type { LangPack } from './pack';
-import { PACK as TA } from './ta';
+import { PACKS } from './packs';
 
 export type Lang = 'en' | 'hi' | 'bn' | 'mr' | 'ta';
 
@@ -31,27 +28,7 @@ export const LANGS: ReadonlyArray<{ code: Lang; label: string; english: string }
   { code: 'ta', label: 'தமிழ்', english: 'Tamil' },
 ];
 
-const HI: LangPack = {
-  exact: HI_EXACT,
-  templates: HI_PATTERNS.map(([, tpl]) => tpl),
-  regions: {}, // filled from the zones' own Devanagari names, below
-  fragments: {
-    Question: 'प्रश्न',
-    of: '/',
-    'to steer ·': 'से दिशा ·',
-    'for the canopy ·': 'से छतरी ·',
-    Gliding: 'ग्लाइड',
-    'turn ·': 'मुड़ें ·',
-    flare: 'धीमा',
-    'Swimming ·': 'तैर रहे हैं ·',
-    'to surface': 'से ऊपर आएँ',
-  },
-};
-for (const z of ZONES) HI.regions[z.name] = (z.nameLocal.split(' · ')[0] ?? z.name).trim();
-HI.regions['The Chola Country'] = 'चोल देश'; // its local name is in Tamil script
-
-const PACKS: Record<Exclude<Lang, 'en'>, LangPack> = { hi: HI, bn: BN, mr: MR, ta: TA };
-const PATTERN_RES = HI_PATTERNS.map(([re]) => re);
+const PATTERN_RES = PATTERNS.map(([re]) => re);
 
 export function currentLang(): Lang {
   const l = save.settings.lang;

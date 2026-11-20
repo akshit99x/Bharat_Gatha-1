@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { DEFAULT_SETTINGS, migrateProfile, type Profile } from '../../src/core/Save';
+import { DEFAULT_SETTINGS, languageFromBrowser, migrateProfile, type Profile } from '../../src/core/Save';
 
 /** Everything the rest of the game assumes about a loaded profile. */
 function assertUsable(p: Profile, label: string): void {
@@ -80,5 +80,21 @@ describe('loading a save', () => {
 
   it('survives anything JSON can hold', () => {
     for (const input of [null, 0, 'x', [], true, { settings: [] }, { zones: 'x' }]) assertUsable(migrateProfile(input), JSON.stringify(input));
+  });
+});
+
+describe('first visit language', () => {
+  it('follows the browser’s first language the game has', () => {
+    const cases: Array<[string[], string]> = [
+      [['ta-IN', 'en'], 'ta'],
+      [['te'], 'te'],
+      [['ml_IN'], 'ml'],
+      [['en-IN', 'hi'], 'en'], // English first stays English
+      [['fr-FR', 'de', 'gu-IN'], 'gu'], // skips languages the game does not have
+      [['fr-FR'], 'en'],
+      [[], 'en'],
+      [['KN-in'], 'kn'],
+    ];
+    for (const [tags, lang] of cases) assert.equal(languageFromBrowser(tags), lang, tags.join(','));
   });
 });

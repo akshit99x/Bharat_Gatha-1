@@ -123,7 +123,9 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Nine interface languages.** English, **हिन्दी** (Hindi), **বাংলা** (Bengali), **मराठी** (Marathi), **ગુજરાતી**
 (Gujarati), **தமிழ்** (Tamil), **తెలుగు** (Telugu), **ಕನ್ನಡ** (Kannada) and **മലയാളം** (Malayalam).
-The language button on the title screen opens a picker, and the same choice is in the pause menu. The whole interface
+The language button on the title screen opens a picker, and the same choice is in the pause menu. On a first visit the game
+starts in the browser's own language when it has it (a browser set to Tamil opens in Tamil; one set to English stays
+in English). The whole interface
 switches: menus, HUD, How to play, the Journey map and roadmap, settings, the codex, plaque and quiz screens, the
 mini-games, and region names in each language's own script, including on the map. Each language is a dictionary of
 the same interface strings (`src/i18n/hi.ts` and one file per language beside it) applied by a small watcher

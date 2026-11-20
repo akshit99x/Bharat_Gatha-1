@@ -1,10 +1,14 @@
 /** Every interface language other than English, by code. */
 import { ZONES } from '../content/zones';
 import { PACK as BN } from './bn';
+import { PACK as GU } from './gu';
 import { EXACT as HI_EXACT, PATTERNS as HI_PATTERNS } from './hi';
+import { PACK as KN } from './kn';
+import { PACK as ML } from './ml';
 import { PACK as MR } from './mr';
 import type { LangPack } from './pack';
 import { PACK as TA } from './ta';
+import { PACK as TE } from './te';
 
 const HI: LangPack = {
   exact: HI_EXACT,
@@ -25,4 +29,4 @@ const HI: LangPack = {
 for (const z of ZONES) HI.regions[z.name] = (z.nameLocal.split(' · ')[0] ?? z.name).trim();
 HI.regions['The Chola Country'] = 'चोल देश'; // its local name is in Tamil script
 
-export const PACKS = { hi: HI, bn: BN, mr: MR, ta: TA } satisfies Record<string, LangPack>;
+export const PACKS = { hi: HI, bn: BN, mr: MR, gu: GU, ta: TA, te: TE, kn: KN, ml: ML } satisfies Record<string, LangPack>;

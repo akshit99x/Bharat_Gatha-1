@@ -121,11 +121,14 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
-**Five interface languages.** English, **हिन्दी** (Hindi), **বাংলা** (Bengali), **मराठी** (Marathi) and **தமிழ்** (Tamil).
-The language button on the title screen opens a picker, and the same choice is in the pause menu. The whole interface
+**Nine interface languages.** English, **हिन्दी** (Hindi), **বাংলা** (Bengali), **मराठी** (Marathi), **ગુજરાતી**
+(Gujarati), **தமிழ்** (Tamil), **తెలుగు** (Telugu), **ಕನ್ನಡ** (Kannada) and **മലയാളം** (Malayalam).
+The language button on the title screen opens a picker, and the same choice is in the pause menu. On a first visit the game
+starts in the browser's own language when it has it (a browser set to Tamil opens in Tamil; one set to English stays
+in English). The whole interface
 switches: menus, HUD, How to play, the Journey map and roadmap, settings, the codex, plaque and quiz screens, the
 mini-games, and region names in each language's own script, including on the map. Each language is a dictionary of
-the same interface strings (`src/i18n/hi.ts`, `bn.ts`, `mr.ts`, `ta.ts`) applied by a small watcher
+the same interface strings (`src/i18n/hi.ts` and one file per language beside it) applied by a small watcher
 (`src/i18n/index.ts`), so no interface code had to change; strings with numbers or names in them share one set of
 patterns, and each language supplies its own word order for them. History content (codex text, questions, dialogue)
 is still in English. The translations were written with AI assistance and should be reviewed by fluent speakers

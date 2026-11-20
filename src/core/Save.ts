@@ -140,7 +140,7 @@ export interface CreativeState {
 }
 
 export interface Settings {
-  lang: 'en' | 'hi' | 'bn' | 'mr' | 'ta';
+  lang: 'en' | 'hi' | 'bn' | 'mr' | 'gu' | 'ta' | 'te' | 'kn' | 'ml';
   mouseSensitivity: number;
   invertY: boolean;
   musicVolume: number;
@@ -387,7 +387,16 @@ function load(): Profile {
     // Private browsing / blocked storage — play in-memory.
     return emptyProfile();
   }
-  if (!raw) return emptyProfile();
+  if (!raw) {
+    // A first visit: start in the language the browser asks for, when the game has it.
+    const fresh = emptyProfile();
+    try {
+      fresh.settings.lang = languageFromBrowser(navigator.languages ?? [navigator.language]);
+    } catch {
+      // No navigator (tests, odd embeds): stay in English.
+    }
+    return fresh;
+  }
   try {
     return migrateProfile(JSON.parse(raw));
   } catch {
@@ -422,8 +431,20 @@ function recordOf<T>(v: unknown, ok: (x: unknown) => T | null): Record<string, T
 }
 
 /** Languages a save may name; keep in step with Settings['lang']. */
-const SAVED_LANGS: ReadonlyArray<Settings['lang']> = ['en', 'hi', 'bn', 'mr', 'ta'];
+const SAVED_LANGS: ReadonlyArray<Settings['lang']> = ['en', 'hi', 'bn', 'mr', 'gu', 'ta', 'te', 'kn', 'ml'];
 const VOICE_SOURCES: ReadonlyArray<Settings['voiceSource']> = ['auto', 'indian', 'neutral', 'device'];
+
+/**
+ * The interface language for a browser's preferred languages ("ta-IN", "hi", "en-GB"…): the first one the game has,
+ * so a browser that prefers English before Hindi gets English. English when none match.
+ */
+export function languageFromBrowser(tags: readonly string[]): Settings['lang'] {
+  for (const tag of tags) {
+    const code = String(tag).toLowerCase().split(/[-_]/)[0] as Settings['lang'];
+    if (SAVED_LANGS.includes(code)) return code;
+  }
+  return 'en';
+}
 
 function migrateSettings(v: unknown): Settings {
   const input = record(v);

@@ -6324,6 +6324,22 @@ html.lang-ta {
   --indic-head: 'Noto Sans Tamil', system-ui, sans-serif;
   --indic-body: 'Noto Sans Tamil', 'Mukta', system-ui, sans-serif;
 }
+html.lang-te {
+  --indic-head: 'Noto Sans Telugu', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Telugu', 'Mukta', system-ui, sans-serif;
+}
+html.lang-kn {
+  --indic-head: 'Noto Sans Kannada', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Kannada', 'Mukta', system-ui, sans-serif;
+}
+html.lang-ml {
+  --indic-head: 'Noto Sans Malayalam', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Malayalam', 'Mukta', system-ui, sans-serif;
+}
+html.lang-gu {
+  --indic-head: 'Noto Sans Gujarati', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Gujarati', 'Mukta', system-ui, sans-serif;
+}
 html.lang-indic * { letter-spacing: 0 !important; }
 html.lang-indic h1, html.lang-indic h2, html.lang-indic h3, html.lang-indic h4,
 html.lang-indic .panel-head h2, html.lang-indic .zone-banner, html.lang-indic .zb-name {
@@ -6343,12 +6359,16 @@ html.lang-indic body { font-family: var(--indic-body); }
 .lang-opt:lang(hi), .lang-opt:lang(mr) { font-family: 'Mukta', system-ui, sans-serif; }
 .lang-opt:lang(bn) { font-family: 'Noto Sans Bengali', system-ui, sans-serif; }
 .lang-opt:lang(ta) { font-family: 'Noto Sans Tamil', system-ui, sans-serif; }
+.lang-opt:lang(te) { font-family: 'Noto Sans Telugu', system-ui, sans-serif; }
+.lang-opt:lang(kn) { font-family: 'Noto Sans Kannada', system-ui, sans-serif; }
+.lang-opt:lang(ml) { font-family: 'Noto Sans Malayalam', system-ui, sans-serif; }
+.lang-opt:lang(gu) { font-family: 'Noto Sans Gujarati', system-ui, sans-serif; }
 .lang-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 14px; }
 .lang-row-label { font-size: 0.85em; opacity: 0.75; }
 .boot-meta { position: relative; }
 .lang-pop {
   position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); z-index: 5;
-  flex-wrap: nowrap; padding: 8px; border-radius: 14px; background: rgb(12 10 8 / 0.92);
+  flex-wrap: wrap; justify-content: center; width: min(92vw, 470px); padding: 8px; border-radius: 14px; background: rgb(12 10 8 / 0.92);
   border: 1px solid rgb(255 255 255 / 0.12); box-shadow: 0 10px 30px rgb(0 0 0 / 0.45); color: #f3ead8;
 }
 @media (max-width: 560px) { .lang-pop { flex-wrap: wrap; width: min(92vw, 360px); justify-content: center; } }

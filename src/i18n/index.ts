@@ -17,7 +17,7 @@ import { PATTERNS } from './hi';
 import type { LangPack } from './pack';
 import { PACKS } from './packs';
 
-export type Lang = 'en' | 'hi' | 'bn' | 'mr' | 'ta';
+export type Lang = 'en' | 'hi' | 'bn' | 'mr' | 'gu' | 'ta' | 'te' | 'kn' | 'ml';
 
 /** The languages on offer, each named in its own script (and in English, for the tooltip). */
 export const LANGS: ReadonlyArray<{ code: Lang; label: string; english: string }> = [
@@ -25,7 +25,11 @@ export const LANGS: ReadonlyArray<{ code: Lang; label: string; english: string }
   { code: 'hi', label: 'हिन्दी', english: 'Hindi' },
   { code: 'bn', label: 'বাংলা', english: 'Bengali' },
   { code: 'mr', label: 'मराठी', english: 'Marathi' },
+  { code: 'gu', label: 'ગુજરાતી', english: 'Gujarati' },
   { code: 'ta', label: 'தமிழ்', english: 'Tamil' },
+  { code: 'te', label: 'తెలుగు', english: 'Telugu' },
+  { code: 'kn', label: 'ಕನ್ನಡ', english: 'Kannada' },
+  { code: 'ml', label: 'മലയാളം', english: 'Malayalam' },
 ];
 
 const PATTERN_RES = PATTERNS.map(([re]) => re);

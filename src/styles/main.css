@@ -6310,12 +6310,45 @@ body.high-contrast .coach {
 .dk-input { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(0, 0, 0, 0.25); color: inherit; font: inherit; }
 @media (max-width: 760px) { .dk-layout { grid-template-columns: 1fr; min-width: 0; } }
 
-/* ------------------------------------------------------------ Hindi interface */
-/* Letter-spacing breaks Devanagari conjuncts, and Cinzel has no Devanagari: use a Devanagari face for headings. */
-html.lang-hi * { letter-spacing: 0 !important; }
-html.lang-hi h1, html.lang-hi h2, html.lang-hi h3, html.lang-hi h4,
-html.lang-hi .panel-head h2, html.lang-hi .zone-banner, html.lang-hi .zb-name {
-  font-family: 'Tiro Devanagari Hindi', 'Mukta', serif;
+/* ------------------------------------------------------------ Interface languages */
+/* Letter-spacing breaks Indic conjuncts, and Cinzel has only Latin: each language gets a face for its own script. */
+html.lang-hi, html.lang-mr {
+  --indic-head: 'Tiro Devanagari Hindi', 'Mukta', serif;
+  --indic-body: 'Mukta', 'Tiro Devanagari Hindi', system-ui, sans-serif;
+}
+html.lang-bn {
+  --indic-head: 'Noto Sans Bengali', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Bengali', 'Mukta', system-ui, sans-serif;
+}
+html.lang-ta {
+  --indic-head: 'Noto Sans Tamil', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Tamil', 'Mukta', system-ui, sans-serif;
+}
+html.lang-indic * { letter-spacing: 0 !important; }
+html.lang-indic h1, html.lang-indic h2, html.lang-indic h3, html.lang-indic h4,
+html.lang-indic .panel-head h2, html.lang-indic .zone-banner, html.lang-indic .zb-name {
+  font-family: var(--indic-head);
   text-transform: none;
 }
-html.lang-hi body { font-family: 'Mukta', 'Tiro Devanagari Hindi', system-ui, sans-serif; }
+html.lang-indic body { font-family: var(--indic-body); }
+
+/* The language picker: each choice is written in its own script. */
+.lang-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.lang-opt {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.05); color: inherit; cursor: pointer; font: inherit; font-size: 0.95rem; letter-spacing: 0;
+}
+.lang-opt:hover { border-color: var(--gold-soft); }
+.lang-opt[aria-pressed='true'] { border-color: var(--gold); background: rgb(232 180 75 / 0.16); color: var(--gold-bright); }
+.lang-opt:lang(hi), .lang-opt:lang(mr) { font-family: 'Mukta', system-ui, sans-serif; }
+.lang-opt:lang(bn) { font-family: 'Noto Sans Bengali', system-ui, sans-serif; }
+.lang-opt:lang(ta) { font-family: 'Noto Sans Tamil', system-ui, sans-serif; }
+.lang-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 14px; }
+.lang-row-label { font-size: 0.85em; opacity: 0.75; }
+.boot-meta { position: relative; }
+.lang-pop {
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%); z-index: 5;
+  flex-wrap: nowrap; padding: 8px; border-radius: 14px; background: rgb(12 10 8 / 0.92);
+  border: 1px solid rgb(255 255 255 / 0.12); box-shadow: 0 10px 30px rgb(0 0 0 / 0.45); color: #f3ead8;
+}
+@media (max-width: 560px) { .lang-pop { flex-wrap: wrap; width: min(92vw, 360px); justify-content: center; } }

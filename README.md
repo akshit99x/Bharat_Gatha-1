@@ -121,12 +121,15 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
-**Hindi interface.** The **हिन्दी** button on the title screen (and in the pause menu) switches the whole interface to
-Hindi: menus, HUD, How to play, the Journey map and roadmap, settings, the codex, plaque and quiz screens, the
-mini-games, and region names in Devanagari, including on the map. It is a dictionary of interface strings
-(`src/i18n/hi.ts`) applied by a small watcher (`src/i18n/index.ts`), so no interface code had to change. History
-content (codex text, questions, dialogue) is still in English. The Hindi was written with AI assistance and should be
-reviewed by a fluent speaker.
+**Five interface languages.** English, **हिन्दी** (Hindi), **বাংলা** (Bengali), **मराठी** (Marathi) and **தமிழ்** (Tamil).
+The language button on the title screen opens a picker, and the same choice is in the pause menu. The whole interface
+switches: menus, HUD, How to play, the Journey map and roadmap, settings, the codex, plaque and quiz screens, the
+mini-games, and region names in each language's own script, including on the map. Each language is a dictionary of
+the same interface strings (`src/i18n/hi.ts`, `bn.ts`, `mr.ts`, `ta.ts`) applied by a small watcher
+(`src/i18n/index.ts`), so no interface code had to change; strings with numbers or names in them share one set of
+patterns, and each language supplies its own word order for them. History content (codex text, questions, dialogue)
+is still in English. The translations were written with AI assistance and should be reviewed by fluent speakers
+before classroom use.
 
 **The creative side.**
 

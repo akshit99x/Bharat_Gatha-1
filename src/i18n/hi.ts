@@ -643,7 +643,6 @@ export const EXACT: Record<string, string> = {
   Avarohana: 'अवरोह',
   'The descent: the same notes, coming home to Sa.': 'अवरोह: वही स्वर, सा पर लौटते हुए।',
   'A phrase in raga Durga': 'राग दुर्गा का एक वाक्यांश',
-  'Not yet found.': 'अभी नहीं मिला।',
 
   // ---------------------------------------------------------------- additions: title foot, stats, next-step card
   'Headphones recommended. Best on a keyboard & mouse. Press': 'हेडफ़ोन की सलाह दी जाती है। कीबोर्ड और माउस के साथ सबसे अच्छा। विराम के लिए कभी भी',

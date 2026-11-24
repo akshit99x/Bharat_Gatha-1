@@ -4,6 +4,8 @@
  * translated screen; one that drops a "$2" shows a sentence with a hole in it.
  */
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 
 import { ZONES } from '../../src/content/zones';
@@ -26,6 +28,8 @@ const SCRIPT: Record<string, RegExp> = {
   te: /[ఀ-౿]/,
   gu: /[઀-૿]/,
   ml: /[ഀ-ൿ]/,
+  pa: /[\u0A00-\u0A7F]/,
+  or: /[\u0B00-\u0B7F]/,
 };
 
 describe('language packs', () => {
@@ -141,3 +145,25 @@ function exampleFor(re: RegExp): string | null {
     .replace(/\\(.)/g, '$1');
   return /[()[\]|?*+]/.test(s) ? null : s;
 }
+
+describe('dictionary upkeep', () => {
+  it('every interface string in the dictionaries is still used by the game', () => {
+    // A string the interface no longer shows is dead weight in every pack, and a sign that its replacement may be
+    // untranslated. Strings are matched against the source as written (quotes and HTML entities unescaped).
+    const files = [
+      ...readdirSync('src', { recursive: true, encoding: 'utf8' })
+        .filter((f) => f.endsWith('.ts') && !f.replace(/\\/g, '/').startsWith('i18n/'))
+        .map((f) => join('src', f)),
+      'index.html',
+    ];
+    const source = files
+      .map((f) => readFileSync(f, 'utf8'))
+      .join('\n')
+      .replace(/\\'/g, "'")
+      .replace(/&amp;/g, '&')
+      .replace(/&rsquo;/g, '’')
+      .replace(/&mdash;/g, '—');
+    const unused = englishKeys.filter((k) => !source.includes(k));
+    assert.deepEqual(unused, [], 'remove these from src/i18n/*.ts, or put them back in the interface');
+  });
+});

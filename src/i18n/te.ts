@@ -590,7 +590,6 @@ export const PACK: LangPack = {
     "Avarohana": "అవరోహణ",
     "The descent: the same notes, coming home to Sa.": "దిగడం: అవే స్వరాలు, స వైపు తిరిగి వస్తూ.",
     "A phrase in raga Durga": "దుర్గా రాగంలో ఒక సంచారం",
-    "Not yet found.": "ఇంకా దొరకలేదు.",
     "Headphones recommended. Best on a keyboard & mouse. Press": "హెడ్‌ఫోన్లు సిఫారసు. కీబోర్డ్ మరియు మౌస్‌తో ఉత్తమం. విరామం కోసం ఎప్పుడైనా",
     "any time to pause.": "నొక్కండి.",
     "eras": "యుగాలు",

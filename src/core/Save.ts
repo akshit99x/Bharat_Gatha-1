@@ -140,7 +140,7 @@ export interface CreativeState {
 }
 
 export interface Settings {
-  lang: 'en' | 'hi' | 'bn' | 'mr' | 'gu' | 'ta' | 'te' | 'kn' | 'ml';
+  lang: 'en' | 'hi' | 'bn' | 'mr' | 'gu' | 'pa' | 'or' | 'ta' | 'te' | 'kn' | 'ml';
   mouseSensitivity: number;
   invertY: boolean;
   musicVolume: number;
@@ -431,7 +431,7 @@ function recordOf<T>(v: unknown, ok: (x: unknown) => T | null): Record<string, T
 }
 
 /** Languages a save may name; keep in step with Settings['lang']. */
-const SAVED_LANGS: ReadonlyArray<Settings['lang']> = ['en', 'hi', 'bn', 'mr', 'gu', 'ta', 'te', 'kn', 'ml'];
+const SAVED_LANGS: ReadonlyArray<Settings['lang']> = ['en', 'hi', 'bn', 'mr', 'gu', 'pa', 'or', 'ta', 'te', 'kn', 'ml'];
 const VOICE_SOURCES: ReadonlyArray<Settings['voiceSource']> = ['auto', 'indian', 'neutral', 'device'];
 
 /**

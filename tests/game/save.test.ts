@@ -24,7 +24,7 @@ function assertUsable(p: Profile, label: string): void {
     ok(typeof v === typeof def, `setting ${key} is a ${typeof def}`);
     if (typeof v === 'number') ok(Number.isFinite(v), `setting ${key} is finite`);
   }
-  ok(['en', 'hi', 'bn', 'mr', 'ta', 'kn', 'te', 'gu', 'ml'].includes(p.settings.lang), 'language is one the game has');
+  ok(['en', 'hi', 'bn', 'mr', 'ta', 'kn', 'te', 'gu', 'ml', 'pa', 'or'].includes(p.settings.lang), 'language is one the game has');
   for (const k of ['seen', 'met', 'panels', 'sabhaSettled'] as const) ok(Array.isArray(p.story[k]), `story.${k} is a list`);
   ok(typeof p.story.plaques === 'object' && p.story.plaques !== null, 'story.plaques is a record');
   ok(Array.isArray(p.creative.aksharas) && Array.isArray(p.creative.melodies), 'creative lists');

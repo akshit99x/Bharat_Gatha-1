@@ -6,6 +6,8 @@ import { EXACT as HI_EXACT, PATTERNS as HI_PATTERNS } from './hi';
 import { PACK as KN } from './kn';
 import { PACK as ML } from './ml';
 import { PACK as MR } from './mr';
+import { PACK as OR } from './or';
+import { PACK as PA } from './pa';
 import type { LangPack } from './pack';
 import { PACK as TA } from './ta';
 import { PACK as TE } from './te';
@@ -29,4 +31,4 @@ const HI: LangPack = {
 for (const z of ZONES) HI.regions[z.name] = (z.nameLocal.split(' · ')[0] ?? z.name).trim();
 HI.regions['The Chola Country'] = 'चोल देश'; // its local name is in Tamil script
 
-export const PACKS = { hi: HI, bn: BN, mr: MR, gu: GU, ta: TA, te: TE, kn: KN, ml: ML } satisfies Record<string, LangPack>;
+export const PACKS = { hi: HI, bn: BN, mr: MR, gu: GU, pa: PA, or: OR, ta: TA, te: TE, kn: KN, ml: ML } satisfies Record<string, LangPack>;

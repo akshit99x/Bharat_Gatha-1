@@ -17,7 +17,7 @@ import { PATTERNS } from './hi';
 import type { LangPack } from './pack';
 import { PACKS } from './packs';
 
-export type Lang = 'en' | 'hi' | 'bn' | 'mr' | 'gu' | 'ta' | 'te' | 'kn' | 'ml';
+export type Lang = 'en' | 'hi' | 'bn' | 'mr' | 'gu' | 'pa' | 'or' | 'ta' | 'te' | 'kn' | 'ml';
 
 /** The languages on offer, each named in its own script (and in English, for the tooltip). */
 export const LANGS: ReadonlyArray<{ code: Lang; label: string; english: string }> = [
@@ -26,6 +26,8 @@ export const LANGS: ReadonlyArray<{ code: Lang; label: string; english: string }
   { code: 'bn', label: 'বাংলা', english: 'Bengali' },
   { code: 'mr', label: 'मराठी', english: 'Marathi' },
   { code: 'gu', label: 'ગુજરાતી', english: 'Gujarati' },
+  { code: 'pa', label: 'ਪੰਜਾਬੀ', english: 'Punjabi' },
+  { code: 'or', label: 'ଓଡ଼ିଆ', english: 'Odia' },
   { code: 'ta', label: 'தமிழ்', english: 'Tamil' },
   { code: 'te', label: 'తెలుగు', english: 'Telugu' },
   { code: 'kn', label: 'ಕನ್ನಡ', english: 'Kannada' },

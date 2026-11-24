@@ -6336,6 +6336,14 @@ html.lang-ml {
   --indic-head: 'Noto Sans Malayalam', system-ui, sans-serif;
   --indic-body: 'Noto Sans Malayalam', 'Mukta', system-ui, sans-serif;
 }
+html.lang-pa {
+  --indic-head: 'Noto Sans Gurmukhi', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Gurmukhi', 'Mukta', system-ui, sans-serif;
+}
+html.lang-or {
+  --indic-head: 'Noto Sans Oriya', system-ui, sans-serif;
+  --indic-body: 'Noto Sans Oriya', 'Mukta', system-ui, sans-serif;
+}
 html.lang-gu {
   --indic-head: 'Noto Sans Gujarati', system-ui, sans-serif;
   --indic-body: 'Noto Sans Gujarati', 'Mukta', system-ui, sans-serif;
@@ -6363,6 +6371,8 @@ html.lang-indic body { font-family: var(--indic-body); }
 .lang-opt:lang(kn) { font-family: 'Noto Sans Kannada', system-ui, sans-serif; }
 .lang-opt:lang(ml) { font-family: 'Noto Sans Malayalam', system-ui, sans-serif; }
 .lang-opt:lang(gu) { font-family: 'Noto Sans Gujarati', system-ui, sans-serif; }
+.lang-opt:lang(pa) { font-family: 'Noto Sans Gurmukhi', system-ui, sans-serif; }
+.lang-opt:lang(or) { font-family: 'Noto Sans Oriya', system-ui, sans-serif; }
 .lang-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 14px; }
 .lang-row-label { font-size: 0.85em; opacity: 0.75; }
 .boot-meta { position: relative; }

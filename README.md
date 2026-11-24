@@ -121,8 +121,9 @@ levelled under each monument; the view eases over steps and the camera stops sho
 
 **Life in the world.** Flocks of birds wheel overhead, and grass and wildflowers sway underfoot.
 
-**Nine interface languages.** English, **हिन्दी** (Hindi), **বাংলা** (Bengali), **मराठी** (Marathi), **ગુજરાતી**
-(Gujarati), **தமிழ்** (Tamil), **తెలుగు** (Telugu), **ಕನ್ನಡ** (Kannada) and **മലയാളം** (Malayalam).
+**Eleven interface languages.** English, **हिन्दी** (Hindi), **বাংলা** (Bengali), **मराठी** (Marathi), **ગુજરાતી**
+(Gujarati), **ਪੰਜਾਬੀ** (Punjabi), **ଓଡ଼ିଆ** (Odia), **தமிழ்** (Tamil), **తెలుగు** (Telugu), **ಕನ್ನಡ** (Kannada) and
+**മലയാളം** (Malayalam).
 The language button on the title screen opens a picker, and the same choice is in the pause menu. On a first visit the game
 starts in the browser's own language when it has it (a browser set to Tamil opens in Tamil; one set to English stays
 in English). The whole interface
